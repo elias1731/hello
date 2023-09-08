@@ -1,0 +1,13 @@
+/*------------------------------------------------------------------
+
+[ Discord Name Image ]*/
+
+/*---------------------------------------------*/
+img {
+  border-radius: 10%;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  width: 25%;
+  height: auto;
+}
