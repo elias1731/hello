@@ -1,1 +1,1 @@
-Persönlicher Linktree - Guthub Edition 2024
+Persönlicher Linktree - Github Edition 2024
