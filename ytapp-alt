@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="de" >
+
+<head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+    <title>heyFordy - Alternative YT-App URLs</title>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" type="text/css" href="assets/style.css">
+    <link rel="stylesheet" href="assets/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+</head>
+
+<body>
+    <div class="container">
+    <div class="col-xs-12">
+            <div class="text-center" style="padding-top: 30px; padding-bottom: 30px;">
+                <h2 style="color: #ffffff; padding-top: 24px;">[Android] TV URL Collection</h2>
+            </div>
+    </br>
+      <div class="text-center">
+			<a>APK-downloads / usefull bookmarks / important files</a>
+		  </div>
+    </div>
+    </div>
+</br>
+    <div class="container">
+    <div class="col-xs-12">
+            <div class="text-center">
+                <div style="padding-bottom: 50px;">
+                    <button onclick="location.href='https://github.com/elias1731/ytlite/releases/'" type="button" class="btn btn-outline-light" style="width: 80%; padding-top:10px; padding-bottom:10px; font-weight: 600;">iOS (YTPlus)</button>
+                </div>
+                <div style="padding-bottom: 50px;">
+                    <button onclick="location.href='https://vanced.to/revanced-manager'" type="button" class="btn btn-outline-light" style="width: 80%; padding-top:10px; padding-bottom:10px; font-weight: 800;">Android (Vanced Manager)</button>
+                </div>
+            </div>
+    </div>
+    </div>
+				</br></br></br></br></br></br></br>
+
+			</div>
+                <div style="padding-bottom: 30px;">
+                    <button onclick="location.href='https://elias1731.github.io/hello/datenschutz.html'" type="button" class="btn btn-outline-light" style="width: 100%; padding-top:10px; padding-bottom:10px; font-weight: 600;">Datenschutz</button>
+                </div>
+                <div style="padding-bottom: 30px;">
+                    <button onclick="location.href='https://elias1731.github.io/hello/impressum.html'" type="button" class="btn btn-outline-light" style="width: 100%; padding-top:10px; padding-bottom:10px; font-weight: 600;">Impressum</button>
+                </div>
+				
+			</div>
+
+
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
+    <!-- This pre-lander was created by Brandon Nilsson -->
+    <!-- You're welcome to edit, reproduce and change this template as long as original contributation stays present on the website at all times.  -->
+</body>
+
+</html>
