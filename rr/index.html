@@ -1,34 +1,36 @@
 <!DOCTYPE html>
 <html lang="en">
     <head>
-        <title>Retro Rewind Rooms Browser</title>
+        <title>heyFordy.de | RetroWFC Räume</title>
         <meta name="description" content="View rooms and players currently playing Retro Rewind, a custom track distribution for Mario Kart Wii by ZPL."/>
-        <meta name="author" content="KevinVG207" />
+        <meta name="author" content="KevinVG207, heyFordy" />
         <meta name="keywords" content="mario kart wii, mkwii, retro rewind, zpl, rooms, online, status, online status, multiplayer, ctgp" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <!-- <link rel="shortcut icon" href="favicon.ico" type="image/vnd.microsoft.icon" /> -->
         <!-- <link rel="stylesheet" href="https://unpkg.com/reset-css@5.0.1/reset.css" /> -->
         <link rel="stylesheet" href="./style.css" type="text/css" />
         <link href="./ctmkf.css" rel="Stylesheet" type="text/css" />
-        <meta name="google-site-verification" content="7kba7_shX35iAz3yKPc03miKG_00vGt1IUr8dia-UhY" />
+        <!-- <meta name="google-site-verification" content="7kba7_shX35iAz3yKPc03miKG_00vGt1IUr8dia-UhY" /> -->
     </head>
     <body>
         <h1><a href="?" id="home-link">Retro Rewind Room Browser</a></h1>
         <div id="settings">
             <div id="timeout-container">
-                <label for="timeout-checkbox">Auto-refresh</label>
+                <label for="timeout-checkbox">Autom. aktualisieren</label>
                 <input type="checkbox" id="timeout-checkbox" onchange="on_checkbox()" />
             </div>
             <div id="private-container">
-                <label for="private-checkbox">Show Private rooms</label>
+                <label for="private-checkbox">Private Räume zeigen</label>
                 <input type="checkbox" id="private-checkbox" onchange="on_private_checkbox()" />
             </div>
+            <!--
             <div id="openhost-container">
-                <label for="openhost-checkbox">Indicate OpenHost</label>
+                <label for="openhost-checkbox">OpenHost makieren</label>
                 <input type="checkbox" id="openhost-checkbox" onchange="on_openhost_checkbox()" />
             </div>
+            -->
             <div id="fc-container">
-                <label for="fc-input">Highlight FC</label>
+                <label for="fc-input">Freundescode hervorheben</label>
                 <input type="text" id="fc-input" placeholder="0000-0000-0000-0000" oninput="on_fc_change()" />
             </div>
             <div id="history-container">
@@ -39,22 +41,22 @@
                 <button onclick="add_history(60)">+1h</button>
             </div>
             <div id="history-indicator">
-                <span>Currently viewing history.</span>
-                <button onclick="disable_history()">Back to Live</button>
+                <span>Veraltete Daten werden angezeigt!</span>
+                <button onclick="disable_history()">Zurück zu Live</button>
             </div>
         </div>
-        <div id="loading">Fetching data. Please wait...</div>
-        <div id="top-container"><span>No. of rooms: <span id="no-rooms" class="top-stat">0</span></span><span>No. of players: <span id="no-players" class="top-stat">0</span></span></div>
+        <div id="loading">Lade daten. Bitte warten...</div>
+        <div id="top-container"><span>Anzahl Räume: <span id="no-rooms" class="top-stat">0</span></span><span>Anzahl Spieler: <span id="no-players" class="top-stat">0</span></span></div>
         <div id="not-found-container">
-            Specified room has closed or does not exist.
+            Gesuchter Raum wurde geschlossen oder existiert nicht.
         </div>
         <table>
             <tbody id="tablebody"></tbody>
         </table>
         <p><a href="https://wiki.tockdom.com/wiki/Retro_Rewind" target="_blank">Retro Rewind</a> is a custom track distribution for Mario Kart Wii, created by ZPL.</p>
-        <p>This webpage is created by <a href="https://github.com/KevinVG207" target="_blank">KevinVG207</a></p>
-        <p>Room data taken from <a href="http://zplwii.xyz/api/groups" target="_blank">this API endpoint</a>.</p>
-        <p><a href="https://wiki.tockdom.com/wiki/CTMKF" target="_blank">Chadderz's Terrible Mario Kart Font</a> is used for the Mii name special symbols.</p>
+        <p>Webseite bereitgestellt von <a href="https://github.com/elias1731" target="_blank">ELIAS1731</a></p>
+        <p>Quelle der Raumdaten: <a href="http://zplwii.xyz/api/groups" target="_blank">this API endpoint</a>.</p>
+        <p><a href="https://wiki.tockdom.com/wiki/CTMKF" target="_blank">Font</a> is used for the Mii name special symbols.</p>
         <script type="text/javascript">
             let HISTORY_TIMER = null;
             let HISTORY_MODE = false;
@@ -69,10 +71,10 @@
             // Source: https://github.com/patchzyy/WheelWizard
             const ROOM_TYPES = {
                 "vs_10": "Retro VS",
-                "vs_11": "Retro TT",
+                "vs_11": "Retro ZF",
                 "vs_12": "Retro 200cc",
                 "vs_20": "CT VS",
-                "vs_21": "CT TT",
+                "vs_21": "CT ZF",
                 "vs_22": "CT 200cc",
                 "vs_668": "CTGP-C",
                 "vs_69": "Insane Kart",
