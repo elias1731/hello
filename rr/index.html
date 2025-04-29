@@ -674,15 +674,15 @@
                     let room_header = document.createElement("th");
                     room_header.colSpan = 100;
                     room_header.classList.add("room-header");
-                    let room_type = room.type == "anybody" ? "🌎 Public" : "🔒 Private";
+                    let room_type = room.type == "anybody" ? "🌎 Öffentlich" : "🔒 Privat";
 
 
-                    let joinable = room.suspend ? "Not joinable" : "Joinable";
+                    let joinable = room.suspend ? "kein Beitritt möglich" : "Beitritt möglich";
                     if (room.split) {
                         joinable = "Split room";
                     }
 
-                    let joinable_class = room.suspend ? "not-joinable" : "joinable";
+                    let joinable_class = room.suspend ? "kein Beitritt möglich" : "Beitritt möglich";
                     if (room.split) {
                         joinable_class = "split-room";
                     }
@@ -710,7 +710,7 @@
 
                     // Friend Code
                     th = document.createElement("th");
-                    th.textContent = "Friend Code";
+                    th.textContent = "FreundesCode";
                     tr.appendChild(th);
 
                     // // Connection fail
