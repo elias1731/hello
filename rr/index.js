@@ -87,7 +87,7 @@ async function getMiisForPlayerInfo(playerInfo) {
     if (isEmpty(reqBody))
         return;
 
-    const response = await fetch("./qrcoderc24", {
+    const response = await fetch("https://miicontestp.wii.rc24.xyz/cgi-bin/studio.cgi", {
         method: "POST",
         body: JSON.stringify(reqBody),
         headers: {
