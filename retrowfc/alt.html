@@ -28,7 +28,7 @@
 </div>
 <div id="fc-container">
 <label for="fc-input">FC markieren</label>
-<input id="fc-input" oninput="on_fc_change()" placeholder="5374-7369-5676" type="text"/>
+<input id="fc-input" oninput="on_fc_change()" placeholder="3957-3856-7551" type="text"/>
 </div>
 <div id="history-container">
 <button onclick="add_history(-60)">-1h</button>
@@ -164,8 +164,7 @@
             }
 
             function on_fc_change(){
-                const fc = 3957-3856-7551;
-//              const fc = document.getElementById("fc-input").value;
+                const fc = document.getElementById("fc-input").value;
                 localStorage.setItem("highlight-fc", fc);
                 reload_rooms();
             }
