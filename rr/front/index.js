@@ -87,7 +87,7 @@ async function getMiisForPlayerInfo(playerInfo) {
     if (isEmpty(reqBody))
         return;
 
-    const response = await fetch("https://umapyoi.net/api/v1/mii", {
+    const response = await fetch("./qrcoderc24", {
         method: "POST",
         body: JSON.stringify(reqBody),
         headers: {
@@ -323,7 +323,7 @@ async function getRooms(id) {
         }
     }
 
-    const req = await fetch(`https://ppeb.me/RetroRewind/groups${id != null ? `?id=${id}` : ""}`);
+    const req = await fetch(`./groups${id != null ? `?id=${id}` : ""}`);
 
     if (!req.ok) {
         updateButtons(true);

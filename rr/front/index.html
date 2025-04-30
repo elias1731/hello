@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 
 <head>
-    <title>RetroWFC | heyFordy.de</title>
+    <title>Retro Rewind Status</title>
     <meta name="viewport" content="width=device-width, initial-scale=0.8, maximum-scale=0.8, minimum-scale=0.8" />
     <link rel="stylesheet" type="text/css" href="style.css" />
     <script type="text/javascript" src="index.js"></script>
@@ -15,22 +15,21 @@
 </head>
 
 <body>
-    <h1 class="title">RetroWFC Status</h1>
+    <h1 class="title">Retro Rewind Status</h1>
     <h3 id="player-count-header">
         <Span class="count-text">
-            <Span id="player-count">??</Span> Spieler
+            <Span id="player-count">??</Span> Players
         </Span>
-        in
+        Online Across
         <Span class="count-text">
-            <Span id="room-count">??</Span> Räumen online
+            <Span id="room-count">??</Span> Rooms
         </Span>
     </h3>
 
     <h4 id="fetch-info">
         <button id="mega-backwards" class="cycle-button active" onclick="backwards(true)">&lt;&lt;</button>
         <button id="backwards" class="cycle-button active" onclick="backwards()">&lt;</button>
-		<span id="fetch-timestamp">[ ?? ] Daten von: ??</span>
-        <!-- <span id="fetch-timestamp">Data ID ?? Fetched At ??</span> -->
+        <span id="fetch-timestamp">Data ID ?? Fetched At ??</span>
         <button id="mega-forwards" class="cycle-button" onclick="forwards(true)">&gt;&gt;</button>
         <button id="forwards" class="cycle-button" onclick="forwards()">&gt;</button>
     </h4>
@@ -39,21 +38,21 @@
     </div>
 
     <div id="no-data" style="display: none;">
-        <span>Keine Daten gefunden! <br />
-            RetroWFC ist aktuell wahrscheinlich nicht erreichbar. <br />
-            </span>
+        <span>No room data found! <br />
+            The Retro Rewind server may be down at this time! <br />
+            Use the arrows to the left or right to view historical data...</span>
     </div>
 
     <div class="scroll"></div>
 
     <div class="footer">
         <ul>
-            <li><a class="footer-link" href="https://wiki.tockdom.com/wiki/Retro_Rewind">RetroRewind</a></li>
+            <li><a class="footer-link" href="https://wiki.tockdom.com/wiki/Retro_Rewind">Retro Rewind</a></li>
             <li><a class="footer-link" href="https://www.fontsquirrel.com/fonts/rubik">Rubik Font</a></li>
-            <li><a class="footer-link" href="https://wiki.tockdom.com/wiki/CTMKF">Chadderz'
+            <li><a class="footer-link" href="https://wiki.tockdom.com/wiki/CTMKF">Chadderz' Terrible Mario Kart
                     Font</a>
-            <li><a class="footer-link" href="http://rwfc.net/api/groups">API</a></li>
-            <li><a class="footer-link" href="https://github.com/ppebb/RetroRewindRooms">Github</a></li>
+            <li><a class="footer-link" href="http://rwfc.net/api/groups">API Endpoint</a></li>
+            <li><a class="footer-link" href="https://github.com/ppebb/RetroRewindRooms">Page Source</a></li>
         </ul>
     </div>
 
