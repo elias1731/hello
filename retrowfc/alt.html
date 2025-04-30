@@ -12,6 +12,14 @@
 <link href="./ctmkf.css" rel="Stylesheet" type="text/css"/>
 </head>
 <body>
+<script>
+(function() {
+    const DEFAULT_FC = "5374-7369-5676";
+    if (!localStorage.getItem("highlight-fc")) {
+        localStorage.setItem("highlight-fc", DEFAULT_FC);
+    }
+})();
+</script>    
 <h1><a href="?" id="home-link">Retro Rewind Raum-Browser</a></h1>
 <div id="settings">
 <div id="timeout-container">
