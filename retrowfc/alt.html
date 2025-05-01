@@ -621,7 +621,7 @@ function filter_fc(rooms){
 
             async function on_load(){
                 document.getElementById("timeout-checkbox").checked = localStorage.getItem("auto-reload") == "true";
-                document.getElementById("fc-input").value = localStorage.getItem("highlight-fc") || "3957-3856-7551";
+                document.getElementById("fc-input").value = localStorage.getItem("highlight-fc") || "";
                 let priv = localStorage.getItem("show-private");
                 if (priv == null){
                     priv = true;
