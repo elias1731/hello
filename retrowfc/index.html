@@ -11,22 +11,6 @@
         <link href="./ctmkf.css" rel="Stylesheet" type="text/css" />
     </head>
     <body>
-<script>
-(function() {
-    const FORDY_FC = "3957-3856-7551";
-    if (!localStorage.getItem("fordy-fc")) {
-        localStorage.setItem("fordy-fc", FORDY_FC);
-    }
-})();
-</script>    
-<script>
-(function() {
-    const GERMTR_FC = "5374-7369-5676";
-    if (!localStorage.getItem("germtr-fc")) {
-        localStorage.setItem("germtr-fc", GERMTR_FC);
-    }
-})();
-</script>
         <h1><a href="?" id="home-link">Retro Rewind Info</a></h1>
         <div id="settings">
             <div id="timeout-container">
@@ -316,7 +300,7 @@
 
             function filter_fc(rooms){
                 // If the filter FC is found, place that room at the top.
-                const fc = localStorage.getItem("highlight-fc");
+                const fc = localStorage.getItem("highlight-fc") || "3957-3856-7551" || "5374-7369-5676";
 
                 if (!fc){
                     return rooms;
@@ -811,10 +795,10 @@
                             if (Spieler.fc == localStorage.getItem("highlight-fc")){
                                 tr.classList.add("highlighted");
                             }
-                            if (Spieler.fc == localStorage.getItem("fordy-fc")){
+                            if (Spieler.fc == "3957-3856-7551"){
                                 tr.classList.add("fordy-highlighted");
                             }
-                            if (Spieler.fc == localStorage.getItem("germtr-fc")){
+                            if (Spieler.fc == "5374-7369-5676"){
                                 tr.classList.add("germtr-highlighted");
                             }
 
