@@ -14,9 +14,17 @@
 <body>
 <script>
 (function() {
-    const DEFAULT_FC = "5374-7369-5676";
-    if (!localStorage.getItem("highlight-fc")) {
-        localStorage.setItem("highlight-fc", DEFAULT_FC);
+    const FORDY_FC = "3957-3856-7551";
+    if (!localStorage.getItem("fordy-fc")) {
+        localStorage.setItem("fordy-fc", FORDY_FC);
+    }
+})();
+</script>    
+<script>
+(function() {
+    const GERMTR_FC = "5374-7369-5676";
+    if (!localStorage.getItem("germtr-fc")) {
+        localStorage.setItem("germtr-fc", GERMTR_FC);
     }
 })();
 </script>    
@@ -36,7 +44,7 @@
 </div>
 <div id="fc-container">
 <label for="fc-input">FC markieren</label>
-<input id="fc-input" oninput="on_fc_change()" placeholder="3957-3856-7551" type="text"/>
+<input id="fc-input" oninput="on_fc_change()" placeholder="0000-0000-0000" type="text"/>
 </div>
 <div id="history-container">
 <button onclick="add_history(-60)">-1h</button>
@@ -305,6 +313,72 @@
 
                 return new_rooms;
 
+            }
+
+function filter_fc(rooms){
+                // If the filter FC is found, place that room at the top.
+                const fc = localStorage.getItem("fordy-fc");
+
+                if (!fc){
+                    return rooms;
+                }
+
+                let new_rooms = [];
+
+                for (let i = 0; i < rooms.length; i++){
+                    const room = rooms[i];
+
+                    let found = false;
+
+                    for (const player_idx of Object.keys(room.players)){
+                        const player = room.players[player_idx];
+
+                        if (player.fc == fc){
+                            new_rooms.unshift(room);
+                            found = true;
+                            break;
+                        }
+                    }
+
+                    if (!found){
+                        new_rooms.push(room);
+                    }
+                }
+
+                return new_rooms;
+            }
+
+function filter_fc(rooms){
+                // If the filter FC is found, place that room at the top.
+                const fc = localStorage.getItem("germtr-fc");
+
+                if (!fc){
+                    return rooms;
+                }
+
+                let new_rooms = [];
+
+                for (let i = 0; i < rooms.length; i++){
+                    const room = rooms[i];
+
+                    let found = false;
+
+                    for (const player_idx of Object.keys(room.players)){
+                        const player = room.players[player_idx];
+
+                        if (player.fc == fc){
+                            new_rooms.unshift(room);
+                            found = true;
+                            break;
+                        }
+                    }
+
+                    if (!found){
+                        new_rooms.push(room);
+                    }
+                }
+
+                return new_rooms;
             }
 
             function filter_fc(rooms){
@@ -802,6 +876,14 @@
                             // }
 
                             if (player.fc == localStorage.getItem("highlight-fc")){
+                                tr.classList.add("highlighted");
+                            }
+                            
+                            if (player.fc == localStorage.getItem("fordy-fc")){
+                                tr.classList.add("highlighted");
+                            }
+                            
+                            if (player.fc == localStorage.getItem("germtr-fc")){
                                 tr.classList.add("highlighted");
                             }
 
