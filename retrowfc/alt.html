@@ -315,13 +315,39 @@
 
             }
 
-function filter_fc(rooms){
-                // If the filter FC is found, place that room at the top.
-                const fc = localStorage.getItem("fordy-fc");
+function filter_fc(rooms) {
+    const fcList = [
+        ...(localStorage.getItem("highlight-fc") || "").split(","),
+        ...(localStorage.getItem("fordy-fc") || "").split(","),
+        ...(localStorage.getItem("germtr-fc") || "").split(",")
+    ].map(fc => fc.trim()).filter(fc => fc);
 
-                if (!fc){
-                    return rooms;
-                }
+    if (fcList.length === 0) {
+        return rooms;
+    }
+
+    let new_rooms = [];
+
+    for (let i = 0; i < rooms.length; i++) {
+        const room = rooms[i];
+        let found = false;
+
+        for (const player_idx of Object.keys(room.players)) {
+            const player = room.players[player_idx];
+            if (fcList.includes(player.fc)) {
+                new_rooms.unshift(room);
+                found = true;
+                break;
+            }
+        }
+
+        if (!found) {
+            new_rooms.push(room);
+        }
+    }
+
+    return new_rooms;
+}
 
                 let new_rooms = [];
 
@@ -347,73 +373,6 @@ function filter_fc(rooms){
 
                 return new_rooms;
             }
-
-function filter_fc(rooms){
-                // If the filter FC is found, place that room at the top.
-                const fc = localStorage.getItem("germtr-fc");
-
-                if (!fc){
-                    return rooms;
-                }
-
-                let new_rooms = [];
-
-                for (let i = 0; i < rooms.length; i++){
-                    const room = rooms[i];
-
-                    let found = false;
-
-                    for (const player_idx of Object.keys(room.players)){
-                        const player = room.players[player_idx];
-
-                        if (player.fc == fc){
-                            new_rooms.unshift(room);
-                            found = true;
-                            break;
-                        }
-                    }
-
-                    if (!found){
-                        new_rooms.push(room);
-                    }
-                }
-
-                return new_rooms;
-            }
-
-            function filter_fc(rooms){
-                // If the filter FC is found, place that room at the top.
-                const fc = localStorage.getItem("highlight-fc");
-
-                if (!fc){
-                    return rooms;
-                }
-
-                let new_rooms = [];
-
-                for (let i = 0; i < rooms.length; i++){
-                    const room = rooms[i];
-
-                    let found = false;
-
-                    for (const player_idx of Object.keys(room.players)){
-                        const player = room.players[player_idx];
-
-                        if (player.fc == fc){
-                            new_rooms.unshift(room);
-                            found = true;
-                            break;
-                        }
-                    }
-
-                    if (!found){
-                        new_rooms.push(room);
-                    }
-                }
-
-                return new_rooms;
-            }
-
 
             let prev_uptime_update_date = null;
             let uptimes_timer = null;
