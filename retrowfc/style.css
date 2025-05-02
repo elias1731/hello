@@ -1,3 +1,8 @@
+html {
+    background-color: #24252d;
+    min-height: 100vh;
+}
+
 * {
     font-family: sans-serif;
     margin: 0;
@@ -11,6 +16,10 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
+    width: 800px;
+    min-height: 100vh;
+    margin: auto;
+    color: white;
 }
 
 p {
@@ -66,7 +75,7 @@ th, td {
 }
 
 .data-header {
-    background-color: lightgray;
+    background-color: #24252d;
 }
 
 .conn-fail {
@@ -134,14 +143,24 @@ h1 {
     font-size: 1rem;
 }
 
-button {
-    font-size: 0.8rem;
-    border: 1px solid gray;
-    background-color: white;
-    cursor: pointer;
-    padding: 0.1rem 0.3rem 0.1rem 0.3rem;
-    margin: 0.2rem;
-    border-radius: 0.2rem;
+h1 {
+    font-size: 64px;
+}
+
+label {
+    display: inline-block;
+    margin-bottom: 0.5em;
+}
+
+input, button, room-link {
+    margin: 0.2em;
+    padding: 0.4em;
+    font-family: inherit;
+    font-size: 1em;
+    background: #343646;
+    color: white;
+    border: none;
+    border-radius: 0.3em;
 }
 
 .fordy-highlighted {
@@ -155,11 +174,11 @@ button {
 }
 
 #home-link {
-    color: black;
+    color: white;
 }
 
 .room-link {
-    color: black;
+    color: #a1bee3;
 }
 
 .guest-td {
@@ -168,11 +187,11 @@ button {
 }
 
 .joinable {
-    color: green;
+    color: #a6e3a1;
 }
 
 .not-joinable {
-    color: darkred;
+    color: #f38ba8;
 }
 
 .split-room {
@@ -180,17 +199,16 @@ button {
 }
 
 .openhost {
-    text-decoration: underline;
+    text-decoration: underline dotted #a1bee3;
 }
 
 tbody > tr:first-child {
     border-top: hidden;
 }
 
-@media (max-width: 720px) {
+@media only screen and (max-width: 800px) {
     body {
-        font-size: 0.8rem;
-    }
+        width: 100%;								
 
     #top-container, #not-found-container {
         font-size: 0.8rem;

@@ -1,40 +1,30 @@
 <!DOCTYPE html>
 <html lang="de">
     <head>
-        <title>RetroWFC Info | heyFordy.de</title>
-        <meta name="description" content="Retro Rewind ist eine Custom Track-Distribution für Mario Kart Wii, erstellt von ZPL. Hier werden aktuelle Online-Daten gezeigt."/>
+        <title>RetroRewind Status | heyFordy.de</title>
+        <meta name="description" content="Retro Rewind ist eine Custom Track-Distribution für Mario Kart Wii, erstellt von ZPL. Hier werden aktuelle Online-Daten der CT-Distro gezeigt."/>
         <meta name="author" content="heyFordy" />
         <meta name="keywords" content="mario kart wii, mkwii, retro rewind, zpl, rooms, online, status, online status, ctgp" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.2, maximum-scale=1.2, minimum-scale=1.2" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <link rel="icon" type="image/png" href="./Logo.png">
         <link rel="stylesheet" href="./style.css" type="text/css" />
         <link href="./ctmkf.css" rel="Stylesheet" type="text/css" />
     </head>
     <body>
-        <h1><a href="?" id="home-link">Retro Rewind Info</a></h1>
+        <h1><a href="?" id="home-link">Retro Rewind Status</a></h1>
         <div id="settings">
             <div id="timeout-container">
                 <label for="timeout-checkbox">Autom. aktualisieren</label>
                 <input type="checkbox" id="timeout-checkbox" onchange="on_checkbox()" />
             </div>
-            <div id="private-container">
-                <label for="private-checkbox">Zeige Privaträume</label>
-                <input type="checkbox" id="private-checkbox" onchange="on_private_checkbox()" />
-            </div>
-            <div id="openhost-container">
-                <label for="openhost-checkbox">Markiere "OpenHost"</label>
+            <div id="openhost-container" style="display: none;">
+                <label for="openhost-checkbox">Unterstreiche "OpenHost"</label>
                 <input type="checkbox" id="openhost-checkbox" onchange="on_openhost_checkbox()" />
             </div>
             <div id="fc-container">
-                <label for="fc-input">Freundescode hervorheben</label>
+                <label for="fc-input">Spieler markieren:</br></label>
                 <input type="text" id="fc-input" placeholder="0000-0000-0000-0000" oninput="on_fc_change()" />
-            </div>
-            <div id="history-container">
-                <button onclick="add_history(-60)">-1h</button>
-                <button onclick="add_history(-1)">-1m</button>
-                <input type="datetime-local" id="history-input" oninput="on_history_change()" />
-                <button onclick="add_history(1)">+1m</button>
-                <button onclick="add_history(60)">+1h</button>
             </div>
             <div id="history-indicator">
                 <span>Aktuell wird ein älterer Verlauf angezeigt.</span>
@@ -42,17 +32,35 @@
             </div>
         </div>
         <div id="loading">Daten werden geladen. Bitte warten...</div>
-        <div id="top-container"><span>Anzahl der Räume: <span id="no-rooms" class="top-stat">0</span></span><span>Anzahl der Spieler: <span id="no-players" class="top-stat">0</span></span></div>
+        <div id="top-container">
+			<span><span id="no-players" class="top-stat">0</span> Spieler</span></br>
+			</br>
+			<span><span id="no-rooms" class="top-stat">0</span> Räume</span>
+		</div>
         <div id="not-found-container">
             Angegebener Raum wurde geschlossen oder existiert nicht.
         </div>
         <table>
             <tbody id="tablebody"></tbody>
         </table>
+	</br>
+            <div id="private-container">
+                <label for="private-checkbox">Private Räume anzeigen</label>
+                <input type="checkbox" id="private-checkbox" onchange="on_private_checkbox()" />
+            </div></br>
+	<p>Alte Daten suchen:</p>
+            <div id="history-container">
+                <button onclick="add_history(-60)">-1h</button>
+                <button onclick="add_history(-1)">-1m</button>
+                <input type="datetime-local" id="history-input" oninput="on_history_change()" />
+                <button onclick="add_history(1)">+1m</button>
+                <button onclick="add_history(60)">+1h</button>
+            </div></br>
+	</br>
         <p><a href="https://wiki.tockdom.com/wiki/Retro_Rewind" target="_blank">Retro Rewind</a></p>
         <p><a href="https://github.com/elias1731" target="_blank">GitHub</a></p>
         <p><a href="http://rwfc.net/api/groups" target="_blank">Genutzte API</a></p>
-        <p><a href="https://wiki.tockdom.com/wiki/CTMKF" target="_blank">Schriftart Quelle</a></p>
+        <p><a href="https://wiki.tockdom.com/wiki/CTMKF" target="_blank">Schriftart "CTMKF"</a></p>
         <script type="text/javascript">
             let HISTORY_TIMER = null;
             let HISTORY_MODE = false;
@@ -67,16 +75,16 @@
             // Source: https://github.com/patchzyy/WheelWizard
             const ROOM_TYPES = {
                 "vs_10": "Retro VS",
-                "vs_11": "Retro TT",
+                "vs_11": "Retro ZF",
                 "vs_12": "Retro 200cc",
-                "vs_20": "CT VS",
-                "vs_21": "CT TT",
-                "vs_22": "CT 200cc",
+                "vs_20": "Custom VS",
+                "vs_21": "Custom ZF",
+                "vs_22": "Custom 200cc",
                 "vs_668": "CTGP-C",
                 "vs_69": "Insane Kart",
                 "vs_751": "Versus",
-                "vs_-1": "Regular",
-                "vs": "Regular"
+                "vs_-1": "Standard VS",
+                "vs": "Standard VS"
             };
 
             function on_history_change() {
@@ -670,12 +678,12 @@
                     let room_header = document.createElement("th");
                     room_header.colSpan = 100;
                     room_header.classList.add("room-header");
-                    let room_type = room.type == "anybody" ? "🌎 Öffentlich" : "🔒 Privat";
+                    let room_type = room.type == "anybody" ? "🌎Öffentlich » " : "🔒Privat » ";
 
 
-                    let joinable = room.suspend ? "Nicht beitretbar" : "Beitretbar";
+                    let joinable = room.suspend ? "Kein Beitritt möglich!" : "Beitritt möglich.";
                     if (room.split) {
-                        joinable = "Geteilter Raum";
+                        joinable = "Aufgeteilter Raum";
                     }
 
                     let joinable_class = room.suspend ? "not-joinable" : "joinable";
