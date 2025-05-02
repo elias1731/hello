@@ -58,13 +58,13 @@ th, td {
     margin-right: -0.3rem;
 }
 
+.mii-name {
+    font-family: 'CTMKF', sans-serif;
+}
+
 .mii-td {
     line-height: 1.3rem;
     padding: 0;
-}
-
-.mii-name {
-    font-family: 'CTMKF', sans-serif;
 }
 
 .wide-char {

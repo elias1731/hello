@@ -5,7 +5,7 @@
         <meta name="description" content="Retro Rewind ist eine Custom Track-Distribution für Mario Kart Wii, erstellt von ZPL. Hier werden aktuelle Online-Daten der CT-Distro gezeigt."/>
         <meta name="author" content="heyFordy" />
         <meta name="keywords" content="mario kart wii, mkwii, retro rewind, zpl, rooms, online, status, online status, ctgp" />
-		<!-- <meta name="viewport" content="width=device-width, initial-scale=1.2, maximum-scale=1.2, minimum-scale=1.2" /> -->
+		<meta name="viewport" content="width=device-width, initial-scale=1.2, maximum-scale=1.2, minimum-scale=1.2" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <link rel="icon" type="image/png" href="./Logo.png">
         <link rel="stylesheet" href="./style.css" type="text/css" />
@@ -700,17 +700,17 @@
                     tr.classList.add("data-header");
                     tbody.appendChild(tr);
                     
-                    // // Mii
-                    th = document.createElement("th");
-                    th.textContent = "Mii";
-                    th.classList.add("mii-header");
-                    tr.appendChild(th);// Mii-Name
+                    // Mii-Name
                     th = document.createElement("th");
                     th.textContent = "Mii-Name";
                     th.colSpan = 2;
                     tr.appendChild(th);
 
-                    
+                    // // Mii
+                    th = document.createElement("th");
+                    th.textContent = "Mii";
+                    th.classList.add("mii-header");
+                    tr.appendChild(th);
 
                     // Freundescode
                     th = document.createElement("th");
