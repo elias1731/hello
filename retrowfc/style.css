@@ -107,6 +107,7 @@ th, td {
 
 .top-stat {
     font-weight: bold;
+	font-size: 2rem;
 }
 
 h1 {
@@ -115,7 +116,7 @@ h1 {
 }
 
 #settings {
-    display: flex;
+    display: inline-grid;
     flex-wrap: wrap;
     flex-direction: row;
     justify-content: center;
@@ -133,7 +134,7 @@ h1 {
 
 #history-indicator {
     display: none;
-    background-color: rgb(228, 228, 228);
+    background-color: #ff00000a;
 }
 
 #history-input {
@@ -162,17 +163,20 @@ input, button, room-link {
     border: none;
     border-radius: 0.3em;
 }
-  // rgb(255, 127, 36)
 .fordy-highlighted {
-    background-color: rgb(102, 205, 0);
+    background-color: rgb(102 205 0 / 45%);
+	font-weight: bold;
 }
 .germtr-highlighted {
-    background-color: rgb(102, 205, 0);
+    background-color: rgb(102 205 0 / 45%);
+	font-weight: bold;
 }
 .highlighted {
     background-color: rgb(255, 255, 132);
 }
-
+.orange-highlighted {
+    background-color: rgb(255, 127, 36);
+}
 #home-link {
     color: white;
 }

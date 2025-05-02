@@ -5,18 +5,18 @@
         <meta name="description" content="Retro Rewind ist eine Custom Track-Distribution für Mario Kart Wii, erstellt von ZPL. Hier werden aktuelle Online-Daten der CT-Distro gezeigt."/>
         <meta name="author" content="heyFordy" />
         <meta name="keywords" content="mario kart wii, mkwii, retro rewind, zpl, rooms, online, status, online status, ctgp" />
-		<meta name="viewport" content="width=device-width, initial-scale=1.2, maximum-scale=1.2, minimum-scale=1.2" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.2, minimum-scale=1.0" />
         <link rel="icon" type="image/png" href="./Logo.png">
         <link rel="stylesheet" href="./style.css" type="text/css" />
         <link href="./ctmkf.css" rel="Stylesheet" type="text/css" />
     </head>
     <body>
-        <h1><a href="?" id="home-link">Retro Rewind Status</a></h1>
+		
+        <h1><a href="?" id="home-link">RetroWFC Status</a></h1>
         <div id="settings">
             <div id="timeout-container">
-                <label for="timeout-checkbox">Autom. aktualisieren</label>
                 <input type="checkbox" id="timeout-checkbox" onchange="on_checkbox()" />
+                <label for="timeout-checkbox">Automatisch aktualisieren</label>
             </div>
             <div id="openhost-container" style="display: none;">
                 <label for="openhost-checkbox">Unterstreiche "OpenHost"</label>
@@ -24,7 +24,7 @@
             </div>
             <div id="fc-container">
                 <label for="fc-input">Spieler markieren:</br></label>
-                <input type="text" id="fc-input" placeholder="0000-0000-0000-0000" oninput="on_fc_change()" />
+                <input type="text" id="fc-input" placeholder="0000-0000-0000-0000" oninput="on_fc_change()" style="text-align: center;" />
             </div>
             <div id="history-indicator">
                 <span>Aktuell wird ein älterer Verlauf angezeigt.</span>
@@ -48,7 +48,7 @@
                 <label for="private-checkbox">Private Räume anzeigen</label>
                 <input type="checkbox" id="private-checkbox" onchange="on_private_checkbox()" />
             </div></br>
-	<p>Alte Daten suchen:</p>
+	<p>Ältere Daten anzeigen:</p>
             <div id="history-container">
                 <button onclick="add_history(-60)">-1h</button>
                 <button onclick="add_history(-1)">-1m</button>
@@ -678,10 +678,10 @@
                     let room_header = document.createElement("th");
                     room_header.colSpan = 100;
                     room_header.classList.add("room-header");
-                    let room_type = room.type == "anybody" ? "🌎Öffentlich » " : "🔒Privat » ";
+                    let room_type = room.type == "anybody" ? "🌎 Öffentlich » " : "🔒Privat » ";
 
 
-                    let joinable = room.suspend ? "Kein Beitritt möglich!" : "Beitritt möglich.";
+                    let joinable = room.suspend ? "Kein Beitritt möglich!" : "Beitritt möglich";
                     if (room.split) {
                         joinable = "Aufgeteilter Raum";
                     }
@@ -849,7 +849,7 @@
                     let params = new URL(window.location.href).searchParams;
                     params.set("room", room.id);
                     let room_link = `?${params.toString()}`;
-                    room_header.innerHTML = `${room_type} ${rk? rk + " " : ""}Raum <a href="${room_link}" class="room-link">${room.id}</a> – Uptime: <span created="${room.created}"></span>\r\n${room_no_players} Spieler${room_no_players == 1 ? "" : ""} – <span class="${joinable_class}">${joinable}</span>`;
+                    room_header.innerHTML = `${room_type} ${rk? rk + " " : ""}${room_no_players} Spieler${room_no_players == 1 ? "" : ""} – <span class="${joinable_class}">${joinable}</span>\r\n Raum: <a href="${room_link}" class="room-link">${room.id}</a> | aktiv seit: <span created="${room.created}"></span>`;
                     if (uptimes_timer){
                         skip_reset = true;
                     }
