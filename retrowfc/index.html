@@ -849,7 +849,7 @@
                     let params = new URL(window.location.href).searchParams;
                     params.set("room", room.id);
                     let room_link = `?${params.toString()}`;
-                    room_header.innerHTML = `${room_type} ${rk? rk + " " : ""}\r\n ${room_no_players} Spieler${room_no_players == 1 ? "" : ""}\r\n Raum: <a href="${room_link}" class="room-link">${room.id}</a> - <span class="${joinable_class}">${joinable}</span>\r\n  | aktiv seit: <span created="${room.created}"></span>`;
+                    room_header.innerHTML = `${room_type} ${rk? rk + " " : ""} \r\n ${room_no_players} Spieler${room_no_players == 1 ? "" : ""}\r\n Raum: <a href="${room_link}" class="room-link">${room.id}</a> - <span class="${joinable_class}">${joinable}</span>\r\n  | aktiv seit: <span created="${room.created}"></span>`;
                     if (uptimes_timer){
                         skip_reset = true;
                     }
