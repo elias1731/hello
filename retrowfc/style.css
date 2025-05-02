@@ -31,14 +31,14 @@ table {
     white-space: pre;
     font-size: 1.2rem;
     border-collapse: collapse;
-    border: 1px solid black;
+    border: hidden;
 }
 
 th, td {
     text-align: center;
-    border: 1px solid black;
+    border-bottom: 1px solid white;
     padding: 0 1rem;
-    line-height: 1.6rem;
+    line-height: 1.8rem;
 }
 
 .room-header {
@@ -106,7 +106,7 @@ th, td {
 }
 
 .top-stat {
-    font-weight: normal;
+    font-weight: bold;
 }
 
 h1 {
