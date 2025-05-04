@@ -70,7 +70,7 @@
             let HISTORY_DATE = null;
             const MAX_MIIS_PER_REQUEST = 24;
             const EXPIRE_TIME = 1000 * 60 * 60 * 24 * 7; // 1 week
-            const RELOAD_TIME = 1000 * 10; // 10 seconds
+            const RELOAD_TIME = 1000 * 5; // 10; // 10 seconds
             let RELOAD_TIMER = null;
             let cur_rooms = [];
             let FIRST_LOAD = true;
@@ -681,7 +681,7 @@
                     let room_header = document.createElement("th");
                     room_header.colSpan = 100;
                     room_header.classList.add("room-header");
-                    let room_type = room.type == "anybody" ? "🌎 Öffentlich » " : "🔒Privat » ";
+                    let room_type = room.type == "anybody" ? "🌎 ÖFFENTLICH » " : "🔒» PRIVAT ";
 
 
                     let joinable = room.suspend ? "Kein Beitritt möglich!" : "Beitritt möglich";
