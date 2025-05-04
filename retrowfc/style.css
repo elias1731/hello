@@ -22,6 +22,14 @@ body {
     color: white;
 }
 
+rvs-rooms-count {
+    color: rgb(255, 255, 132);
+}
+
+cvs-rooms-count {
+    color: rgb(255, 132, 255);
+}
+
 hr {
     color: white;
 }
