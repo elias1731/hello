@@ -9,6 +9,12 @@ html {
     padding: 0;
 }
 
+img {
+  display: block;
+  margin: auto;
+  width: 50%;
+}
+
 body {
     padding: 0.5rem;
     /* center */
@@ -115,7 +121,7 @@ h1 {
     margin-bottom: 0.5rem;
 }
 
-#settings, img {
+#settings {
     display: inline-grid;
     flex-wrap: wrap;
     flex-direction: row;
