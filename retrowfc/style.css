@@ -115,7 +115,7 @@ h1 {
     margin-bottom: 0.5rem;
 }
 
-#settings {
+#settings, img {
     display: inline-grid;
     flex-wrap: wrap;
     flex-direction: row;
