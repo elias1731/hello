@@ -9,12 +9,6 @@ html {
     padding: 0;
 }
 
-img {
-  display: none;
-  margin: auto;
-  width: 75%;
-}
-
 body {
     padding: 0.5rem;
     /* center */
