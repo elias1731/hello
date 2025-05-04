@@ -10,7 +10,7 @@ html {
 }
 
 img {
-  display: block;
+  display: none;
   margin: auto;
   width: 50%;
 }
