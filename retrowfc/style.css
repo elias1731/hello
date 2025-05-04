@@ -22,11 +22,11 @@ body {
     color: white;
 }
 
-rvs-rooms-count {
+#rvs-rooms-count {
     color: rgb(255, 255, 132);
 }
 
-cvs-rooms-count {
+#cvs-rooms-count {
     color: rgb(255, 132, 255);
 }
 
