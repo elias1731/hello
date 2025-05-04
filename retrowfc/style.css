@@ -94,8 +94,8 @@ th, td {
 
 #top-container, #not-found-container {
     display: none;
-    font-weight: bold;
-    font-size: 1.5rem;
+    font-weight: normal;
+    font-size: 1.6rem;
     gap: 1rem;
     flex-wrap: wrap;
 }
