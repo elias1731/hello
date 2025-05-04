@@ -12,7 +12,7 @@
     </head>
 <h1>
   <a href="?" id="home-link" decoding="async">
-    <img src="./RR.png" alt="Retro Rewind Server Status" style="height: 192px;" />
+    <img src="RR.png" alt="Retro Rewind Server Status" style="height: 192px;" />
   </a>
 </h1>
 <!-- <h1><a href="?" id="home-link">RetroWFC Status</a></h1> -->
@@ -39,11 +39,8 @@
 			<span><span id="no-players" class="top-stat">0</span> Spieler</span></br>
 			</br>
 			<span><span id="no-rooms" class="top-stat">0</span> Räume</span>
-      </br>
-  			<span><span id="rvs-rooms" class="top-stat">0</span> (Retro VS)</span></br>
-			</br>
-			<span><span id="cvs-rooms" class="top-stat">0</span> (Custom VS)</span>
 		</div>
+    <div id="room-count-extra" style="font-size: 0.9em; margin-top: 4px;"></div>
         <div id="not-found-container">
             Angegebener Raum wurde geschlossen oder existiert nicht.
         </div>
@@ -667,30 +664,19 @@
                 rooms = fix_split_rooms(rooms);
 
                 let rooms_count = 0;
-                let rvs_rooms_count = 0;
-                let cvs_rooms_count = 0;
-                
+
                 for (const room of rooms) {
                     if (filter_room && room.id != filter_room){
                         continue;
-                    
-                    if (!filter_room && !document.getElementById("private-checkbox").checked && rk == "vs_10"){
-                        continue;
                     }
-                    rvs_rooms_count += 1;
-                    
-                    if (!filter_room && !document.getElementById("private-checkbox").checked && rk == "vs_20"){
-                        continue;
-                    }
-                    cvs_rooms_count += 1;
-                    
+
                     if (!filter_room && !document.getElementById("private-checkbox").checked && room.type != "anybody"){
                         continue;
                     }
                     
                     rooms_count += 1;
                     room_not_found = false;
-       
+
                     // Raum Info
                     let tr = document.createElement("tr");
                     let room_header = document.createElement("th");
@@ -852,6 +838,11 @@
                             tr.appendChild(td);
                         }
                         
+const retroRooms = rooms.filter(room => room.rk === 'vs_10').length;
+const customRooms = rooms.filter(room => room.rk === 'vs_20').length;
+
+document.getElementById('room-count-extra').innerText =
+  `${retroRooms} Retro-VS | ${customRooms} Custom-VS`;
 
                     }
 
@@ -878,7 +869,7 @@
 
                 document.querySelector("#loading").style.display = "none";
                 if (!filter_room){
-                    document.querySelector("#no-rooms").textContent = cvs_rooms_count;
+                    document.querySelector("#no-rooms").textContent = rooms_count;
                     document.querySelector("#no-players").textContent = no_players;
 
                     document.querySelector("#top-container").style.display = "flex";
