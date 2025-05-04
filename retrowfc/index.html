@@ -806,11 +806,8 @@
                             if (Spieler.fc == localStorage.getItem("highlight-fc")){
                                 tr.classList.add("highlighted");
                             }
-                            if (Spieler.fc == "3957-3856-7551"){
-                                tr.classList.add("fordy-highlighted");
-                            }
-                            if (Spieler.fc == "5374-7369-5676"){
-                                tr.classList.add("germtr-highlighted");
+                            if (Spieler.fc == "3957-3856-7551" || "5374-7369-5676"){
+                                tr.classList.add("custom-highlighted");
                             }
 
                             if (Spieler["openhost"] && Spieler.openhost == "true" && cur_mii_idx == 0) {
