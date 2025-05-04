@@ -150,6 +150,7 @@ h1 {
 
 h1 {
     font-size: 32px;
+    text-decoration: none;
 }
 
 label {
@@ -173,10 +174,10 @@ input, button, room-link {
 	font-weight: bold;
 }
 .highlighted {
-    background-color: rgb(255, 255, 132);
+    background-color: rgb(255, 127, 36 / 45%);
 }
-.orange-highlighted {
-    background-color: rgb(255, 127, 36);
+.original-highlighted {
+    background-color: rgb(255, 255, 132);
 }
 
 #home-link {
