@@ -40,7 +40,7 @@
 			</br>
 			<span><span id="no-rooms" class="top-stat">0</span> Räume</span>
 		</div>
-    <div id="room-count-extra" style="font-size: 0.9em; margin-top: 4px;"></div>
+    <div id="rvs-room-count" style="font-size: 0.9em; margin-top: 4px;"></div> •||• <div id="cvs-room-count" style="font-size: 0.9em; margin-top: 4px;"></div>
         <div id="not-found-container">
             Angegebener Raum wurde geschlossen oder existiert nicht.
         </div>
@@ -841,9 +841,11 @@
 const retroRooms = rooms.filter(room => room.rk === 'vs_10').length;
 const customRooms = rooms.filter(room => room.rk === 'vs_20').length;
 
-document.getElementById('room-count-extra').innerText =
-  `${retroRooms} Retro-VS | ${customRooms} Custom-VS`;
+document.getElementById('rvs-room-count').innerText =
+  `${retroRooms} Retro-VS`;
 
+document.getElementById('cvs-room-count').innerText =
+  `${customRooms} Custom-VS`;
                     }
 
                     // Apply the room header text.
