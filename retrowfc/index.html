@@ -40,6 +40,7 @@
 			</br>
 			<span><span id="no-rooms" class="top-stat">0</span> Räume</span>
 		</div>
+<div id="room-count-extra" style="font-size: 1.5em; margin-top: 4px;"></div>
         <div id="not-found-container">
             Angegebener Raum wurde geschlossen oder existiert nicht.
         </div>
@@ -837,7 +838,15 @@
                             tr.appendChild(td);
                         }
                         
+const retroRooms = rooms.filter(room => room.rk === 'vs_10').length;
+const customRooms = rooms.filter(room => room.rk === 'vs_20').length;
 
+document.getElementById('room-count-extra').innerHTML = `
+  <span style="color: #33ff57; font-weight: bold">${retroRooms}</span> 
+  <span style="color: orange;">Retro-VS</span> •||•
+  <span style="color: #33ff57; font-weight: bold">${customRooms}</span> 
+  <span style="color: purple;">Custom-VS</span>
+`;
                     }
 
                     // Apply the room header text.
