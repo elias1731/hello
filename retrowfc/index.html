@@ -861,28 +861,24 @@ document.getElementById('room-count-extra').innerHTML = `
 
                     // Apply the room header text.
                     var skip_reset = false;
-var rk = room.rk;
-const ROOM_COLORS = {
-    "vs_10": "orange",
-    "vs_11": "darkorange",
-    "vs_12": "orangered",
-    "vs_20": "purple",
-    "vs_21": "mediumpurple",
-    "vs_22": "violet",
-    "vs_668": "limegreen",
-    "vs_69": "hotpink",
-    "vs_751": "dodgerblue",
-    "vs_-1": "gray",
-    "vs": "gray"
-};
 
-if (rk && rk in ROOM_TYPES){
-    const color = ROOM_COLORS[rk] || "black";
-    rk = `<span title="${rk}" style="color: ${color};">${ROOM_TYPES[rk]}</span>`;
-} else if (rk) {
-    rk = rk.toUpperCase();
-}
+                    var rk = room.rk;
+                    if (rk && rk in ROOM_TYPES){
+                        rk = `<span title="${rk}">${ROOM_TYPES[rk]}</span>`;
+                    } else if (rk) {
+                        rk = rk.toUpperCase();
+                    }
 
+                    let params = new URL(window.location.href).searchParams;
+                    params.set("room", room.id);
+                    let room_link = `?${params.toString()}`;
+                    room_header.innerHTML = `${room_type} ${rk? rk + " " : ""} \r\n ${room_no_players} Spieler${room_no_players == 1 ? "" : ""}\r\n Raum: <a href="${room_link}" class="room-link">${room.id}</a> - <span class="${joinable_class}">${joinable}</span>\r\n  aktiv seit: <span created="${room.created}"></span>`;
+                    if (uptimes_timer){
+                        skip_reset = true;
+                    }
+                    update_uptimes(skip_reset);
+
+                }
 
                 document.querySelector("#loading").style.display = "none";
                 if (!filter_room){
