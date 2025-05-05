@@ -845,7 +845,7 @@ const showPrivate = document.getElementById("private-checkbox").checked;
 const otherRooms = rooms.filter(room =>
   room.rk !== 'vs_10' &&
   room.rk !== 'vs_20' &&
-  showPrivate // nur wenn Checkbox aktiv ist
+  (room.type === 'anybody' || showPrivate)
 ).length;
 
 document.getElementById('room-count-extra').innerHTML = `
