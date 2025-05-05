@@ -78,17 +78,17 @@
 
             // Source: https://github.com/patchzyy/WheelWizard
             const ROOM_TYPES = {
-                "vs_10": "Retro VS",
-                "vs_11": "Retro ZF",
-                "vs_12": "Retro 200cc",
-                "vs_20": "Custom VS",
-                "vs_21": "Custom ZF",
-                "vs_22": "Custom 200cc",
-                "vs_668": "CTGP-C",
-                "vs_69": "Insane Kart",
-                "vs_751": "Versus",
-                "vs_-1": "Standard VS",
-                "vs": "Standard VS"
+                "vs_10": { label: "Retro VS", color: "orange" },
+                "vs_11": { label: "Retro ZF", color: "darkorange" },
+                "vs_12": { label: "Retro 200cc", color: "orangered" },
+                "vs_20": { label: "Custom VS", color: "purple" },
+                "vs_21": { label: "Custom ZF", color: "mediumpurple" },
+                "vs_22": { label: "Custom 200cc", color: "violet" },
+                "vs_668": { label: "CTGP-C", color: "limegreen" },
+                "vs_69": { label: "Insane Kart", color: "hotpink" },
+                "vs_751": { label: "Versus", color: "dodgerblue" },
+                "vs_-1": { label: "Standard VS", color: "gray" },
+                "vs": { label: "Standard VS", color: "gray" }
             };
 
             function on_history_change() {
@@ -864,7 +864,7 @@ document.getElementById('room-count-extra').innerHTML = `
 
                     var rk = room.rk;
                     if (rk && rk in ROOM_TYPES){
-                        rk = `<span title="${rk}">${ROOM_TYPES[rk]}</span>`;
+                        rk = `<span title="${rk}" style="color: ${type.color};">${type.label}</span>`;
                     } else if (rk) {
                         rk = rk.toUpperCase();
                     }
