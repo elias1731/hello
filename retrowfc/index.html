@@ -860,10 +860,9 @@ document.getElementById('room-count-extra').innerHTML = `
                     }
 
                     // Apply the room header text.
-                    var skip_reset = false;
-
-                    var rk = room.rk;
+                   var rk = room.rk;
                     if (rk && rk in ROOM_TYPES){
+                        const type = ROOM_TYPES[rk];
                         rk = `<span title="${rk}" style="color: ${type.color};">${type.label}</span>`;
                     } else if (rk) {
                         rk = rk.toUpperCase();
