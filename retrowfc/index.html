@@ -19,7 +19,7 @@
         <div id="top-container">
           <span>Insgesamt <span id="no-players" class="top-stat">0</span> Spieler in</span>
           <span><span id="no-rooms" class="top-stat">0</span> Räumen</span>
-        </div>
+        </div></br>
                 <div id="settings" style="margin-top:4px">
             <div id="timeout-container">
                 <input type="checkbox" id="timeout-checkbox" onchange="on_checkbox()" />
@@ -41,6 +41,10 @@
         <div id="loading">Daten werden geladen. Bitte warten...</div>
     <p style="font-size: 1.4em; margin-top:2px; font-weight: bold;">Räume:</p></div>
 <div id="room-count-extra" style="font-size: 1.2em; margin-top: 2px;"></div>
+            <div id="private-container">
+                <label for="private-checkbox">Private Räume anzeigen</label>
+                <input type="checkbox" id="private-checkbox" onchange="on_private_checkbox()" />
+            </div>
         <div id="not-found-container">
             Angegebener Raum wurde geschlossen oder existiert nicht.
         </div>
@@ -48,10 +52,6 @@
             <tbody id="tablebody"></tbody>
         </table>
 	</br>
-            <div id="private-container">
-                <label for="private-checkbox">Private Räume anzeigen</label>
-                <input type="checkbox" id="private-checkbox" onchange="on_private_checkbox()" />
-            </div></br>
 	<p>Ältere Daten anzeigen:</p>
             <div id="history-container">
                 <button onclick="add_history(-60)">-1h</button>
@@ -682,7 +682,7 @@
                     let room_header = document.createElement("th");
                     room_header.colSpan = 100;
                     room_header.classList.add("room-header");
-                    let room_type = room.type == "anybody" ? "🌎 ÖFFENTLICH » " : "🔒» PRIVAT ";
+                    let room_type = room.type == "anybody" ? "🌎 ÖFFENTLICH »" : "🔒» PRIVAT";
 
 
                     let joinable = room.suspend ? "Kein Beitritt möglich!" : "Beitritt möglich";
