@@ -17,10 +17,10 @@
 </h1>
 <!-- <h1><a href="?" id="home-link">RetroWFC Status</a></h1> -->
         <div id="top-container">
-          <span>Insgesamt <span id="no-players" class="top-stat">0</span> Spieler in</span>
+          <span><span id="no-players" class="top-stat">0</span> Spieler in</span>
           <span><span id="no-rooms" class="top-stat">0</span> Räumen</span>
         </div></br>
-                <div id="settings" style="margin-top:4px">
+                <div id="settings" style="margin-top:2px">
             <div id="timeout-container">
                 <input type="checkbox" id="timeout-checkbox" onchange="on_checkbox()" />
                 <label for="timeout-checkbox">Automatisch aktualisieren</label>
@@ -78,15 +78,15 @@
 
             // Source: https://github.com/patchzyy/WheelWizard
             const ROOM_TYPES = {
-                "vs_10": { label: "Retro VS", color: "orange" },
-                "vs_11": { label: "Retro ZF", color: "darkorange" },
-                "vs_12": { label: "Retro 200cc", color: "orangered" },
-                "vs_20": { label: "Custom VS", color: "purple" },
-                "vs_21": { label: "Custom ZF", color: "mediumpurple" },
-                "vs_22": { label: "Custom 200cc", color: "violet" },
-                "vs_668": { label: "CTGP-C", color: "limegreen" },
-                "vs_69": { label: "Insane Kart", color: "hotpink" },
-                "vs_751": { label: "Versus", color: "dodgerblue" },
+                "vs_10": { label: "🕹️ Retro VS", color: "orange" },
+                "vs_11": { label: "⏰ Retro ZF", color: "darkorange" },
+                "vs_12": { label: "🚀 Retro 200cc", color: "orangered" },
+                "vs_20": { label: "🚧 Custom VS", color: "purple" },
+                "vs_21": { label: "⏰ Custom ZF", color: "mediumpurple" },
+                "vs_22": { label: "💥 Custom 200cc", color: "violet" },
+                "vs_668": { label: "🏁 CTGP-C", color: "limegreen" },
+                "vs_69": { label: "🏁 Insane Kart", color: "gray" },
+                "vs_751": { label: "Standard VS_751", color: "gray" },
                 "vs_-1": { label: "Standard VS", color: "gray" },
                 "vs": { label: "Standard VS", color: "gray" }
             };
@@ -850,10 +850,9 @@ const otherRooms = rooms.filter(room =>
 
 document.getElementById('room-count-extra').innerHTML = `
   <span style="color: white; font-weight: bold">${retroRooms}</span> 
-  <span style="color: orange;">Retro-VS</span> •
+  <span style="color: orange;">🕹️ Retro</span> •
   <span style="color: white; font-weight: bold">${customRooms}</span> 
-  <span style="color: purple;">Custom-VS</span>
-  <span></span> •
+  <span style="color: purple;">🚧 Custom</span> •
   <span style="color: white; font-weight: bold">${otherRooms}</span> 
   <span style="color: gray;">Sonstige</span>
 `;
