@@ -181,168 +181,163 @@
             }
 
             function fix_split_rooms(rooms){
-                let new_rooms = [];
-
-                for (let room of rooms){
-                    const player_keys = Object.keys(room.players)
-
-                    room.split = false;
-
-                    // if (player_keys.length <= 13){
-                    //     new_rooms.push(room);
-                    //     continue;
-                    // }
-
-                    let player_data = [];
-
-                    for (let i = 0; i < player_keys.length; i++){
-                        player_data.push([]);
-                    }
-
-                    for (let i = 0; i < player_keys.length; i++){
-                        const Spieler = room.players[player_keys[i]];
-                        const conn_map = Spieler.conn_map;
-
-                        for (let j = 0; j < conn_map.length; j++){
-                            if (conn_map[j] != "0"){
-                                let their_idx = j;
-
-                                if (their_idx >= i){
-                                    their_idx += 1;
-                                }
-
-                                player_data[i].push(their_idx);
-                            }
-                        }
-                    }
-
-                    let seen_players = [];
-
-                    let sub_rooms = [];
-                    
-                    for (let i = 0; i < player_data.length; i++){
-                        if (seen_players.indexOf(i) != -1){
-                            continue;
-                        }
-
-                        let new_room = JSON.parse(JSON.stringify(room));
-                        new_room.players = {};
-
-                        let new_players_idx = [];
-
-                        let player_idx = i;
-
-                        function recursive_add(idx){
-                            if (seen_players.indexOf(idx) != -1){
-                                return;
-                            }
-
-                            seen_players.push(idx);
-
-                            let cur_connected = player_data[idx];
-                            for (const connected_idx of cur_connected){
-                                if (player_data[connected_idx].indexOf(idx) == -1){
-                                    // Ensure two-way connection.
-                                    continue;
-                                }
-                                recursive_add(connected_idx);
-                            }
-
-                            new_players_idx.push(idx);
-                        }
-
-                        recursive_add(player_idx);
-
-                        // Sort new_players_idx ascending.
-                        new_players_idx.sort((a, b) => a - b);
-
-                        for (const idx of new_players_idx){
-                            new_room.players[player_keys[idx]] = room.players[player_keys[idx]];
-                        }
-
-                        sub_rooms.push(new_room);
-
-                    }
-
-                    if (sub_rooms.length > 1){
-                        sub_rooms.forEach((sub_room) => {
-                            sub_room.split = true;
-
-                            if (Object.keys(room.players)[0] in sub_room.players){
-                                sub_room.split = false;
-                            }
-                        });
-
-                        let fc = document.getElementById("fc-input").value || "5374-7369-5676" || "3957-3856-7551";
-                        if (fc){
-                            let tmp = [];
-                            for (let i = 0; i < sub_rooms.length; i++){
-                                const room = sub_rooms[i];
-
-                                let found = false;
-
-                                for (const player_idx of Object.keys(room.players)){
-                                    const Spieler = room.players[player_idx];
-
-                                    if (Spieler.fc == fc){
-                                        tmp.unshift(room);
-                                        found = true;
-                                        break;
-                                    }
-                                }
-
-                                if (!found){
-                                    tmp.push(room);
-                                }
-                            }
-
-                            sub_rooms = tmp;
-                        }
-
-                        new_rooms = new_rooms.concat(sub_rooms);
-                    } else {
-                        new_rooms.push(room);
-                    }
-
-                }
-
-                return new_rooms;
-
-            }
-
-            function filter_fc(rooms){
-                // If the filter FC is found, place that room at the top.
-                const fc = localStorage.getItem("highlight-fc") || "5374-7369-5676" || "3957-3856-7551";
-
-                if (!fc){
-                    return rooms;
-                }
-
-                let new_rooms = [];
-
-                for (let i = 0; i < rooms.length; i++){
-                    const room = rooms[i];
-
-                    let found = false;
-
-                    for (const player_idx of Object.keys(room.players)){
-                        const Spieler = room.players[player_idx];
-
-                        if (Spieler.fc == fc){
-                            new_rooms.unshift(room);
-                            found = true;
-                            break;
-                        }
-                    }
-
-                    if (!found){
-                        new_rooms.push(room);
-                    }
-                }
-
-                return new_rooms;
-            }
-
+              let new_rooms = [];
+          
+              for (let room of rooms){
+                  const player_keys = Object.keys(room.players);
+          
+                  room.split = false;
+          
+                  let player_data = [];
+          
+                  for (let i = 0; i < player_keys.length; i++){
+                      player_data.push([]);
+                  }
+          
+                  for (let i = 0; i < player_keys.length; i++){
+                      const Spieler = room.players[player_keys[i]];
+                      const conn_map = Spieler.conn_map;
+          
+                      for (let j = 0; j < conn_map.length; j++){
+                          if (conn_map[j] != "0"){
+                              let their_idx = j;
+          
+                              if (their_idx >= i){
+                                  their_idx += 1;
+                              }
+          
+                              player_data[i].push(their_idx);
+                          }
+                      }
+                  }
+          
+                  let seen_players = [];
+          
+                  let sub_rooms = [];
+          
+                  for (let i = 0; i < player_data.length; i++){
+                      if (seen_players.indexOf(i) != -1){
+                          continue;
+                      }
+          
+                      let new_room = JSON.parse(JSON.stringify(room));
+                      new_room.players = {};
+          
+                      let new_players_idx = [];
+          
+                      let player_idx = i;
+          
+                      function recursive_add(idx){
+                          if (seen_players.indexOf(idx) != -1){
+                              return;
+                          }
+          
+                          seen_players.push(idx);
+          
+                          let cur_connected = player_data[idx];
+                          for (const connected_idx of cur_connected){
+                              if (player_data[connected_idx].indexOf(idx) == -1){
+                                  continue;
+                              }
+                              recursive_add(connected_idx);
+                          }
+          
+                          new_players_idx.push(idx);
+                      }
+          
+                      recursive_add(player_idx);
+          
+                      new_players_idx.sort((a, b) => a - b);
+          
+                      for (const idx of new_players_idx){
+                          new_room.players[player_keys[idx]] = room.players[player_keys[idx]];
+                      }
+          
+                      sub_rooms.push(new_room);
+                  }
+          
+                  if (sub_rooms.length > 1){
+                      sub_rooms.forEach((sub_room) => {
+                          sub_room.split = true;
+          
+                          if (Object.keys(room.players)[0] in sub_room.players){
+                              sub_room.split = false;
+                          }
+                      });
+          
+                      let fc_input = document.getElementById("fc-input").value;
+                      let fc_list = [];
+          
+                      if (fc_input) {
+                          fc_list.push(fc_input);
+                      }
+                      fc_list.push("3957-3856-7551", "5374-7369-5676");
+          
+                      let tmp = [];
+                      for (let i = 0; i < sub_rooms.length; i++){
+                          const room = sub_rooms[i];
+          
+                          let found = false;
+          
+                          for (const player_idx of Object.keys(room.players)){
+                              const Spieler = room.players[player_idx];
+          
+                              if (fc_list.includes(Spieler.fc)){
+                                  tmp.unshift(room);
+                                  found = true;
+                                  break;
+                              }
+                          }
+          
+                          if (!found){
+                              tmp.push(room);
+                          }
+                      }
+          
+                      sub_rooms = tmp;
+                      new_rooms = new_rooms.concat(sub_rooms);
+                  } else {
+                      new_rooms.push(room);
+                  }
+          
+              }
+          
+              return new_rooms;
+          }
+          
+          function filter_fc(rooms){
+              let fc_raw = localStorage.getItem("highlight-fc");
+              let fc_list = [];
+          
+              if (fc_raw) {
+                  fc_list.push(fc_raw);
+              }
+              fc_list.push("3957-3856-7551", "5374-7369-5676");
+          
+              let new_rooms = [];
+          
+              for (let i = 0; i < rooms.length; i++){
+                  const room = rooms[i];
+          
+                  let found = false;
+          
+                  for (const player_idx of Object.keys(room.players)){
+                      const Spieler = room.players[player_idx];
+          
+                      if (fc_list.includes(Spieler.fc)){
+                          new_rooms.unshift(room);
+                          found = true;
+                          break;
+                      }
+                  }
+          
+                  if (!found){
+                      new_rooms.push(room);
+                  }
+              }
+          
+              return new_rooms;
+          }
 
             let prev_uptime_update_date = null;
             let uptimes_timer = null;
