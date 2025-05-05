@@ -840,7 +840,11 @@
                         
 const retroRooms = rooms.filter(room => room.rk === 'vs_10').length;
 const customRooms = rooms.filter(room => room.rk === 'vs_20').length;
-const otherRooms = rooms.filter(room => room.rk !== 'vs_10' && room.rk !== 'vs_20').length;
+const otherRooms = rooms.filter(room =>
+  room.rk !== 'vs_10' &&
+  room.rk !== 'vs_20' &&
+  (!document.getElementById("private-checkbox").checked)
+).length;
 
 document.getElementById('room-count-extra').innerHTML = `
   <span style="color: white; font-weight: bold">${retroRooms}</span> 
