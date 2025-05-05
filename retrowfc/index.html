@@ -840,11 +840,12 @@
                         
 const retroRooms = rooms.filter(room => room.rk === 'vs_10').length;
 const customRooms = rooms.filter(room => room.rk === 'vs_20').length;
+const showPrivate = document.getElementById("private-checkbox").checked;
+
 const otherRooms = rooms.filter(room =>
-  room.type === "anybody" &&
   room.rk !== 'vs_10' &&
   room.rk !== 'vs_20' &&
-  (document.getElementById("private-checkbox").checked)
+  showPrivate // nur wenn Checkbox aktiv ist
 ).length;
 
 document.getElementById('room-count-extra').innerHTML = `
