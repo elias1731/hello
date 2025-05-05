@@ -860,6 +860,8 @@ document.getElementById('room-count-extra').innerHTML = `
                     }
 
                     // Apply the room header text.
+                  var skip_reset = false;
+
                    var rk = room.rk;
                     if (rk && rk in ROOM_TYPES){
                         const type = ROOM_TYPES[rk];
