@@ -840,12 +840,16 @@
                         
 const retroRooms = rooms.filter(room => room.rk === 'vs_10').length;
 const customRooms = rooms.filter(room => room.rk === 'vs_20').length;
+const otherRooms = rooms.filter(room => room.rk !== 'vs_10' && room.rk !== 'vs_20').length;
 
 document.getElementById('room-count-extra').innerHTML = `
-  <span style="color: #33ff57; font-weight: bold">${retroRooms}</span> 
-  <span style="color: orange;">Retro-VS</span> •||•
-  <span style="color: #33ff57; font-weight: bold">${customRooms}</span> 
+  <span style="color: white; font-weight: bold">${retroRooms}</span> 
+  <span style="color: orange;">Retro-VS</span> •
+  <span style="color: white; font-weight: bold">${customRooms}</span> 
   <span style="color: purple;">Custom-VS</span>
+  <span></span> •
+  <span style="color: white; font-weight: bold">${otherRooms}</span> 
+  <span style="color: gray;">Sonstige</span>
 `;
                     }
 
