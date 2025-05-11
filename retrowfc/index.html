@@ -9,6 +9,8 @@
         <link rel="icon" type="image/png" href="./Logo.png">
         <link rel="stylesheet" href="./style.css" type="text/css" />
         <link href="./ctmkf.css" rel="Stylesheet" type="text/css" />
+        <link href="./Rubik.css" rel="Stylesheet" type="text/css" />
+
     </head>
 <h1>
   <a href="?" id="home-link" decoding="async">
@@ -17,8 +19,8 @@
 </h1>
 <!-- <h1><a href="?" id="home-link">RetroWFC Status</a></h1> -->
         <div id="top-container">
-          <span><span id="no-players" class="top-stat">0</span> Spieler in</span>
-          <span><span id="no-rooms" class="top-stat">0</span> Räumen</span>
+          <span><span id="no-players" class="top-stat excited">0</span> Spieler in</span>
+          <span><span id="no-rooms" class="top-stat excited">0</span> Räumen</span>
         </div></br>
                 <div id="settings" style="margin-top:2px">
             <div id="timeout-container">
@@ -695,20 +697,20 @@
                     tbody.appendChild(tr);
 
                     // Data Headers
-                    tr = document.createElement("tr");
+					tr = document.createElement("tr");
                     tr.classList.add("data-header");
                     tbody.appendChild(tr);
                     
+                    // Mii
+                    th = document.createElement("th");
+                    th.textContent = "Mii";
+                    th.classList.add("mii-header");
+                    tr.appendChild(th);
+
                     // Mii-Name
                     th = document.createElement("th");
                     th.textContent = "Mii-Name";
                     th.colSpan = 2;
-                    tr.appendChild(th);
-
-                    // // Mii
-                    th = document.createElement("th");
-                    th.textContent = "Mii";
-                    th.classList.add("mii-header");
                     tr.appendChild(th);
 
                     // Freundescode
@@ -732,7 +734,6 @@
                     th.textContent = "BR";
                     tr.appendChild(th);
 
-
                     // Players
                     for (const player_idx of Object.keys(room.players)) {
                         let mii_idx = 0;
@@ -752,31 +753,6 @@
                             const Spieler = room.players[player_idx];
 
                             // Mii-Name
-                            let td = document.createElement("td");
-                            td.colSpan = 2;
-                            let name_ele = td;
-
-                            if (cur_mii_idx > 0){
-                                name_ele = document.createElement("td");
-                                name_ele.classList.add("guest-name");
-                                td.classList.add("guest-td");
-                                td.colSpan = 1;
-                                name_ele.colSpan = 1;
-
-                                if (Object.keys(room.players).indexOf(player_idx) == Object.keys(room.players).length - 1 || cur_mii_idx < no_miis - 1){
-                                    td.style.borderBottom = "hidden";
-                                }
-                            }
-
-                            name_ele.classList.add("mii-name");
-                            name_ele.innerHTML = handle_mii_name('mii' in Spieler ? Spieler.mii[cur_mii_idx].name : Spieler.name);
-                            tr.appendChild(td);
-
-                            if (cur_mii_idx > 0){
-                                tr.appendChild(name_ele);
-                            }
-
-                            // Mii
                             td = document.createElement("td");
                             td.classList.add("mii-td");
                             img = document.createElement("img");
@@ -788,6 +764,30 @@
                             td.appendChild(img);
                             tr.appendChild(td);
 
+                            // Mii-Name
+                            let td_name = document.createElement("td");
+                            td_name.colSpan = 2;
+                            let name_ele = td_name;
+
+                            if (cur_mii_idx > 0){
+                                name_ele = document.createElement("td");
+                                name_ele.classList.add("guest-name");
+                                td_name.classList.add("guest-td");
+                                td_name.colSpan = 1;
+                                name_ele.colSpan = 1;
+
+                                if (Object.keys(room.players).indexOf(player_idx) == Object.keys(room.players).length - 1 || cur_mii_idx < no_miis - 1){
+                                    td_name.style.borderBottom = "hidden";
+                                }
+                            }
+
+                            name_ele.classList.add("mii-name");
+                            name_ele.innerHTML = handle_mii_name('mii' in Spieler ? Spieler.mii[cur_mii_idx].name : Spieler.name);
+                            tr.appendChild(td_name);
+
+                            if (cur_mii_idx > 0){
+                                tr.appendChild(name_ele);
+                            }
                             if ('mii' in Spieler){
                                 img.setAttribute("mii-data", Spieler.mii[cur_mii_idx].data);
                             }

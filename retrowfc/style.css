@@ -4,7 +4,7 @@ html {
 }
 
 * {
-    font-family: sans-serif;
+    font-family: 'Rubik', sans-serif;
     margin: 0;
     padding: 0;
 }
@@ -63,7 +63,7 @@ th, td {
 }
 
 .mii-name {
-    font-family: 'CTMKF', sans-serif;
+    font-family: 'CTMKF', 'Rubik', sans-serif;
 }
 
 .mii-td {
@@ -72,7 +72,7 @@ th, td {
 }
 
 .wide-char {
-    font-family: 'CTMKF', sans-serif;
+    font-family: 'CTMKF', 'Rubik', sans-serif;
     font-size: 0.5rem;
     transform: scaleY(2);
     display: inline-block;
@@ -112,6 +112,91 @@ th, td {
 .top-stat {
     font-weight: bold;
 	font-size: 2rem;
+}
+
+.excited {
+    animation-name: excited;
+    animation-delay: 0s;
+    animation-duration: 2s;
+    animation-timing-function: ease-in-out;
+    animation-fill-mode: backwards;
+    animation-iteration-count: infinite;
+}
+
+@keyframes excited {
+    0% {
+        color: #cba6f7;
+    }
+
+    17% {
+        color: #f38ba8;
+    }
+
+    33% {
+        color: #fab387;
+    }
+
+    50% {
+        color: #f9e2af;
+    }
+
+    67% {
+        color: #a6e3a1;
+    }
+
+    83% {
+        color: #89b4fa;
+    }
+
+    100% {
+        color: #cba6f7;
+    }
+}
+
+.excited-bg {
+    animation-name: excited-bg;
+    animation-delay: 0s;
+    animation-duration: 2s;
+    animation-timing-function: ease-in-out;
+    animation-fill-mode: backwards;
+    animation-iteration-count: infinite;
+}
+
+@keyframes excited-bg {
+    0% {
+		font-weight: bold;
+        background-color: #cba6f773;
+    }
+
+    17% {
+		font-weight: bold;
+        background-color: #f38ba873;
+    }
+
+    33% {
+		font-weight: bold;
+        background-color: #fab38773;
+    }
+
+    50% {
+		font-weight: bold;
+        background-color: #f9e2af73;
+    }
+
+    67% {
+		font-weight: bold;
+        background-color: #a6e3a173;
+    }
+
+    83% {
+		font-weight: bold;
+        background-color: #89b4fa73;
+    }
+
+    100% {
+		font-weight: bold;
+        background-color: #cba6f773;
+    }
 }
 
 h1 {
