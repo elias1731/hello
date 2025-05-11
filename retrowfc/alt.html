@@ -1,99 +1,99 @@
 <!DOCTYPE html>
 <html lang="de">
-<head>
-<title>RetroWFC Info | heyFordy.de</title>
-<meta content="View rooms and players currently playing Retro Rewind, a custom track distribution for Mario Kart Wii by ZPL." name="description"/>
-<meta content="heyFordy" name="author"/>
-<meta content="mario kart wii, mkwii, retro rewind, zpl, rooms, online, status, online status, multiplayer, ctgp" name="keywords"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
- &lt;link rel="shortcut icon" href="favicon.ico" type="image/vnd.microsoft.icon" /&gt; 
- &lt;link rel="stylesheet" href="https://unpkg.com/reset-css@5.0.1/reset.css" /&gt; 
-<link href="./style.css" rel="stylesheet" type="text/css"/>
-<link href="./ctmkf.css" rel="Stylesheet" type="text/css"/>
-</head>
-<body>
-<script>
-(function() {
-    const FORDY_FC = "3957-3856-7551";
-    if (!localStorage.getItem("fordy-fc")) {
-        localStorage.setItem("fordy-fc", FORDY_FC);
-    }
-})();
-</script>    
-<script>
-(function() {
-    const GERMTR_FC = "5374-7369-5676";
-    if (!localStorage.getItem("germtr-fc")) {
-        localStorage.setItem("germtr-fc", GERMTR_FC);
-    }
-})();
-</script>    
-<h1><a href="?" id="home-link">Retro Rewind Raum-Browser</a></h1>
-<div id="settings">
-<div id="timeout-container">
-<label for="timeout-checkbox">Auto-Aktualisierung</label>
-<input id="timeout-checkbox" onchange="on_checkbox()" type="checkbox"/>
-</div>
-<div id="private-container">
-<label for="private-checkbox">Private Räume</label>
-<input id="private-checkbox" onchange="on_private_checkbox()" type="checkbox"/>
-</div>
-<div id="openhost-container">
-<label for="openhost-checkbox">OpenHost</label>
-<input id="openhost-checkbox" onchange="on_openhost_checkbox()" type="checkbox"/>
-</div>
-<div id="fc-container">
-<label for="fc-input">FC markieren</label>
-<input id="fc-input" oninput="on_fc_change()" placeholder="0000-0000-0000" type="text"/>
-</div>
-<div id="history-container">
-<button onclick="add_history(-60)">-1h</button>
-<button onclick="add_history(-1)">-1m</button>
-<input id="history-input" oninput="on_history_change()" type="datetime-local"/>
-<button onclick="add_history(1)">+1m</button>
-<button onclick="add_history(60)">+1h</button>
-</div>
-<div id="history-indicator">
-<span>Verlaufsmodus aktiv</span>
-<button onclick="disable_history()">Zurück zu Live</button>
-</div>
-</div>
-<div id="loading">Daten werden geladen...</div>
-<div id="top-container"><span>Räume: <span class="top-stat" id="no-rooms">0</span></span><span>Spieler: <span class="top-stat" id="no-players">0</span></span></div>
-<div id="not-found-container">
-            Angegebener Raum existiert nicht oder wurde geschlossen.
+    <head>
+        <title>RetroWFC Status [2] | heyFordy.de</title>
+        <meta name="description" content="Retro Rewind ist eine Custom Track-Distribution für Mario Kart Wii, erstellt von ZPL. Hier werden aktuelle Online-Daten der CT-Distro gezeigt."/>
+        <meta name="author" content="heyFordy" />
+        <meta name="keywords" content="mario kart wii, mkwii, retro rewind, zpl, rooms, online, status, online status, ctgp" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0" />
+        <link rel="icon" type="image/png" href="./Logo.png">
+        <link rel="stylesheet" href="./style.css" type="text/css" />
+        <link href="./ctmkf.css" rel="Stylesheet" type="text/css" />
+        <link href="./Rubik.css" rel="Stylesheet" type="text/css" />
+
+    </head>
+<h1>
+  <a href="?" id="home-link" decoding="async">
+    <img src="RR.png" alt="Retro Rewind Server Status" style="height: 192px;" />
+  </a>
+</h1>
+<h1><a href="?" id="home-link">2</a></h1>
+        <div id="top-container">
+          <span><span id="no-players" class="top-stat excited">0</span> Spieler in</span>
+          <span><span id="no-rooms" class="top-stat excited">0</span> Räumen</span>
+        </div></br>
+                <div id="settings" style="margin-top:2px">
+            <div id="timeout-container">
+                <input type="checkbox" id="timeout-checkbox" onchange="on_checkbox()" />
+                <label for="timeout-checkbox">Automatisch aktualisieren</label>
+            </div>
+            <div id="openhost-container">
+                <label for="openhost-checkbox">Unterstreiche "OpenHost"</label>
+                <input type="checkbox" id="openhost-checkbox" onchange="on_openhost_checkbox()" />
+            </div>
+            <div id="fc-container">
+                <label for="fc-input">Spieler markieren:</label>
+                <input type="text" id="fc-input" placeholder="0000-0000-0000-0000" oninput="on_fc_change()" style="text-align: center;" />
+            </div>
+            <div id="history-indicator">
+                <span>Aktuell wird ein älterer Verlauf angezeigt.</span>
+                <button onclick="disable_history()">Zurück zum Live-Modus</button>
+            </div>
         </div>
-<table>
-<tbody id="tablebody"></tbody>
-</table>
-
-
-
-
-<script type="text/javascript">
+        <div id="loading">Daten werden geladen. Bitte warten...</div>
+    <p style="font-size: 1.4em; margin-top:2px; font-weight: bold;">Räume:</p></div>
+<div id="room-count-extra" style="font-size: 1.2em; margin-top: 2px;"></div>
+            <div id="private-container">
+                <label for="private-checkbox">Private Räume anzeigen</label>
+                <input type="checkbox" id="private-checkbox" onchange="on_private_checkbox()" />
+            </div>
+        <div id="not-found-container">
+            Angegebener Raum wurde geschlossen oder existiert nicht.
+        </div>
+        <table>
+            <tbody id="tablebody"></tbody>
+        </table>
+	</br>
+	<p>Ältere Daten anzeigen:</p>
+            <div id="history-container">
+                <button onclick="add_history(-60)">-1h</button>
+                <button onclick="add_history(-1)">-1m</button>
+                <input type="datetime-local" id="history-input" oninput="on_history_change()" />
+                <button onclick="add_history(1)">+1m</button>
+                <button onclick="add_history(60)">+1h</button>
+            </div></br>
+	</br>
+        <p><a href="https://heyfordy.de/retrowfc" target="_blank"><—— Standard</a></p></br>
+        <p><a href="https://wiki.tockdom.com/wiki/Retro_Rewind" target="_blank">Retro Rewind</a></p>
+        <p><a href="http://rwfc.net/api/groups" target="_blank">API</a></p>
+        <p><a href="https://wiki.tockdom.com/wiki/CTMKF" target="_blank">Schriftart "CTMKF"</a></p>
+        <p><a href="https://www.fontsquirrel.com/fonts/rubik" target="_blank">Schriftart "Rubik"</a></p></br>
+        <h1><a href="https://heyfordy.de" target="_blank">heyFordy</a></h1>
+        <p><a href="https://github.com/elias1731" target="_blank">GitHub</a></p>
+        <script type="text/javascript">
             let HISTORY_TIMER = null;
             let HISTORY_MODE = false;
             let HISTORY_DATE = null;
             const MAX_MIIS_PER_REQUEST = 24;
             const EXPIRE_TIME = 1000 * 60 * 60 * 24 * 7; // 1 week
-            const RELOAD_TIME = 1000 * 10; // 10 seconds
+            const RELOAD_TIME = 1000 * 5; // 10; // 10 seconds
             let RELOAD_TIMER = null;
             let cur_rooms = [];
             let FIRST_LOAD = true;
 
             // Source: https://github.com/patchzyy/WheelWizard
             const ROOM_TYPES = {
-                "vs_10": "Retro VS",
-                "vs_11": "Retro TT",
-                "vs_12": "Retro 200cc",
-                "vs_20": "CT VS",
-                "vs_21": "CT TT",
-                "vs_22": "CT 200cc",
-                "vs_668": "CTGP-C",
-                "vs_69": "Insane Kart",
-                "vs_751": "Versus",
-                "vs_-1": "Regular",
-                "vs": "Regular"
+                "vs_10": { label: "🕹️ Retro VS", color: "orange" },
+                "vs_11": { label: "⏰ Retro ZF", color: "darkorange" },
+                "vs_12": { label: "🚀 Retro 200cc", color: "orangered" },
+                "vs_20": { label: "🚧 Custom VS", color: "purple" },
+                "vs_21": { label: "⏰ Custom ZF", color: "mediumpurple" },
+                "vs_22": { label: "💥 Custom 200cc", color: "violet" },
+                "vs_668": { label: "🏁 CTGP-C", color: "limegreen" },
+                "vs_69": { label: "🏁 Insane Kart", color: "gray" },
+                "vs_751": { label: "Standard VS_751", color: "gray" },
+                "vs_-1": { label: "Standard VS", color: "gray" },
+                "vs": { label: "Standard VS", color: "gray" }
             };
 
             function on_history_change() {
@@ -186,193 +186,163 @@
             }
 
             function fix_split_rooms(rooms){
-                let new_rooms = [];
-
-                for (let room of rooms){
-                    const player_keys = Object.keys(room.players)
-
-                    room.split = false;
-
-                    // if (player_keys.length <= 13){
-                    //     new_rooms.push(room);
-                    //     continue;
-                    // }
-
-                    let player_data = [];
-
-                    for (let i = 0; i < player_keys.length; i++){
-                        player_data.push([]);
-                    }
-
-                    for (let i = 0; i < player_keys.length; i++){
-                        const player = room.players[player_keys[i]];
-                        const conn_map = player.conn_map;
-
-                        for (let j = 0; j < conn_map.length; j++){
-                            if (conn_map[j] != "0"){
-                                let their_idx = j;
-
-                                if (their_idx >= i){
-                                    their_idx += 1;
-                                }
-
-                                player_data[i].push(their_idx);
-                            }
-                        }
-                    }
-
-                    let seen_players = [];
-
-                    let sub_rooms = [];
-                    
-                    for (let i = 0; i < player_data.length; i++){
-                        if (seen_players.indexOf(i) != -1){
-                            continue;
-                        }
-
-                        let new_room = JSON.parse(JSON.stringify(room));
-                        new_room.players = {};
-
-                        let new_players_idx = [];
-
-                        let player_idx = i;
-
-                        function recursive_add(idx){
-                            if (seen_players.indexOf(idx) != -1){
-                                return;
-                            }
-
-                            seen_players.push(idx);
-
-                            let cur_connected = player_data[idx];
-                            for (const connected_idx of cur_connected){
-                                if (player_data[connected_idx].indexOf(idx) == -1){
-                                    // Ensure two-way connection.
-                                    continue;
-                                }
-                                recursive_add(connected_idx);
-                            }
-
-                            new_players_idx.push(idx);
-                        }
-
-                        recursive_add(player_idx);
-
-                        // Sort new_players_idx ascending.
-                        new_players_idx.sort((a, b) => a - b);
-
-                        for (const idx of new_players_idx){
-                            new_room.players[player_keys[idx]] = room.players[player_keys[idx]];
-                        }
-
-                        sub_rooms.push(new_room);
-
-                    }
-
-                    if (sub_rooms.length > 1){
-                        sub_rooms.forEach((sub_room) => {
-                            sub_room.split = true;
-
-                            if (Object.keys(room.players)[0] in sub_room.players){
-                                sub_room.split = false;
-                            }
-                        });
-
-                        let fc = document.getElementById("fc-input").value;
-                        if (fc){
-                            let tmp = [];
-                            for (let i = 0; i < sub_rooms.length; i++){
-                                const room = sub_rooms[i];
-
-                                let found = false;
-
-                                for (const player_idx of Object.keys(room.players)){
-                                    const player = room.players[player_idx];
-
-                                    if (player.fc == fc){
-                                        tmp.unshift(room);
-                                        found = true;
-                                        break;
-                                    }
-                                }
-
-                                if (!found){
-                                    tmp.push(room);
-                                }
-                            }
-
-                            sub_rooms = tmp;
-                        }
-
-                        new_rooms = new_rooms.concat(sub_rooms);
-                    } else {
-                        new_rooms.push(room);
-                    }
-
-                }
-
-                return new_rooms;
-
-            }
-
-function filter_fc(rooms) {
-    const fcList = [
-        ...(localStorage.getItem("highlight-fc") || "").split(","),
-        ...(localStorage.getItem("fordy-fc") || "").split(","),
-        ...(localStorage.getItem("germtr-fc") || "").split(",")
-    ].map(fc => fc.trim()).filter(fc => fc);
-
-    if (fcList.length === 0) {
-        return rooms;
-    }
-
-    let new_rooms = [];
-
-    for (let i = 0; i < rooms.length; i++) {
-        const room = rooms[i];
-        let found = false;
-
-        for (const player_idx of Object.keys(room.players)) {
-            const player = room.players[player_idx];
-            if (fcList.includes(player.fc)) {
-                new_rooms.unshift(room);
-                found = true;
-                break;
-            }
-        }
-
-        if (!found) {
-            new_rooms.push(room);
-        }
-    }
-
-    return new_rooms;
-}
-
-                let new_rooms = [];
-
-                for (let i = 0; i < rooms.length; i++){
-                    const room = rooms[i];
-
-                    let found = false;
-
-                    for (const player_idx of Object.keys(room.players)){
-                        const player = room.players[player_idx];
-
-                        if (player.fc == fc){
-                            new_rooms.unshift(room);
-                            found = true;
-                            break;
-                        }
-                    }
-
-                    if (!found){
-                        new_rooms.push(room);
-                    }
-                }
-
-                return new_rooms;
-            }
+              let new_rooms = [];
+          
+              for (let room of rooms){
+                  const player_keys = Object.keys(room.players);
+          
+                  room.split = false;
+          
+                  let player_data = [];
+          
+                  for (let i = 0; i < player_keys.length; i++){
+                      player_data.push([]);
+                  }
+          
+                  for (let i = 0; i < player_keys.length; i++){
+                      const Spieler = room.players[player_keys[i]];
+                      const conn_map = Spieler.conn_map;
+          
+                      for (let j = 0; j < conn_map.length; j++){
+                          if (conn_map[j] != "0"){
+                              let their_idx = j;
+          
+                              if (their_idx >= i){
+                                  their_idx += 1;
+                              }
+          
+                              player_data[i].push(their_idx);
+                          }
+                      }
+                  }
+          
+                  let seen_players = [];
+          
+                  let sub_rooms = [];
+          
+                  for (let i = 0; i < player_data.length; i++){
+                      if (seen_players.indexOf(i) != -1){
+                          continue;
+                      }
+          
+                      let new_room = JSON.parse(JSON.stringify(room));
+                      new_room.players = {};
+          
+                      let new_players_idx = [];
+          
+                      let player_idx = i;
+          
+                      function recursive_add(idx){
+                          if (seen_players.indexOf(idx) != -1){
+                              return;
+                          }
+          
+                          seen_players.push(idx);
+          
+                          let cur_connected = player_data[idx];
+                          for (const connected_idx of cur_connected){
+                              if (player_data[connected_idx].indexOf(idx) == -1){
+                                  continue;
+                              }
+                              recursive_add(connected_idx);
+                          }
+          
+                          new_players_idx.push(idx);
+                      }
+          
+                      recursive_add(player_idx);
+          
+                      new_players_idx.sort((a, b) => a - b);
+          
+                      for (const idx of new_players_idx){
+                          new_room.players[player_keys[idx]] = room.players[player_keys[idx]];
+                      }
+          
+                      sub_rooms.push(new_room);
+                  }
+          
+                  if (sub_rooms.length > 1){
+                      sub_rooms.forEach((sub_room) => {
+                          sub_room.split = true;
+          
+                          if (Object.keys(room.players)[0] in sub_room.players){
+                              sub_room.split = false;
+                          }
+                      });
+          
+                      let fc_input = document.getElementById("fc-input").value;
+                      let fc_list = [];
+          
+                      if (fc_input) {
+                          fc_list.push(fc_input);
+                      }
+                      fc_list.push("3957-3856-7551", "5374-7369-5676");
+          
+                      let tmp = [];
+                      for (let i = 0; i < sub_rooms.length; i++){
+                          const room = sub_rooms[i];
+          
+                          let found = false;
+          
+                          for (const player_idx of Object.keys(room.players)){
+                              const Spieler = room.players[player_idx];
+          
+                              if (fc_list.includes(Spieler.fc)){
+                                  tmp.unshift(room);
+                                  found = true;
+                                  break;
+                              }
+                          }
+          
+                          if (!found){
+                              tmp.push(room);
+                          }
+                      }
+          
+                      sub_rooms = tmp;
+                      new_rooms = new_rooms.concat(sub_rooms);
+                  } else {
+                      new_rooms.push(room);
+                  }
+          
+              }
+          
+              return new_rooms;
+          }
+          
+          function filter_fc(rooms){
+              let fc_raw = localStorage.getItem("highlight-fc");
+              let fc_list = [];
+          
+              if (fc_raw) {
+                  fc_list.push(fc_raw);
+              }
+              fc_list.push("3957-3856-7551", "5374-7369-5676");
+          
+              let new_rooms = [];
+          
+              for (let i = 0; i < rooms.length; i++){
+                  const room = rooms[i];
+          
+                  let found = false;
+          
+                  for (const player_idx of Object.keys(room.players)){
+                      const Spieler = room.players[player_idx];
+          
+                      if (fc_list.includes(Spieler.fc)){
+                          new_rooms.unshift(room);
+                          found = true;
+                          break;
+                      }
+                  }
+          
+                  if (!found){
+                      new_rooms.push(room);
+                  }
+              }
+          
+              return new_rooms;
+          }
 
             let prev_uptime_update_date = null;
             let uptimes_timer = null;
@@ -707,17 +677,17 @@ function filter_fc(rooms) {
                     rooms_count += 1;
                     room_not_found = false;
 
-                    // Room Info
+                    // Raum Info
                     let tr = document.createElement("tr");
                     let room_header = document.createElement("th");
                     room_header.colSpan = 100;
                     room_header.classList.add("room-header");
-                    let room_type = room.type == "anybody" ? "🌎 Public" : "🔒 Private";
+                    let room_type = room.type == "anybody" ? "🌎 ÖFFENTLICH »" : "🔒» PRIVAT";
 
 
-                    let joinable = room.suspend ? "Not joinable" : "Joinable";
+                    let joinable = room.suspend ? "Kein Beitritt möglich!" : "Beitritt möglich";
                     if (room.split) {
-                        joinable = "Split room";
+                        joinable = "Aufgeteilter Raum";
                     }
 
                     let joinable_class = room.suspend ? "not-joinable" : "joinable";
@@ -730,20 +700,20 @@ function filter_fc(rooms) {
                     tbody.appendChild(tr);
 
                     // Data Headers
-                    tr = document.createElement("tr");
+					tr = document.createElement("tr");
                     tr.classList.add("data-header");
                     tbody.appendChild(tr);
                     
+                    // Mii
+                    th = document.createElement("th");
+                    th.textContent = "Mii";
+                    th.classList.add("mii-header");
+                    tr.appendChild(th);
+
                     // Mii-Name
                     th = document.createElement("th");
                     th.textContent = "Mii-Name";
                     th.colSpan = 2;
-                    tr.appendChild(th);
-
-                    // // Mii
-                    th = document.createElement("th");
-                    th.textContent = "Mii";
-                    th.classList.add("mii-header");
                     tr.appendChild(th);
 
                     // Freundescode
@@ -767,7 +737,6 @@ function filter_fc(rooms) {
                     th.textContent = "BR";
                     tr.appendChild(th);
 
-
                     // Players
                     for (const player_idx of Object.keys(room.players)) {
                         let mii_idx = 0;
@@ -784,34 +753,9 @@ function filter_fc(rooms) {
                             tr = document.createElement("tr");
                             tbody.appendChild(tr);
 
-                            const player = room.players[player_idx];
+                            const Spieler = room.players[player_idx];
 
                             // Mii-Name
-                            let td = document.createElement("td");
-                            td.colSpan = 2;
-                            let name_ele = td;
-
-                            if (cur_mii_idx > 0){
-                                name_ele = document.createElement("td");
-                                name_ele.classList.add("guest-name");
-                                td.classList.add("guest-td");
-                                td.colSpan = 1;
-                                name_ele.colSpan = 1;
-
-                                if (Object.keys(room.players).indexOf(player_idx) == Object.keys(room.players).length - 1 || cur_mii_idx < no_miis - 1){
-                                    td.style.borderBottom = "hidden";
-                                }
-                            }
-
-                            name_ele.classList.add("mii-name");
-                            name_ele.innerHTML = handle_mii_name('mii' in player ? player.mii[cur_mii_idx].name : player.name);
-                            tr.appendChild(td);
-
-                            if (cur_mii_idx > 0){
-                                tr.appendChild(name_ele);
-                            }
-
-                            // Mii
                             td = document.createElement("td");
                             td.classList.add("mii-td");
                             img = document.createElement("img");
@@ -823,30 +767,53 @@ function filter_fc(rooms) {
                             td.appendChild(img);
                             tr.appendChild(td);
 
-                            if ('mii' in player){
-                                img.setAttribute("mii-data", player.mii[cur_mii_idx].data);
+                            // Mii-Name
+                            let td_name = document.createElement("td");
+                            td_name.colSpan = 2;
+                            let name_ele = td_name;
+
+                            if (cur_mii_idx > 0){
+                                name_ele = document.createElement("td");
+                                name_ele.classList.add("guest-name");
+                                td_name.classList.add("guest-td");
+                                td_name.colSpan = 1;
+                                name_ele.colSpan = 1;
+
+                                if (Object.keys(room.players).indexOf(player_idx) == Object.keys(room.players).length - 1 || cur_mii_idx < no_miis - 1){
+                                    td_name.style.borderBottom = "hidden";
+                                }
+                            }
+
+                            name_ele.classList.add("mii-name");
+                            name_ele.innerHTML = handle_mii_name('mii' in Spieler ? Spieler.mii[cur_mii_idx].name : Spieler.name);
+                            tr.appendChild(td_name);
+
+                            if (cur_mii_idx > 0){
+                                tr.appendChild(name_ele);
+                            }
+                            if ('mii' in Spieler){
+                                img.setAttribute("mii-data", Spieler.mii[cur_mii_idx].data);
                             }
 
                             // Freundescode
                             td = document.createElement("td");
-                            td.textContent = cur_mii_idx == 0 ? player.fc : "Guest";
+                            td.textContent = cur_mii_idx == 0 ? Spieler.fc : "Gast";
                             // if (cur_mii_idx == 0 && player_idx == room.host){
                             //     td.style.fontWeight = "bold";
                             // }
 
-                            if (player.fc == localStorage.getItem("highlight-fc")){
+                            if (Spieler.fc == localStorage.getItem("highlight-fc")){
                                 tr.classList.add("highlighted");
                             }
-                            
-                            if (player.fc == localStorage.getItem("fordy-fc")){
-                                tr.classList.add("highlighted");
-                            }
-                            
-                            if (player.fc == localStorage.getItem("germtr-fc")){
-                                tr.classList.add("highlighted");
+                            if (Spieler.fc == "3957-3856-7551"){
+                                tr.classList.add("custom-highlighted");
                             }
 
-                            if (player["openhost"] && player.openhost == "true" && cur_mii_idx == 0) {
+                            if (Spieler.fc == "5374-7369-5676"){
+                                tr.classList.add("custom-highlighted");
+                            }
+
+                            if (Spieler["openhost"] && Spieler.openhost == "true" && cur_mii_idx == 0) {
                                 td.setAttribute("openhost", "");
                                 td.title = "OpenHost enabled";
                             }
@@ -855,29 +822,47 @@ function filter_fc(rooms) {
 
                             // // Connection fail
                             // td = document.createElement("td");
-                            // td.textContent = cur_mii_idx == 0 ? player.conn_fail : "--";
+                            // td.textContent = cur_mii_idx == 0 ? Spieler.conn_fail : "--";
                             // tr.appendChild(td);
 
                             // VR
                             td = document.createElement("td");
-                            td.textContent = cur_mii_idx == 0 ? player.ev : "";
+                            td.textContent = cur_mii_idx == 0 ? Spieler.ev : "";
                             tr.appendChild(td);
 
                             // BR
                             td = document.createElement("td");
-                            td.textContent = cur_mii_idx == 0 ? player.eb : "";
+                            td.textContent = cur_mii_idx == 0 ? Spieler.eb : "";
                             tr.appendChild(td);
                         }
                         
+const retroRooms = rooms.filter(room => room.rk === 'vs_10').length;
+const customRooms = rooms.filter(room => room.rk === 'vs_20').length;
+const showPrivate = document.getElementById("private-checkbox").checked;
 
+const otherRooms = rooms.filter(room =>
+  room.rk !== 'vs_10' &&
+  room.rk !== 'vs_20' &&
+  (room.type === 'anybody' || showPrivate)
+).length;
+
+document.getElementById('room-count-extra').innerHTML = `
+  <span style="color: white; font-weight: bold">${retroRooms}</span> 
+  <span style="color: orange;">Retro</span> •
+  <span style="color: white; font-weight: bold">${customRooms}</span> 
+  <span style="color: purple;">Custom</span> •
+  <span style="color: white; font-weight: bold">${otherRooms}</span> 
+  <span style="color: gray;">Sonstige</span>
+`;
                     }
 
                     // Apply the room header text.
-                    var skip_reset = false;
+                  var skip_reset = false;
 
-                    var rk = room.rk;
+                   var rk = room.rk;
                     if (rk && rk in ROOM_TYPES){
-                        rk = `<span title="${rk}">${ROOM_TYPES[rk]}</span>`;
+                        const type = ROOM_TYPES[rk];
+                        rk = `<span title="${rk}" style="color: ${type.color};">${type.label}</span>`;
                     } else if (rk) {
                         rk = rk.toUpperCase();
                     }
@@ -885,7 +870,7 @@ function filter_fc(rooms) {
                     let params = new URL(window.location.href).searchParams;
                     params.set("room", room.id);
                     let room_link = `?${params.toString()}`;
-                    room_header.innerHTML = `${room_type} ${rk? rk + " " : ""}Room <a href="${room_link}" class="room-link">${room.id}</a> – Uptime: <span created="${room.created}"></span>\r\n${room_no_players} player${room_no_players == 1 ? "" : "s"} – <span class="${joinable_class}">${joinable}</span>`;
+                    room_header.innerHTML = `${room_type} ${rk? rk + " " : ""} \r\n ${room_no_players} Spieler${room_no_players == 1 ? "" : ""}\r\n Raum: <a href="${room_link}" class="room-link">${room.id}</a> - <span class="${joinable_class}">${joinable}</span>\r\n  aktiv seit: <span created="${room.created}"></span>`;
                     if (uptimes_timer){
                         skip_reset = true;
                     }
@@ -939,87 +924,5 @@ function filter_fc(rooms) {
                 document.addEventListener('DOMContentLoaded', on_load, false)
             else window.onload = fetch_rooms
         </script>
-<div id="footer-buttons"><a class="footer-button" href="https://wiki.tockdom.com/wiki/Retro_Rewind" target="_blank">Retro</a><a class="footer-button" href="https://github.com/KevinVG207" target="_blank">KevinVG207</a><a class="footer-button" href="http://zplwii.xyz/api/groups" target="_blank">this</a><a class="footer-button" href="https://wiki.tockdom.com/wiki/CTMKF" target="_blank">Chadderz's</a></div>
-<script>
-(function() {
-    // --- A: Mehrere FCs markieren ---
-    const getMarkedFCs = () => (localStorage.getItem("highlight-fc") || "").split(",").filter(x => x);
-    const setMarkedFCs = (fcs) => localStorage.setItem("highlight-fc", fcs.join(","));
-
-    document.getElementById("fc-input").addEventListener("input", () => {
-        const input = document.getElementById("fc-input").value;
-        if (input.includes(",")) {
-            setMarkedFCs(input.split(",").map(s => s.trim()));
-        } else {
-            setMarkedFCs([input.trim()]);
-        }
-        reload_rooms();
-    });
-
-    // --- B: Klick auf Spielernamen markiert dessen FC ---
-    document.addEventListener("click", (e) => {
-        if (e.target.classList.contains("mii-name")) {
-            const row = e.target.closest("tr");
-            if (!row) return;
-            const fcCell = row.querySelector("td:nth-of-type(4)");
-            if (!fcCell || fcCell.textContent === "Guest") return;
-            const fc = fcCell.textContent.trim();
-            let currentFCs = getMarkedFCs();
-            if (!currentFCs.includes(fc)) {
-                currentFCs.push(fc);
-                setMarkedFCs(currentFCs);
-                document.getElementById("fc-input").value = currentFCs.join(", ");
-                reload_rooms();
-            }
-        }
-    });
-
-    // --- C: Mii-Namen Autovervollständigung ---
-    const miiNames = new Set();
-    document.addEventListener("DOMContentLoaded", () => {
-        document.querySelectorAll(".mii-name").forEach(el => {
-            const name = el.textContent.trim();
-            if (name && name.length >= 2) miiNames.add(name);
-        });
-        setupAutocomplete();
-    });
-
-    function setupAutocomplete() {
-        const input = document.getElementById("fc-input");
-        const datalist = document.createElement("datalist");
-        datalist.id = "mii-name-list";
-        miiNames.forEach(name => {
-            const option = document.createElement("option");
-            option.value = name;
-            datalist.appendChild(option);
-        });
-        document.body.appendChild(datalist);
-        input.setAttribute("list", "mii-name-list");
-
-        input.addEventListener("change", () => {
-            const val = input.value.trim();
-            if (miiNames.has(val)) {
-                highlightByMiiName(val);
-            }
-        });
-    }
-
-    function highlightByMiiName(name) {
-        let foundFCs = [];
-        document.querySelectorAll("tr").forEach(tr => {
-            const miiEl = tr.querySelector(".mii-name");
-            const fcEl = tr.querySelector("td:nth-of-type(4)");
-            if (miiEl && miiEl.textContent.trim() === name && fcEl && fcEl.textContent !== "Guest") {
-                foundFCs.push(fcEl.textContent.trim());
-            }
-        });
-        if (foundFCs.length > 0) {
-            setMarkedFCs(foundFCs);
-            document.getElementById("fc-input").value = foundFCs.join(", ");
-            reload_rooms();
-        }
-    }
-})();
-</script>
-</body>
+    </body>
 </html>
