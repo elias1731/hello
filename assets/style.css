@@ -85,10 +85,16 @@ h6 {
 	  border-radius:190px;
   }
 
-  .linktree {
+  .fordy {
 	  width: 120px;
 	  height: 120px;
 	  background-image: url("https://raw.githubusercontent.com/elias1731/hello/refs/heads/main/assets/Fordy.png");
+  }
+
+  .linktree {
+	  width: 120px;
+	  height: 120px;
+	  background-image: url("https://raw.githubusercontent.com/elias1731/hello/refs/heads/main/assets/elias.jpg");
 	  background-size: cover;
 	  background-repeat: no-repeat;
 	  background-position: 50% 50%;
