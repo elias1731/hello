@@ -1,0 +1,8 @@
+{
+  "name": "simple",
+  "main": "update-data.js",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "moment": "^2.30.1"
+  }
+}

@@ -1,0 +1,13 @@
+name: Super-Linter
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+
+jobs:
+  build-node:
+    runs-on: ubuntu-latest
+    container: node:14
+    steps:
+      - run: node --version
+      - run: npm --version
