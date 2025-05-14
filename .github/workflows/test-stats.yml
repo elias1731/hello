@@ -11,6 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     container: node:14
     steps:
+      - run: cd ./retrowfc/stats-liste/
       - run: node --version
       - run: npm --version
-      - run: npm ./retrowfc/stats-liste/update-data.js
+      - run: npm update-data.js
