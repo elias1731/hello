@@ -1,6 +1,8 @@
-name: test-stats
+name: 'Autom. "build-node" ausführen'
 
 on:
+  push:
+  workflow_dispatch:
   schedule:
     - cron: "*/5 * * * *"
 
@@ -11,3 +13,4 @@ jobs:
     steps:
       - run: node --version
       - run: npm --version
+      - run: npm ./retrowfc/stats-liste/update-data.js
