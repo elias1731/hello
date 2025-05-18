@@ -289,7 +289,8 @@ input, button, room-link {
 }
 
 .openhost {
-    text-decoration: underline dotted #a1bee3;
+    font-family: sans-serif;
+    text-decoration: underline #a1bee3;
 }
 
 tbody > tr:first-child {
