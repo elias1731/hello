@@ -6,7 +6,7 @@
         <meta name="author" content="heyFordy" />
         <meta name="keywords" content="mario kart wii, mkwii, retro rewind, zpl, rooms, online, status, online status, ctgp" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0" />
-        <link rel="icon" type="image/x-icon" href="./favicon.ico">
+	<link rel="icon" type="image/x-icon" href="./favicon.ico">
         <!-- <link rel="icon" type="image/png" href="./Logo.png"> -->
         <link rel="stylesheet" href="./style.css" type="text/css" />
         <link href="./ctmkf.css" rel="Stylesheet" type="text/css" />
@@ -28,7 +28,10 @@
                 <input type="checkbox" id="timeout-checkbox" onchange="on_checkbox()" />
                 <label for="timeout-checkbox">Automatisch aktualisieren</label>
             </div>
-
+            <div id="openhost-container" style="display: none;">
+                <label for="openhost-checkbox">Unterstreiche "OpenHost"</label>
+                <input type="checkbox" id="openhost-checkbox" onchange="on_openhost_checkbox()" />
+            </div>
             <div id="fc-container" style="display: none;">
                 <label for="fc-input">Spieler markieren:</label>
                 <input type="text" id="fc-input" placeholder="0000-0000-0000-0000" oninput="on_fc_change()" style="text-align: center;" />
@@ -52,12 +55,7 @@
             <tbody id="tablebody"></tbody>
         </table>
 	</br>
-            <div id="openhost-container">
-                <label for="openhost-checkbox">Unterstreiche "OpenHost"</label>
-                <input type="checkbox" id="openhost-checkbox" onchange="on_openhost_checkbox()" />
-            </div>
-  </br>     
-  	<p>Ältere Daten anzeigen:</p>
+	<p>Ältere Daten anzeigen:</p>
             <div id="history-container">
                 <button onclick="add_history(-60)">-1h</button>
                 <button onclick="add_history(-1)">-1m</button>
