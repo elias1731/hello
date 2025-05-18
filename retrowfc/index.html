@@ -703,7 +703,7 @@
                     tbody.appendChild(tr);
 
                     // Data Headers
-					tr = document.createElement("tr");
+                    tr = document.createElement("tr");
                     tr.classList.add("data-header");
                     tbody.appendChild(tr);
                     
@@ -815,10 +815,10 @@
                             if (Spieler.fc == "2534-0314-0723"){
                                 tr.classList.add("custom-highlighted");
                             }
-
-                            if (Spieler["openhost"] && Spieler.openhost == "true" && cur_mii_idx == 0) {
-                                td.setAttribute("openhost", "");
-                                td.title = "OpenHost enabled";
+                            
+                            if (Spieler["openhost"] && player.openhost == "true" && cur_mii_idx == 0) {
+                              td.setAttribute("openhost", "");
+                              td.title = "OpenHost AN";
                             }
 
                             tr.appendChild(td);
