@@ -33,7 +33,7 @@
             #rpunkte-container { margin-bottom: 20px; }
             #rpunkte-container h3 { margin-bottom: 5px; font-size: 1.5em; }
             #rpunkte-container div {
-                font-size: 1.3em;
+                font-size: 1.2em;
                 display: flex;
                 justify-content: center;
                 align-items: center;
@@ -57,6 +57,7 @@
 </h1>
 <div id="rpunkte-container" style="display: none;">
     </div>
+    <p>heyFordy | Germanator</p>
 <div id="top-container" style="display: none;"> <span><span id="no-players" class="top-stat excited">0</span> Spieler in</span>
           <span><span id="no-rooms" class="top-stat excited">0</span> Räumen (Gefiltert)</span>
         </div></br>
@@ -715,11 +716,9 @@
                 rp_container.innerHTML = `
                     <div>
                         <span class="rp-value">${p1_ev}</span>
-                        <span class="rp-title">R-Punkte</span>
+                        <span class="rp-title">PUNKTE</span>
                         <span class="rp-value">${p2_ev}</span>
-                        <h3>${TARGET_NAMES[0]} | ${TARGET_NAMES[1]}</h3>
                     </div>
-                `;
                 rp_container.style.display = "block";
 
                 // Update FC Status Container
