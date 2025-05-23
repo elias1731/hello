@@ -50,6 +50,56 @@
         </style>
 
     </head>
+<script>
+const HASS_URL = 'http://10.69.254.100:8123'; // oder deine lokale IP
+const HASS_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJjZDYyNzEzNDk1Njk0YjdiYTgxYmMyZWEyZGIzZjM4YyIsImlhdCI6MTc0ODAxNDk5NSwiZXhwIjoyMDYzMzc0OTk1fQ.HX3spVxSO4KERECGX3ZmLwEDMf5OMHM9XQ5qgiGX6pk'; // besser nicht hardcoden, siehe unten
+
+async function getSensorValue(sensorId) {
+    try {
+        const response = await fetch(`${HASS_URL}/api/states/${sensorId}`, {
+            headers: {
+                'Authorization': `Bearer ${HASS_TOKEN}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        if (!response.ok) throw new Error(`Fehler: ${response.status}`);
+        const data = await response.json();
+        return data.state;
+    } catch (err) {
+        console.error(`Fehler beim Laden von ${sensorId}:`, err);
+        return null;
+    }
+}
+
+async function showFallbackPunkte() {
+    const heyfordy = await getSensorValue('sensor.rwfc_heyfordy_p');
+    const germanator = await getSensorValue('sensor.rwfc_germanator_p');
+
+    if (heyfordy || germanator) {
+        const container = document.getElementById('rpunkte-container');
+        container.style.display = 'block';
+
+        container.innerHTML = `
+            <h3>Fallback Punkte (lokal)</h3>
+            <div>
+                <span class="rp-names">Fordy:</span>
+                <span class="rp-value">${heyfordy ?? '–'}</span>
+                <span class="rp-title">Punkte</span>
+            </div>
+            <div>
+                <span class="rp-names">Germanator:</span>
+                <span class="rp-value">${germanator ?? '–'}</span>
+                <span class="rp-title">Punkte</span>
+            </div>
+        `;
+    }
+}
+
+// Direkt nach Laden ausführen
+window.addEventListener('DOMContentLoaded', () => {
+    showFallbackPunkte();
+});
+</script>
 <body> <h1>
   <a href="?" id="home-link" decoding="async">
     <img src="RR.png" alt="Retro Rewind Server Status" style="height: 192px;" />
