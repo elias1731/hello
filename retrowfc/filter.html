@@ -735,7 +735,7 @@
                     let room = fc1_room;
                     let room_type_label = get_room_type_label(room.rk);
                     let other_players = Object.keys(room.players).length - 2;
-                    status_html = `<p>Gemeinsam online in ${room_type_label} (+ ${other_players} weitere Spieler)</p>`;
+                    status_html = `<p>Gemeinsam in</p></br><p>${room_type_label} (+ ${other_players} weitere Spieler)</p>`;
                 } else if (fc1_data && fc2_data) {
                     let other1 = Object.keys(fc1_room.players).length - 1;
                     let other2 = Object.keys(fc2_room.players).length - 1;
