@@ -12,7 +12,7 @@ html {
 body {
 	width: 100wh;
 	color: #fff;
-	background: linear-gradient(-45deg, #39ff0069, #ff4100, #ffc800, #dd4700, #0049ff69);
+	background: linear-gradient(-45deg, #00bcdd, #00dd55, #0055dd, #00dd69, #00ff22);
 	background-size: 200% 200%;
 	-webkit-animation: Gradient 4s ease infinite;
 	-moz-animation: Gradient 4s ease infinite;
