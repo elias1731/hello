@@ -713,17 +713,21 @@
                 let p1_ev = fc1_data ? fc1_data.ev : "???";
                 let p2_ev = fc2_data ? fc2_data.ev : "???";
                 rp_container.innerHTML = `
-                    <div>
-                        <span class="rp-value">${p1_ev}</span>
-                        <span class="rp-title">PUNKTE</span>
-                        <span class="rp-value">${p2_ev}</span></br>
-                        <hr style="height: 0.2rem;border: none;background-color: #ffffff40;"></br>
-                        <span class="rp-name">heyFordy</span>
-                        <span class="rp-title">|</span>
-                        <span class="rp-name">Germanator</span>
+                    <div style="display: flex; flex-direction: column; align-items: center;">
+                        <div style="display: flex; align-items: center;">
+                            <span class="rp-value">${p1_ev}</span>
+                            <span class="rp-title">PUNKTE</span>
+                            <span class="rp-value">${p2_ev}</span>
+                        </div>
+                        <hr style="width: 100%; height: 0.2rem; border: none; background-color: #ffffff40; margin: 0.5rem 0;">
+                        <div style="display: flex; align-items: center;">
+                            <span class="rp-name">heyFordy</span>
+                            <span class="rp-title">|</span>
+                            <span class="rp-name">Germanator</span>
+                        </div>
                     </div>
                 `;
-                rp_container.style.display = "inline";
+                rp_container.style.display = "block";
 
                 // Update FC Status Container
                 const fc_status_container = document.getElementById("fc-status-container");
