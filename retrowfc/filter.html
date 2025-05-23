@@ -7,7 +7,7 @@
         <meta name="keywords" content="mario kart wii, mkwii, retro rewind, zpl, rooms, online, status, online status, ctgp, filtered" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0" />
         <link rel="icon" type="image/x-icon" href="./favicon.ico">
-        <link rel="stylesheet" href="./style.css" type="text/css" />
+        <link rel="stylesheet" href="./style-alt.css" type="text/css" />
         <link href="./ctmkf.css" rel="Stylesheet" type="text/css" />
         <link href="./Rubik.css" rel="Stylesheet" type="text/css" />
         <style>
@@ -712,11 +712,11 @@
                 let p1_ev = fc1_data ? fc1_data.ev : "???";
                 let p2_ev = fc2_data ? fc2_data.ev : "???";
                 rp_container.innerHTML = `
-                    <h3>R-Punkte</h3>
                     <div>
                         <span class="rp-value">${p1_ev}</span>
                         <span class="rp-names">${TARGET_NAMES[0]} | ${TARGET_NAMES[1]}</span>
                         <span class="rp-value">${p2_ev}</span>
+                    <h3>R-Punkte</h3>
                     </div>
                 `;
                 rp_container.style.display = "block";
