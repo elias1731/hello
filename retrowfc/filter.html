@@ -44,6 +44,7 @@
                 margin: 10px auto;
             }
             #rpunkte-container .rp-value { font-weight: bold; margin: 0 15px; color: #f9d71c; } /* Gold color for VR */
+            #rpunkte-container .rp-title { font-weight: bold; margin: 0 10px; color: #ccc; }
             #rpunkte-container .rp-names { margin: 0 10px; color: #ccc; }
 
         </style>
@@ -714,9 +715,9 @@
                 rp_container.innerHTML = `
                     <div>
                         <span class="rp-value">${p1_ev}</span>
-                        <span class="rp-names">${TARGET_NAMES[0]} | ${TARGET_NAMES[1]}</span>
+                        <span class="rp-title">R-Punkte</span>
                         <span class="rp-value">${p2_ev}</span>
-                    <h3>R-Punkte</h3>
+                        <h3>${TARGET_NAMES[0]} | ${TARGET_NAMES[1]}</h3>
                     </div>
                 `;
                 rp_container.style.display = "block";
