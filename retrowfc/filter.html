@@ -22,13 +22,30 @@
             .highlighted { background-color: #553; }
             .custom-highlighted { background-color: #353; }
             a { color: #6af; }
-            #loading, #not-found-container { padding: 20px; font-size: 1.2em; }
+            #loading, #not-found-container, #fc-status-container { padding: 20px; font-size: 1.2em; }
+            #fc-status-container p { margin: 5px 0; font-weight: bold; font-size: 1.15em; }
             #top-container span { margin: 0 10px; }
             .top-stat { font-weight: bold; font-size: 1.1em; }
             .joinable { color: lightgreen; }
             .not-joinable { color: lightcoral; }
             .split-room { color: yellow; }
             #settings div { margin-bottom: 5px; }
+            #rpunkte-container { margin-bottom: 20px; }
+            #rpunkte-container h3 { margin-bottom: 5px; font-size: 1.5em; }
+            #rpunkte-container div {
+                font-size: 1.3em;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                background-color: #2a2a2a;
+                padding: 10px;
+                border-radius: 8px;
+                width: 350px;
+                margin: 10px auto;
+            }
+            #rpunkte-container .rp-value { font-weight: bold; margin: 0 15px; color: #f9d71c; } /* Gold color for VR */
+            #rpunkte-container .rp-names { margin: 0 10px; color: #ccc; }
+
         </style>
 
     </head>
@@ -37,8 +54,9 @@
     <img src="RR.png" alt="Retro Rewind Server Status" style="height: 192px;" />
   </a>
 </h1>
-<div id="top-container" style="display: none;">
-          <span><span id="no-players" class="top-stat excited">0</span> Spieler in</span>
+<div id="rpunkte-container" style="display: none;">
+    </div>
+<div id="top-container" style="display: none;"> <span><span id="no-players" class="top-stat excited">0</span> Spieler in</span>
           <span><span id="no-rooms" class="top-stat excited">0</span> Räumen (Gefiltert)</span>
         </div></br>
                 <div id="settings" style="margin-top:2px">
@@ -60,11 +78,12 @@
             </div>
         </div>
         <div id="loading">Daten werden geladen. Bitte warten...</div>
-    <!-- <p style="font-size: 1.4em; margin-top:2px; font-weight: bold;">Räume (Nur mit markierten FCs):</p></div> -->
 <div id="room-count-extra" style="font-size: 1.2em; margin-top: 2px;"></div>
             <div id="private-container" style="display: none;">
                 <label for="private-checkbox">Private Räume anzeigen</label>
                 <input type="checkbox" id="private-checkbox" onchange="on_private_checkbox()" />
+            </div>
+        <div id="fc-status-container" style="display: none;">
             </div>
         <div id="not-found-container" style="display: none;">
         <p style="font-size: 1.4em; margin-top:2px; font-weight: bold;">Keine Räume mit "heyFordy" oder "Germanator" gefunden!</p>
@@ -82,7 +101,6 @@
                 <button onclick="add_history(60)">+1h</button>
             </div></br>
 	</br>
-        <!-- <p><a href="https://heyfordy.de/retrowfc/alt.html" target="_blank">+ Erweitert</a></p></br> -->
         <p><a href="https://wiki.tockdom.com/wiki/Retro_Rewind" target="_blank">Retro Rewind</a></p>
         <p><a href="http://rwfc.net/api/groups" target="_blank">API</a></p>
         <p><a href="https://wiki.tockdom.com/wiki/CTMKF" target="_blank">Schriftart "CTMKF"</a></p>
@@ -95,13 +113,14 @@
             let HISTORY_DATE = null;
             const MAX_MIIS_PER_REQUEST = 24;
             const EXPIRE_TIME = 1000 * 60 * 60 * 24 * 7; // 1 week
-            const RELOAD_TIME = 1000 * 5; // 10; // 10 seconds
+            const RELOAD_TIME = 1000 * 5; // 5 seconds
             let RELOAD_TIMER = null;
             let cur_rooms = [];
             let FIRST_LOAD = true;
 
             // Diese FCs werden IMMER gesucht.
             const TARGET_FCS = ["4466-7667-0997", "3092-3771-7526"];
+            const TARGET_NAMES = ["Fordy", "Germanator"];
 
             // Source: https://github.com/patchzyy/WheelWizard
             const ROOM_TYPES = {
@@ -117,6 +136,15 @@
                 "vs_-1": { label: "Standard VS", color: "gray" },
                 "vs": { label: "Standard VS", color: "gray" }
             };
+
+            function get_room_type_label(rk) {
+                if (rk && rk in ROOM_TYPES){
+                    return ROOM_TYPES[rk].label;
+                } else if (rk) {
+                    return rk.toUpperCase();
+                }
+                return "Unbekannt";
+            }
 
             function on_history_change() {
                 if (HISTORY_TIMER){
@@ -175,7 +203,6 @@
             }
 
             function filter_mii_name(name){
-                // If a character is between 0xF103 and 0xF12F, place it within <span class="wide-char">
                 let new_name = "";
                 let special_char = false;
                 for (let i = 0; i < name.length; i++){
@@ -292,9 +319,8 @@
                           }
                       });
 
-                      // Keep FC logic for split room ordering, but filtering happens later
                       let fc_input = document.getElementById("fc-input").value;
-                      let fc_list = [...TARGET_FCS]; // Use target FCs
+                      let fc_list = [...TARGET_FCS];
 
                       if (fc_input) {
                           fc_list.push(fc_input);
@@ -326,32 +352,25 @@
               return new_rooms;
             }
 
-            // This function now *only* highlights, it doesn't filter.
-            // We will add a new function for strict filtering.
             function highlight_fc(rooms){
                 let fc_raw = localStorage.getItem("highlight-fc");
-                let fc_list = [...TARGET_FCS]; // Always include target FCs
+                let fc_list = [...TARGET_FCS];
 
                 if (fc_raw) {
                     fc_list.push(fc_raw);
                 }
-
-                // We are not reordering here anymore, just ensuring highlighting works.
-                // The main filtering will happen in reload_rooms.
                 return rooms;
             }
 
-            // *** NEW FUNCTION ***
-            // This function strictly filters rooms to ONLY include those with target FCs.
             function filter_rooms_by_target_fcs(rooms) {
                 return rooms.filter(room => {
                     for (const player_idx of Object.keys(room.players)) {
                         const Spieler = room.players[player_idx];
                         if (TARGET_FCS.includes(Spieler.fc)) {
-                            return true; // Keep the room if a target FC is found
+                            return true;
                         }
                     }
-                    return false; // Discard the room if no target FC is found
+                    return false;
                 });
             }
 
@@ -613,8 +632,11 @@
                     history_indicator.style.display = "block";
 
                     document.getElementById("tablebody").innerHTML = "";
-                    document.querySelector("#top-container").style.display = "none";
                     document.querySelector("#loading").style.display = "block";
+                    document.querySelector("#fc-status-container").style.display = "none";
+                    document.querySelector("#not-found-container").style.display = "none";
+                    document.querySelector("#rpunkte-container").style.display = "none";
+
                 } else {
                     checkbox.disabled = false;
                     history_indicator.style.display = "none";
@@ -651,7 +673,6 @@
 
             async function reload_rooms(){
                 let rooms = cur_rooms;
-                let no_players = 0;
 
                 const tbody = document.getElementById("tablebody");
                 tbody.innerHTML = "";
@@ -659,97 +680,117 @@
                 const url = new URL(window.location.href);
                 const params = url.searchParams;
                 const filter_room = params.get("room");
-                let room_not_found = true;
 
-                // Apply original ordering/highlighting based on input/hardcoded FCs
-                rooms = highlight_fc(rooms); // Use the (now non-filtering) highlight function
-                // Fix split rooms (includes reordering based on FCs)
+                rooms = highlight_fc(rooms);
                 rooms = fix_split_rooms(rooms);
-
-                // *** NEW FILTER STEP ***
-                // Now, strictly filter to only show rooms with the target FCs
                 rooms = filter_rooms_by_target_fcs(rooms);
-                // **********************
+
+                let fc1 = TARGET_FCS[0];
+                let fc2 = TARGET_FCS[1];
+                let fc1_data = null;
+                let fc2_data = null;
+                let fc1_room = null;
+                let fc2_room = null;
+
+                // Find players and their rooms from the *filtered* list
+                for (const room of rooms) {
+                    for (const player_idx of Object.keys(room.players)) {
+                        const Spieler = room.players[player_idx];
+                        if (Spieler.fc === fc1) {
+                            fc1_data = Spieler;
+                            fc1_room = room;
+                        }
+                        if (Spieler.fc === fc2) {
+                            fc2_data = Spieler;
+                            fc2_room = room;
+                        }
+                    }
+                }
+
+                // Update R-Punkte Container
+                const rp_container = document.getElementById("rpunkte-container");
+                let p1_ev = fc1_data ? fc1_data.ev : "???";
+                let p2_ev = fc2_data ? fc2_data.ev : "???";
+                rp_container.innerHTML = `
+                    <h3>R-Punkte</h3>
+                    <div>
+                        <span class="rp-value">${p1_ev}</span>
+                        <span class="rp-names">${TARGET_NAMES[0]} | ${TARGET_NAMES[1]}</span>
+                        <span class="rp-value">${p2_ev}</span>
+                    </div>
+                `;
+                rp_container.style.display = "block";
+
+                // Update FC Status Container
+                const fc_status_container = document.getElementById("fc-status-container");
+                const not_found_container = document.getElementById("not-found-container");
+                let status_html = "";
+
+                function get_room_info_str(room, other_players_count) {
+                    let room_type_label = get_room_type_label(room.rk);
+                    return `spielt ${room_type_label} (+ ${other_players_count} weitere Spieler)`;
+                }
+
+                if (fc1_data && fc2_data && fc1_room.id === fc2_room.id) {
+                    let room = fc1_room;
+                    let room_type_label = get_room_type_label(room.rk);
+                    let other_players = Object.keys(room.players).length - 2;
+                    status_html = `<p>Gemeinsam online in ${room_type_label} (+ ${other_players} weitere Spieler)</p>`;
+                } else if (fc1_data && fc2_data) {
+                    let other1 = Object.keys(fc1_room.players).length - 1;
+                    let other2 = Object.keys(fc2_room.players).length - 1;
+                    status_html = `<p>${TARGET_NAMES[0]} ${get_room_info_str(fc1_room, other1)}</p>
+                                   <p>${TARGET_NAMES[1]} ${get_room_info_str(fc2_room, other2)}</p>`;
+                } else if (fc1_data) {
+                    let other1 = Object.keys(fc1_room.players).length - 1;
+                    status_html = `<p>${TARGET_NAMES[0]} ${get_room_info_str(fc1_room, other1)}</p>`;
+                } else if (fc2_data) {
+                    let other2 = Object.keys(fc2_room.players).length - 1;
+                    status_html = `<p>${TARGET_NAMES[1]} ${get_room_info_str(fc2_room, other2)}</p>`;
+                }
 
                 let rooms_count = 0;
+                let no_players = 0; // Total players in displayed rooms
 
                 for (const room of rooms) {
-                    // If a specific room ID is requested via URL, only show that one
-                    // (but only if it passed the FC filter)
                     if (filter_room && room.id != filter_room){
                         continue;
                     }
 
-                    // Private room filtering (only if not filtering by ID)
                     if (!filter_room && !document.getElementById("private-checkbox").checked && room.type != "anybody"){
                         continue;
                     }
 
                     rooms_count += 1;
-                    room_not_found = false; // We found at least one room matching the FCs
 
-                    // Raum Info
                     let tr = document.createElement("tr");
                     let room_header = document.createElement("th");
                     room_header.colSpan = 100;
                     room_header.classList.add("room-header");
                     let room_type = room.type == "anybody" ? "🌎 ÖFFENTLICH »" : "🔒» PRIVAT";
 
-
                     let joinable = room.suspend ? "Kein Beitritt möglich!" : "Beitritt möglich";
-                    if (room.split) {
-                        joinable = "Aufgeteilter Raum";
-                    }
-
+                    if (room.split) { joinable = "Aufgeteilter Raum"; }
                     let joinable_class = room.suspend ? "not-joinable" : "joinable";
-                    if (room.split) {
-                        joinable_class = "split-room";
-                    }
+                    if (room.split) { joinable_class = "split-room"; }
 
                     let room_no_players = 0;
                     tr.appendChild(room_header);
                     tbody.appendChild(tr);
 
-                    // Data Headers
 					tr = document.createElement("tr");
                     tr.classList.add("data-header");
                     tbody.appendChild(tr);
 
-                    // Mii
-                    th = document.createElement("th");
-                    th.textContent = "Mii";
-                    th.classList.add("mii-header");
-                    tr.appendChild(th);
+                    let th_mii = document.createElement("th"); th_mii.textContent = "Mii"; tr.appendChild(th_mii);
+                    let th_name = document.createElement("th"); th_name.textContent = "Mii-Name"; th_name.colSpan = 2; tr.appendChild(th_name);
+                    let th_fc = document.createElement("th"); th_fc.textContent = "Freundescode"; tr.appendChild(th_fc);
+                    let th_vr = document.createElement("th"); th_vr.textContent = "VR"; tr.appendChild(th_vr);
+                    let th_br = document.createElement("th"); th_br.textContent = "BR"; tr.appendChild(th_br);
 
-                    // Mii-Name
-                    th = document.createElement("th");
-                    th.textContent = "Mii-Name";
-                    th.colSpan = 2;
-                    tr.appendChild(th);
-
-                    // Freundescode
-                    th = document.createElement("th");
-                    th.textContent = "Freundescode";
-                    tr.appendChild(th);
-
-                    // VR
-                    th = document.createElement("th");
-                    th.textContent = "VR";
-                    tr.appendChild(th);
-
-                    // BR
-                    th = document.createElement("th");
-                    th.textContent = "BR";
-                    tr.appendChild(th);
-
-                    // Players
                     for (const player_idx of Object.keys(room.players)) {
-                        let mii_idx = 0;
                         let no_miis = 1;
-
-                        if ('mii' in room.players[player_idx]){
-                            no_miis = room.players[player_idx].mii.length;
-                        }
+                        if ('mii' in room.players[player_idx]){ no_miis = room.players[player_idx].mii.length; }
 
                         for (let cur_mii_idx = 0; cur_mii_idx < no_miis; cur_mii_idx++){
                             no_players++;
@@ -760,159 +801,81 @@
 
                             const Spieler = room.players[player_idx];
 
-                            // Mii-Name
-                            td = document.createElement("td");
-                            td.classList.add("mii-td");
-                            img = document.createElement("img");
-                            img.width = 64;
-                            img.height = 64;
-                            img.alt = "Mii";
-                            img.classList.add("mii");
-                            img.src = "empty.png";
-                            td.appendChild(img);
-                            tr.appendChild(td);
+                            let td_mii = document.createElement("td"); td_mii.classList.add("mii-td");
+                            let img = document.createElement("img"); img.width = 64; img.height = 64; img.alt = "Mii"; img.classList.add("mii"); img.src = "empty.png";
+                            td_mii.appendChild(img); tr.appendChild(td_mii);
 
-                            // Mii-Name
-                            let td_name = document.createElement("td");
-                            td_name.colSpan = 2;
+                            let td_name = document.createElement("td"); td_name.colSpan = 2;
                             let name_ele = td_name;
-
                             if (cur_mii_idx > 0){
-                                name_ele = document.createElement("td");
-                                name_ele.classList.add("guest-name");
-                                td_name.classList.add("guest-td");
-                                td_name.colSpan = 1;
-                                name_ele.colSpan = 1;
-
+                                name_ele = document.createElement("td"); name_ele.classList.add("guest-name");
+                                td_name.classList.add("guest-td"); td_name.colSpan = 1; name_ele.colSpan = 1;
                                 if (Object.keys(room.players).indexOf(player_idx) == Object.keys(room.players).length - 1 || cur_mii_idx < no_miis - 1){
                                     td_name.style.borderBottom = "hidden";
                                 }
                             }
-
                             name_ele.classList.add("mii-name");
                             name_ele.innerHTML = handle_mii_name('mii' in Spieler ? Spieler.mii[cur_mii_idx].name : Spieler.name);
                             tr.appendChild(td_name);
+                            if (cur_mii_idx > 0){ tr.appendChild(name_ele); }
+                            if ('mii' in Spieler){ img.setAttribute("mii-data", Spieler.mii[cur_mii_idx].data); }
 
-                            if (cur_mii_idx > 0){
-                                tr.appendChild(name_ele);
-                            }
-                            if ('mii' in Spieler){
-                                img.setAttribute("mii-data", Spieler.mii[cur_mii_idx].data);
-                            }
-
-                            // Freundescode
-                            td = document.createElement("td");
-                            td.textContent = cur_mii_idx == 0 ? Spieler.fc : "Gast";
-
-                            // Highlighting based on input or *target* FCs
-                            if (Spieler.fc == localStorage.getItem("highlight-fc")){
-                                tr.classList.add("highlighted");
-                            }
-                            if (TARGET_FCS.includes(Spieler.fc)){
-                                tr.classList.add("custom-highlighted");
-                            }
-
-
+                            let td_fc = document.createElement("td"); td_fc.textContent = cur_mii_idx == 0 ? Spieler.fc : "Gast";
+                            if (Spieler.fc == localStorage.getItem("highlight-fc")){ tr.classList.add("highlighted"); }
+                            if (TARGET_FCS.includes(Spieler.fc)){ tr.classList.add("custom-highlighted"); }
                             if (Spieler["openhost"] && Spieler.openhost == "true" && cur_mii_idx == 0) {
-                                td.setAttribute("openhost", "");
-                                td.title = "OpenHost enabled";
+                                td_fc.setAttribute("openhost", ""); td_fc.title = "OpenHost enabled";
                             }
+                            tr.appendChild(td_fc);
 
-                            tr.appendChild(td);
-
-                            // VR
-                            td = document.createElement("td");
-                            td.textContent = cur_mii_idx == 0 ? Spieler.ev : "";
-                            tr.appendChild(td);
-
-                            // BR
-                            td = document.createElement("td");
-                            td.textContent = cur_mii_idx == 0 ? Spieler.eb : "";
-                            tr.appendChild(td);
+                            let td_vr = document.createElement("td"); td_vr.textContent = cur_mii_idx == 0 ? Spieler.ev : ""; tr.appendChild(td_vr);
+                            let td_br = document.createElement("td"); td_br.textContent = cur_mii_idx == 0 ? Spieler.eb : ""; tr.appendChild(td_br);
                         }
-
-                        // Update room counts (only considers *filtered* rooms now)
-                        const showPrivate = document.getElementById("private-checkbox").checked;
-                        const filteredRooms = cur_rooms.filter(r => {
-                            for (const p_idx of Object.keys(r.players)) {
-                                if (TARGET_FCS.includes(r.players[p_idx].fc)) return true;
-                            }
-                            return false;
-                        }).filter(r => showPrivate || r.type === 'anybody'); // Apply private filter here too
-
-                        const retroRooms = filteredRooms.filter(room => room.rk === 'vs_10').length;
-                        const customRooms = filteredRooms.filter(room => room.rk === 'vs_20').length;
-                        const otherRooms = filteredRooms.filter(room =>
-                          room.rk !== 'vs_10' &&
-                          room.rk !== 'vs_20'
-                        ).length;
                     }
 
-                    // Apply the room header text.
                     var skip_reset = false;
-
                     var rk = room.rk;
-                    if (rk && rk in ROOM_TYPES){
-                        const type = ROOM_TYPES[rk];
-                        rk = `<span title="${rk}" style="color: ${type.color};">${type.label}</span>`;
-                    } else if (rk) {
-                        rk = rk.toUpperCase();
-                    }
+                    let rk_label = get_room_type_label(rk);
+                    let rk_html = rk ? `<span title="${rk}" style="color: ${ROOM_TYPES[rk] ? ROOM_TYPES[rk].color : 'gray'};">${rk_label}</span>` : "";
 
                     let params = new URL(window.location.href).searchParams;
                     params.set("room", room.id);
                     let room_link = `?${params.toString()}`;
-                    room_header.innerHTML = `${room_type} ${rk? rk + " " : ""} \r\n ${room_no_players} Spieler${room_no_players == 1 ? "" : ""}\r\n Raum: <a href="${room_link}" class="room-link">${room.id}</a> - <span class="${joinable_class}">${joinable}</span>\r\n  aktiv seit: <span created="${room.created}"></span>`;
-                    if (uptimes_timer){
-                        skip_reset = true;
-                    }
+                    room_header.innerHTML = `${room_type} ${rk_html} \r\n ${room_no_players} Spieler${room_no_players == 1 ? "" : ""}\r\n Raum: <a href="${room_link}" class="room-link">${room.id}</a> - <span class="${joinable_class}">${joinable}</span>\r\n  aktiv seit: <span created="${room.created}"></span>`;
+                    if (uptimes_timer){ skip_reset = true; }
                     update_uptimes(skip_reset);
                 }
 
                 document.querySelector("#loading").style.display = "none";
+                document.querySelector("#top-container").style.display = "none"; // Always hide old container
 
-                // If filtering by room ID, we might not show the top container.
-                // Otherwise, show stats based on filtered rooms.
-                if (!filter_room){
-                    document.querySelector("#no-rooms").textContent = rooms_count;
-                    document.querySelector("#no-players").textContent = no_players;
-                    document.querySelector("#top-container").style.display = "flex";
-                }
-
-                // If *no* rooms passed the FC filter (and not filtering by ID), show the 'not found' message.
-                // Also show if filtering by ID and that room didn't pass or doesn't exist.
                 if (rooms_count === 0){
-                    document.querySelector("#top-container").style.display = "none";
-                    document.querySelector("#not-found-container").style.display = "block";
+                    fc_status_container.style.display = "none";
+                    not_found_container.style.display = "block";
+                    document.querySelector("table").style.display = "none";
                 } else {
-                     document.querySelector("#not-found-container").style.display = "none";
+                    fc_status_container.innerHTML = status_html;
+                    fc_status_container.style.display = "block";
+                    not_found_container.style.display = "none";
+                    document.querySelector("table").style.display = "table";
                 }
-
 
                 update_openhost_underline();
 
-                // Fetch Mii images
                 let mii_data_list = [];
-
                 for (const img_element of document.querySelectorAll("img[mii-data]")){
                     mii_data_list.push(img_element.getAttribute("mii-data"));
                 }
 
                 if (document.getElementById("timeout-checkbox").checked) {
-                    if (RELOAD_TIMER){
-                        clearInterval(RELOAD_TIMER);
-                    }
-
-                    if (HISTORY_MODE){
-                        RELOAD_TIMER = setInterval(on_checkbox, RELOAD_TIME);
-                    } else {
-                        RELOAD_TIMER = setInterval(fetch_rooms, RELOAD_TIME);
-                    }
+                    if (RELOAD_TIMER){ clearInterval(RELOAD_TIMER); }
+                    if (HISTORY_MODE){ RELOAD_TIMER = setInterval(on_checkbox, RELOAD_TIME); }
+                    else { RELOAD_TIMER = setInterval(fetch_rooms, RELOAD_TIME); }
                 }
 
                 fetch_mii_images(mii_data_list);
-
             }
+
             if (document.addEventListener)
                 document.addEventListener('DOMContentLoaded', on_load, false)
             else window.onload = fetch_rooms
