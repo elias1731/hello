@@ -211,9 +211,6 @@
           "com.apple.developer.associated-domains",
           "com.apple.developer.coremedia.allow-alternate-video-decoder-selection",
           "com.apple.developer.usernotifications.time-sensitive",
-          "com.apple.developer.coremedia.allow-alternate-video-decoder-selection",
-          "com.apple.developer.usernotifications.time-sensitive",
-          "get-task-allow",
           "com.apple.developer.device-information.user-assigned-device-name",
           "com.apple.developer.group-session",
           "keychain-access-groups",
@@ -242,5 +239,7 @@
           "downloadURL": "https://github.com/elias1731/ytlite/releases/download/v5.2b1/YouTubePlus_5.2b1.ipa",
           "size": 111020044
         }
-        ]
+      ]
+    }
+  ]
 }
