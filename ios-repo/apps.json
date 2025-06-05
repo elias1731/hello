@@ -185,8 +185,8 @@
       "bundleIdentifier": "de.heyfordy.ios.youtube",
       "developerName": "Various Developers",
       "subtitle": "YT with more features!",
-      "version": "19.34.2",
-      "versionDate": "2024-09-03",
+      "version": "20.22.1",
+      "versionDate": "2025-02-25",
       "versionDescription": "YouTube+",
       "downloadURL": "https://github.com/elias1731/ytlite/releases/download/v5.2b1/YouTubePlus_5.2b1.ipa",
       "localizedDescription": "Fordy's YouTube+ is an enhanced Youtube app that offers a superior Youtube experience",
@@ -233,7 +233,7 @@
       },
       "versions": [
         {
-          "version": "5.2.0",
+          "version": "20.22.1",
           "date": "2025-02-25",
           "localizedDescription": "first test release",
           "downloadURL": "https://github.com/elias1731/ytlite/releases/download/v5.2b1/YouTubePlus_5.2b1.ipa",
