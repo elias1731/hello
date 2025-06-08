@@ -731,7 +731,14 @@
                     let room_type = room.type == "anybody" ? "🌎 ÖFFENTLICH »" : "🔒» PRIVAT";
 
 
-                    let joinable = room.suspend ? "Kein Beitritt möglich!" : "Beitritt möglich";
+                    let joinable = "✅ Beitritt möglich";
+                    if (room.split) {
+                        joinable = "Aufgeteilter Raum";
+                    } else if (room.suspend) {
+                        joinable = room_no_players >= 12
+                            ? "❌ Kein Beitritt möglich!"
+                            : "🗺️ STRECKENAUSWAHL";
+                    }
                     if (room.split) {
                         joinable = "Aufgeteilter Raum";
                     }
