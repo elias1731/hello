@@ -777,18 +777,22 @@
                     room_header.colSpan = 100;
                     room_header.classList.add("room-header");
                     let room_type = room.type == "anybody" ? "🌎 ÖFFENTLICH »" : "🔒» PRIVAT";
-
+                    
+                    // =================================================================
+                    // KORRIGIERTE LOGIK FÜR DIE BEITRITTSANZEIGE
+                    // =================================================================
                     let joinable = "✅ Beitritt möglich";
                     if (room.split) {
                         joinable = "Aufgeteilter Raum";
                     } else if (room.suspend) {
-                        joinable = room_no_players >= 12
+                        const current_room_player_count = Object.keys(room.players).length;
+                        joinable = current_room_player_count >= 12
                             ? "❌ Kein Beitritt möglich!"
                             : "🗺️ STRECKENAUSWAHL";
                     }
-                    if (room.split) { joinable = "Aufgeteilter Raum"; }
-                    let joinable_class = room.suspend ? "not-joinable" : "joinable";
-                    if (room.split) { joinable_class = "split-room"; }
+                    // =================================================================
+
+                    let joinable_class = "split-room"; }
 
                     let room_no_players = 0;
                     tr.appendChild(room_header);
