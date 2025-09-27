@@ -12,19 +12,18 @@
         <link href="./ctmkf.css" rel="Stylesheet" type="text/css" />
         <link href="./Rubik.css" rel="Stylesheet" type="text/css" />
         <style>
-            /* Ggf. benötigte Stile hinzufügen, z.B. */
-            .excited { /* Beispiel */
+            .excited {
                 font-weight: bold;
             }
-            .custom-highlighted { /* Beispiel */
-                background-color: #a0a0ff; /* Beispiel-Farbe */
+            .custom-highlighted {
+                background-color: #a0a0ff;
             }
-            .room-header { /* Beispiel */
+            .room-header {
                 text-align: center;
                 padding: 10px;
                 background-color: rgb(0 0 0 / 33%);
-                border-top: 12px solid gray; /* Korrigiert von "gray" */
-                margin-top: 12px; /* Korrigiert von 12px solid "gray" */
+                border-top: 12px solid gray;
+                margin-top: 12px;
             }
             .room-link {
                 color: #8af;
@@ -49,8 +48,8 @@
             a:hover { text-decoration: underline; }
             button { padding: 5px 10px; }
             input[type="text"], input[type="datetime-local"] { padding: 5px; }
-            .highlighted { background-color: rgb(255, 127, 36 / 45%); } /* Farbe für hervorgehobenen FC */
-            .custom-highlighted { background-color: rgb(102 205 0 / 45%); font-weight: bold;} /* Farbe für custom FC */
+            .highlighted { background-color: rgb(255, 127, 36 / 45%); }
+            .custom-highlighted { background-color: rgb(102 205 0 / 45%); font-weight: bold;}
         </style>
     </head>
     <body>
@@ -75,7 +74,7 @@
             </div>
             <div id="fc-container">
                 <label for="fc-input">Spieler markieren:</label>
-                <input type="text" id="fc-input" placeholder="0000-0000-0000-0000" oninput="on_fc_change()" />
+                <input type="text" id="fc-input" placeholder="0000-0000-0000" oninput="on_fc_change()" />
             </div>
             <div id="history-container">
                 <button onclick="add_history(-60)">-1h</button>
@@ -130,16 +129,46 @@
             // Source: https://github.com/patchzyy/WheelWizard
             const ROOM_TYPES = {
                 "vs_10": { label: "🕹️ Retro VS", color: "orange" },
-                "vs_11": { label: "⏰ Retro ZF", color: "darkorange" },
-                "vs_12": { label: "🚀 Retro 200cc", color: "orangered" },
+                "vs_11": { label: "⏰ Online TT", color: "darkorange" },
+                "vs_12": { label: "🚀 200cc", color: "orangered" },
+                "vs_13": { label: "☂️ Item Rain", color: "blue" },
+                "vs_14": { label: "👊 Regular Battle", color: "red" },
+                "vs_15": { label: "💀 Elimination Battle", color: "darkred" },
                 "vs_20": { label: "🚧 Custom VS", color: "purple" },
-                "vs_21": { label: "⏰ Custom ZF", color: "mediumpurple" },
+                "vs_21": { label: "🏁 Vanilla Tracks", color: "mediumpurple" },
                 "vs_22": { label: "💥 Custom 200cc", color: "violet" },
+                "vs_666": { label: "Luminous 150cc", color: "gold" },
+                "vs_667": { label: "Luminous Online TT", color: "goldenrod" },
                 "vs_668": { label: "🏁 CTGP-C", color: "limegreen" },
-                "vs_69": { label: "🏁 Insane Kart", color: "gray" },
-                "vs_751": { label: "Standard VS_751", color: "gray" },
+                "vs_751": { label: "Standard VS", color: "gray" },
                 "vs_-1": { label: "Standard VS", color: "gray" },
-                "vs": { label: "Standard VS", color: "gray" }
+                "vs": { label: "Standard VS", color: "gray" },
+                "vs_69": { label: "IKW Default", color: "lightblue" },
+                "vs_70": { label: "IKW Ultras VS", color: "teal" },
+                "vs_71": { label: "IKW Countdown", color: "cyan" },
+                "vs_72": { label: "IKW Bob-omb Blast", color: "black" },
+                "vs_73": { label: "IKW Infinite Accel", color: "indigo" },
+                "vs_74": { label: "IKW Banana Slip", color: "yellow" },
+                "vs_75": { label: "IKW Random Items", color: "magenta" },
+                "vs_76": { label: "IKW Unfair Items", color: "maroon" },
+                "vs_77": { label: "IKW Blue Shell Madness", color: "blue" },
+                "vs_78": { label: "IKW Mushroom Dash", color: "green" },
+                "vs_79": { label: "IKW Bumper Karts", color: "brown" },
+                "vs_80": { label: "IKW Item Rampage", color: "salmon" },
+                "vs_81": { label: "IKW Item Rain", color: "royalblue" },
+                "vs_82": { label: "IKW Shell Break", color: "seagreen" },
+                "vs_83": { label: "IKW Riibalanced", color: "silver" },
+                "vs_875": { label: "OptPack 150cc", color: "lime" },
+                "vs_876": { label: "OptPack Online TT", color: "olive" },
+                "vs_877": { label: "OptPack", color: "navy" },
+                "vs_878": { label: "OptPack", color: "navy" },
+                "vs_879": { label: "OptPack", color: "navy" },
+                "vs_880": { label: "OptPack", color: "navy" },
+                "vs_1312": { label: "WTP 150cc", color: "darkcyan" },
+                "vs_1313": { label: "WTP 200cc", color: "darkslateblue" },
+                "vs_1314": { label: "WTP Online TT", color: "darkseagreen" },
+                "vs_1315": { label: "WTP Item Rain", color: "darkturquoise" },
+                "vs_1316": { label: "WTP STYD", color: "darkviolet" }
             };
 
             function on_history_change() {
