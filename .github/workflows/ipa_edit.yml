@@ -1,0 +1,133 @@
+name: "🌀• ipaedit 🗿"
+
+on:
+  workflow_dispatch:
+    inputs:
+      out_name:
+        description: "Output file name (without '.ipa')"
+        default: "my-app"
+        required: true
+      dest_tag:
+        description: "Draft release tag name"
+        default: "ios_modified"
+        required: true
+      cyan_args:
+        description: "Cyan arguments"
+        default: '-v "1.2.3" -n "My App🗿" -b de.heyfordy.bundle'
+        required: true
+      ipa_url:
+        description: "URL to the IPA file"
+        required: true
+        type: string
+      icon_url:
+        description: "URL to an icon file"
+        required: false
+        type: string
+
+env:
+  SWIFTPROTOBUF_VERSION: "1.29.0"
+
+jobs:
+  build:
+    runs-on: macos-latest
+    env:
+      THEOS: ${{ github.workspace }}/theos
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: '16.2.0'
+
+      - name: Hide Sensitive Inputs
+        uses: levibostian/action-hide-sensitive-inputs@v1
+
+      - name: Install Cyan and dependencies
+        run: |
+          pipx install --force https://github.com/SpotCompiled/pyzule-rw/archive/main.zip
+          pipx inject cyan Pillow
+
+      - name: Set up variables
+        run: |
+          echo "out_name=${{ github.event.inputs.out_name }}" >> $GITHUB_ENV
+          echo "dest_tag=${{ github.event.inputs.dest_tag }}" >> $GITHUB_ENV
+          echo "cyan_args=${{ github.event.inputs.cyan_args }}" >> $GITHUB_ENV
+          echo "ipa_url=${{ github.event.inputs.ipa_url }}" >> $GITHUB_ENV
+          echo "icon_url=${{ github.event.inputs.icon_url }}" >> $GITHUB_ENV
+
+      - name: Download IPA
+        run: |
+          wget "${{ env.ipa_url }}" --no-verbose -O app.ipa
+          if [[ $? -ne 0 ]]; then
+            echo "::error::Download failed: Unable to retrieve IPA from '${{ env.ipa_url }}'."
+            exit 1
+          fi
+          if [[ ! -s "app.ipa" ]]; then
+            echo "::error::Download failed: IPA file is empty or missing."
+            exit 1
+          fi
+
+      - name: Download App Icon (optional)
+        run: |
+          if [[ -n "${{ env.icon_url }}" ]]; then
+            wget "${{ env.icon_url }}" --no-verbose -O icon.png
+            if [[ $? -ne 0 || ! -s "icon.png" ]]; then
+              echo "::error::Download failed: Icon file is invalid or missing."
+              exit 1
+            fi
+            echo "app_icon=-k icon.png" >> $GITHUB_ENV
+          else
+            echo "app_icon=" >> $GITHUB_ENV
+          fi
+
+      - name: Download SwiftProtobuf
+        run: |
+          wget https://github.com/whoeevee/swift-protobuf/releases/download/${{ env.SWIFTPROTOBUF_VERSION }}/org.swift.protobuf.swiftprotobuf_${{ env.SWIFTPROTOBUF_VERSION }}_iphoneos-arm.deb
+          wget https://github.com/whoeevee/swift-protobuf/releases/download/${{ env.SWIFTPROTOBUF_VERSION }}/org.swift.protobuf.swiftprotobuf_${{ env.SWIFTPROTOBUF_VERSION }}_iphoneos-arm64.deb
+          echo "SWIFTPROTOBUF_ROOTFUL=org.swift.protobuf.swiftprotobuf_${{ env.SWIFTPROTOBUF_VERSION }}_iphoneos-arm.deb" >> $GITHUB_ENV
+          echo "SWIFTPROTOBUF_ROOTLESS=org.swift.protobuf.swiftprotobuf_${{ env.SWIFTPROTOBUF_VERSION }}_iphoneos-arm64.deb" >> $GITHUB_ENV
+
+      - name: Setup insert-dylib
+        run: |
+          git clone https://github.com/Tyilo/insert_dylib.git
+          xcrun clang -x c -arch arm64 ./insert_dylib/insert_dylib/main.c -I/usr/include/ -o insert-dylib
+          sudo mv insert-dylib /usr/local/bin/
+          sudo chmod +x /usr/local/bin/insert-dylib
+
+      - name: Setup ivinject
+        run: |
+          git clone https://github.com/whoeevee/ivinject.git
+          cp -r ./ivinject/KnownFrameworks ~/.ivinject
+          wget https://github.com/whoeevee/ivinject/releases/download/first/ivinject-arm64
+          sudo mv ivinject-arm64 /usr/local/bin/
+          sudo chmod +x /usr/local/bin/ivinject-arm64
+
+      - name: Setup ipapatch
+        run: |
+          wget https://github.com/asdfzxcvbn/ipapatch/releases/download/v2.1.0/ipapatch.macos-arm64
+          sudo mv ipapatch.macos-arm64 /usr/local/bin/ipapatch
+          sudo chmod +x /usr/local/bin/ipapatch
+
+      - name: Prepare App
+        run: |
+          ivinject-arm64 app.ipa prepared.ipa \
+            -i "$SWIFTPROTOBUF_ROOTFUL" \
+            -s - -d --level Optimal
+
+      - name: Run Cyan
+        run: |
+          Cyan -i "prepared.ipa" -o "${{ env.out_name }}.ipa" ${{ env.cyan_args }} ${{ env.app_icon }} -u -w
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: "${{ env.dest_tag }}"
+          name: "ipaedit🗿-Output: ● ${{ env.out_name }}.ipa"
+          files: |
+            ${{ env.out_name }}.ipa
+          draft: true
+
+      - name: Output Release URL
+        run: |
+          echo "::notice::Release available at: https://github.com/${{ github.repository }}/releases"
