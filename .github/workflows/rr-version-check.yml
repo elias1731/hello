@@ -1,0 +1,95 @@
+# .github/workflows/rwfc-version-check.yml
+
+name: "🏎️ RR Version Check"
+
+on:
+  schedule:
+    - cron: '0 3 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update-version-json:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # variablen definieren
+      - name: Define variables
+        id: vars
+        run: |
+          echo "url=http://update.rwfc.net:8000/RetroRewind/RetroRewindVersion.txt" >> $GITHUB_ENV
+          echo "target_dir=rwfc" >> $GITHUB_ENV
+          # Use relative path within the workspace
+          echo "target_file=${{ github.workspace }}/${{ env.target_dir }}/version.json" >> $GITHUB_ENV
+          echo "temp_txt_file=version_latest.txt" >> $GITHUB_ENV
+          echo "temp_json_file=version_latest.json" >> $GITHUB_ENV
+
+      # aktuelle version runterladen
+      - name: Download latest version file (TXT)
+        run: curl -s -o ${{ env.temp_txt_file }} ${{ env.url }}
+
+      # version extrahieren und json erstellen
+      - name: Extract version and create JSON
+        id: create_json
+        run: |
+          # letzte nicht-leere zeile holen, dann das erste wort (version)
+          latest_version=$(tail -n 1 ${{ env.temp_txt_file }} | awk '{print $1}')
+          # prüfen, ob eine version gefunden wurde
+          if [ -z "$latest_version" ]; then
+            echo "Konnte keine Version aus der Datei extrahieren."
+            exit 1
+          fi
+          # json format erstellen
+          echo "{\"version\": \"$latest_version\"}" > ${{ env.temp_json_file }}
+          echo "Version extracted: $latest_version"
+          # output setzen für spätere steps
+          echo "extracted_version=$latest_version" >> $GITHUB_OUTPUT
+
+      # ordner erstellen, falls nicht vorhanden (using relative path)
+      - name: Create target directory if needed
+        run: mkdir -p ${{ env.target_dir }} # Use relative path for mkdir
+
+      # prüfen, ob sich der json-inhalt geändert hat
+      - name: Check for JSON changes
+        id: check_diff
+        run: |
+          # Use relative paths for diff and mv
+          if ! diff -q "${{ env.target_dir }}/version.json" "${{ env.temp_json_file }}" > /dev/null 2>&1; then
+            echo "JSON content has changed or target file does not exist."
+            echo "changed=true" >> $GITHUB_OUTPUT
+            # Move to relative path
+            mv ${{ env.temp_json_file }} ${{ env.target_dir }}/version.json
+          else
+            echo "JSON content has not changed."
+            echo "changed=false" >> $GITHUB_OUTPUT
+            rm ${{ env.temp_json_file }} # temp json löschen, wenn nichts geändert wurde
+          fi
+          rm ${{ env.temp_txt_file }} # temp txt immer löschen
+        # Continue even if diff fails (e.g., target file doesn't exist)
+        continue-on-error: false # Set back to false, handle non-existence implicitly
+
+      # git user konfigurieren
+      - name: Configure Git
+        if: steps.check_diff.outputs.changed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      # änderungen committen und pushen
+      - name: Commit and Push changes
+        if: steps.check_diff.outputs.changed == 'true'
+        run: |
+          # Add using relative path
+          git add ${{ env.target_dir }}/version.json
+          # prüfen, ob was zum committen da ist
+          if ! git diff --staged --quiet; then
+            git commit -m "🏎️ RR version updated to ${{ steps.create_json.outputs.extracted_version }}"
+            git push
+            echo "Changes committed and pushed."
+          else
+            echo "No effective changes to commit after adding."
+          fi
