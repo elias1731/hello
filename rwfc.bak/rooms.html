@@ -13,280 +13,20 @@
         <meta name="keywords" content="mario kart wii, mkwii, retro rewind, zpl, rooms, online, status, online status, ctgp" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <link rel="icon" type="image/x-icon" href="./favicon.ico">
-        <link rel="stylesheet" href="./style.css" type="text/css" />
+        <link rel="stylesheet" href="./style-b.css" type="text/css" />
         <link href="./ctmkf.css" rel="Stylesheet" type="text/css" />
         <link href="./Rubik.css" rel="Stylesheet" type="text/css" />
-        
-        <style>
-            html {
-              background-color: #24252d;
-              min-height: 100vh;
-            }
-            * {
-              font-family: 'Rubik', sans-serif;
-              margin: 0;
-              padding: 0;
-              box-sizing: border-box;
-            }
-            body {
-              width: 100%;
-              color: #fff;
-              background: linear-gradient(-45deg, #39ff0069, #ff4100, #ffc800, #dd4700, #0049ff69);
-              background-size: 200% 200%;
-              animation: Gradient 4s ease infinite;
-              display: flex;
-              flex-direction: column;
-              min-height: 100vh;
-            }
-            @keyframes Gradient {
-              0% { background-position: 0% 50% }
-              50% { background-position: 100% 50% }
-              100% { background-position: 0% 50% }
-            }
-            header {
-              display: flex;
-              justify-content: space-between;
-              align-items: center;
-              padding: 0.8rem 1rem;
-              background: #1e1f25a0;
-              backdrop-filter: blur(6px);
-              position: sticky;
-              top: 0;
-              z-index: 10;
-            }
-            header h1 { font-size: 1.6rem; }
-            #settings-btn {
-              font-size: 1.5rem;
-              background: none;
-              border: none;
-              color: white;
-              cursor: pointer;
-              transition: transform 0.2s;
-            }
-            #settings-btn:hover { transform: rotate(30deg); }
-            main { flex: 1; padding: 1rem; }
-            #rooms-container { display: flex; flex-direction: column; gap: 1rem; }
-            #loading { text-align: center; font-weight: bold; font-size: 1.4rem; padding: 1rem; }
-
-            /* Modal */
-            #settings-modal {
-              position: fixed; top: 0; left: 0;
-              width: 100%; height: 100%;
-              background: rgba(0,0,0,0.6);
-              display: flex; justify-content: center; align-items: center;
-              z-index: 20;
-            }
-            #settings-modal.hidden { display: none; }
-            #settings-content {
-              background: rgba(0,0,0,0.6);
-              padding: 1.5rem;
-              border-radius: 1rem;
-              box-shadow: 0 0 20px rgba(0,0,0,0.4);
-              width: 90%;
-              max-width: 400px;
-            }
-            #settings-content h2 { margin-bottom: 1rem; }
-            #settings-content label {
-              display: block;
-              margin-top: 0.5rem;
-              margin-bottom: 0.2rem;
-            }
-            #settings-content input[type="text"],
-            #settings-content input[type="datetime-local"] {
-              width: 100%;
-              padding: 0.4rem;
-              background: #2e2f36bf;
-              border: none;
-              color: white;
-              border-radius: 0.3rem;
-            }
-            /* settings buttons orange */
-            #settings-content button {
-              margin-top: 1rem;
-              margin-right: 0.5rem;
-              padding: 0.4rem 1rem;
-              border: none;
-              border-radius: 0.4rem;
-              background: #ff9900;
-              color: white;
-              cursor: pointer;
-              font-weight: bold;
-            }
-            #settings-content button:hover { background: #ffad33; }
-            
-            /* Checkboxen */
-            #settings-content > div {
-                margin-bottom: 10px;
-            }
-            #settings-content label {
-                display: inline-block;
-                width: 150px;
-            }
-
-            /* Room Divs */
-            .room-card {
-                background: #2e2f3680;
-                padding: 1rem;
-                border-radius: 0.6rem;
-                box-shadow: 0 4px 10px #00000080;
-            }
-            .room-card-header {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                margin-bottom: 0.5rem;
-            }
-            .room-name {
-                font-weight: bold;
-                font-size: 1.2rem;
-            }
-            /* info icon link */
-            .room-info-link {
-                font-size: 1.2rem;
-                font-weight: bold;
-                color: #fff;
-                text-decoration: none;
-                padding: 0 0.2rem;
-            }
-            .room-info-link:hover {
-                color: #ff9900;
-            }
-            .room-meta {
-                font-size: 0.9rem;
-                color: #aaa;
-            }
-            .room-status {
-                font-size: 0.9rem;
-            }
-            /* player count / status line */
-            .room-details {
-                font-size: 0.9rem;
-                color: #aaa;
-                margin-top: 0.5rem;
-                padding-bottom: 0.5rem;
-                border-bottom: 1px solid #444;
-                text-align: center;
-            }
-            .room-player-count {
-                font-weight: bold;
-                font-size: 1.2em;
-                color: #fff;
-            }
-            /* room card footer (id / uptime) */
-            .room-card-footer {
-                margin-top: 1rem;
-                padding-top: 0.5rem;
-                border-top: 1px solid #444;
-                font-size: 0.6rem;
-                color: #fff;
-                text-align: center;
-            }
-            .room-card-footer a {
-                color: #ff9900;
-                font-weight: bold;
-            }
-
-            /* Player List */
-            .player-list {
-                margin-top: 1rem;
-                display: flex;
-                flex-direction: column;
-                gap: 0.5rem;
-            }
-            .player-row {
-                display: flex;
-                align-items: center;
-                gap: 0.75rem;
-                padding: 0.4rem 0.5rem;
-                border-radius: 0.4rem;
-                background: #2e2f36bf;
-            }
-            .player-mii {
-                width: 40px;
-                height: 40px;
-                border-radius: 50%;
-                background: #444;
-            }
-            .player-info {
-                flex: 1;
-                overflow: hidden;
-            }
-            .player-name {
-                font-size: 1.1rem;
-                font-weight: 600;
-                white-space: nowrap;
-                overflow: hidden;
-                text-overflow: ellipsis;
-                font-family: 'CTMKF', 'Rubik', sans-serif; /* CTMKF für Mii-Namen */
-            }
-            .player-fc {
-                font-size: 0.6rem;
-                color: #aaa;
-            }
-            .player-vrbr {
-                font-size: 0.7rem;
-                font-weight: 400;
-                color: #ddd;
-                white-space: nowrap;
-            }
-            
-            /* Highlighting */
-            .player-row.highlighted {
-                background: #38342a;
-                border-left: 3px solid #ff9900;
-            }
-            .player-row.custom-highlighted {
-                background: #2a382e;
-                border-left: 3px solid #00cc33;
-            }
-            .openhost {
-                text-decoration: underline;
-                text-decoration-color: #00aeff;
-                text-decoration-style: wavy;
-            }
-
-            /* Status-Farben */
-            .joinable { color: #33ff33; }
-            .not-joinable { color: #ff3333; }
-            .course-selection { color: #ffff33; }
-            .split-room { color: #ff9933; }
-
-            /* mobile tweaks */
-            @media (max-width: 800px) {
-              header h1 { font-size: 1.6rem; }
-              #loading { font-size: 1.2rem; }
-            }
-        </style>
     </head>
     <body>
-        
-        <header>
-            <h1>Retro Rewind 🏎️</h1>
-            <button id="settings-btn">⚙</button>
-        </header>
+        <h1>
+          <a href="?" id="home-link" decoding="async">
+            <img src="RR.png" alt="Retro Rewind Server Status" style="height: 192px;" />
+          </a>
+        </h1>
 
-        <div id="history-indicator" style="display: none; background: #333; padding: 10px; text-align: center;">
-           <span style="font-style: normal;">ℹ️</span> Currently viewing history.
-           <button onclick="disable_history()">Back to Live</button>
-        </div>
-
-        <div id="filter-indicator" style="display: none; background: #333; padding: 10px; text-align: center;">
-            <span style="font-style: normal;">ℹ️</span> Room filter applied.
-            <button onclick="disable_filter()">Show all</button>
-        </div>
-
-        <main>
-            <div id="loading">⏳ Loading data. Please wait...</div>
-            <div id="not-found-container" style="display: none; text-align: center; padding: 1rem;">
-                The specified room was closed or does not exist.
-            </div>
-            <div id="rooms-container"></div>
-        </main>
-
-        <div id="settings-modal" class="hidden">
+        <div id="settings">
+            <h2 id="settings-toggle">⚙️ Settings</h2>
             <div id="settings-content">
-                <h2>Einstellungen</h2>
-
                 <div id="timeout-container">
                     <label for="timeout-checkbox">Auto-Refresh</label>
                     <input type="checkbox" id="timeout-checkbox" onchange="on_checkbox()" />
@@ -303,34 +43,53 @@
                     <label for="fc-input">Highlight FC:</label>
                     <input type="text" id="fc-input" placeholder="0000-0000-0000" oninput="on_fc_change()" />
                 </div>
-                
                 <div id="history-container">
-                    <label for="history-input">History:</label>
                     <input type="datetime-local" id="history-input" oninput="on_history_change()" />
+                </br>
                     <button onclick="add_history(-60)">-1h</button>
                     <button onclick="add_history(-1)">-1m</button>
                     <button onclick="add_history(1)">+1m</button>
                     <button onclick="add_history(60)">+1h</button>
                 </div>
-
-                <button id="close-settings">Schließen</button>
             </div>
         </div>
 
-        <div style="text-align: center; padding: 2rem;">
-            <p><a href="https://wiki.tockdom.com/wiki/Retro_Rewind" target="_blank">Retro Rewind</a></p>
-            <p><a href="http://api.heyfordy.de/rwfc" target="_blank">API</a></p>
-            <p><a href="https://wiki.tockdom.com/wiki/CTMKF" target="_blank">Font "CTMKF"</a></p>
-            <p><a href="https://www.fontsquirrel.com/fonts/rubik" target="_blank">Font "Rubik"</a></p></br></br>
-            <h1><a href="https://heyfordy.de">🗿 • heyFordy.de</a></h1></br>
+        <div id="history-indicator">
+           <span style="font-style: normal;">ℹ️</span> Currently viewing history.
+           <button onclick="disable_history()">Back to Live</button>
         </div>
+
+        <div id="filter-indicator">
+            <span style="font-style: normal;">ℹ️</span> Room filter applied.
+            <button onclick="disable_filter()">Show all</button>
+        </div>
+
+        <div id="loading">⏳ Loading data. Please wait...</div>
+
+        <div id="top-container">
+          <span><span id="no-players" class="top-stat excited">0</span> Players in</span>
+          <span><span id="no-rooms" class="top-stat excited">0</span> Rooms</span>
+        </div></br>
+        <p style="font-size: 1.4em; margin-top:2px; font-weight: bold;">Rooms:</p></div>
+        <div id="room-count-extra" style="font-size: 1.2em; margin-top: 2px;"></div>
+
+        <div id="not-found-container">
+            The specified room was closed or does not exist.
+        </div>
+        <table>
+            <tbody id="tablebody"></tbody>
+        </table>
+    </br>
+        <!--<p><a href="https://heyfordy.de/rwfc/simple">[+] Simple View</a></p>
+        <p><a href="https://heyfordy.de/rwfc/filter">[+] Filtered View</a></p></br>
+        <p><a href="https://github.com/elias1731">GitHub</a></p></br>-->        <p><a href="https://wiki.tockdom.com/wiki/Retro_Rewind" target="_blank">Retro Rewind</a></p>
+        <p><a href="http://api.heyfordy.de/rwfc" target="_blank">API</a></p>
+        <p><a href="https://wiki.tockdom.com/wiki/CTMKF" target="_blank">Font "CTMKF"</a></p>
+        <p><a href="https://www.fontsquirrel.com/fonts/rubik" target="_blank">Font "Rubik"</a></p></br></br>
+        <h1><a href="https://heyfordy.de">🗿 • heyFordy.de</a></h1></br>
 
         </br>
         <script type="text/javascript">
-            // helper function
-            const el = (id) => document.getElementById(id);
-
-            // Logic from rwfc/index.html
             let HISTORY_TIMER = null;
             let HISTORY_MODE = false;
             let HISTORY_DATE = null;
@@ -341,7 +100,6 @@
             let cur_rooms = [];
             let FIRST_LOAD = true;
 
-            // room types definition
             const ROOM_TYPES = {
                 "vs_10": { label: "🕹️ Retro VS", color: "orange" },
                 "vs_11": { label: "⏰ Online TT", color: "darkorange" },
@@ -429,7 +187,7 @@
                 window.history.replaceState(null, null, `?${params.toString()}`);
                 reload_rooms();
             }
-            
+
             // escape html characters
             function _escape(str){
                 return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/(?:\r\n|\r|\n)/g, '');
@@ -480,7 +238,7 @@
 
                 return new_name;
             }
-            
+
             // handle fc highlight input change
             function on_fc_change(){
                 const fc = document.getElementById("fc-input").value;
@@ -677,7 +435,7 @@
                 localStorage.setItem("show-private", checkbox.checked);
                 reload_rooms();
             }
-            
+
             // handle openhost underline checkbox
             function on_openhost_checkbox() {
                 const checkbox = document.getElementById("openhost-checkbox");
@@ -688,7 +446,7 @@
             // update openhost underline style
             function update_openhost_underline() {
                 let openhost_status = document.getElementById("openhost-checkbox").checked;
-                document.querySelectorAll(".player-fc[openhost]").forEach((td) => {
+                document.querySelectorAll("td[openhost]").forEach((td) => {
                     if (openhost_status) {
                         td.classList.add("openhost");
                     } else {
@@ -779,21 +537,22 @@
                     }
                 }
             }
+            
+            // setup settings toggle functionality
+            function setup_settings_toggle() {
+                const toggle = document.getElementById("settings-toggle");
+                const content = document.getElementById("settings-content");
+                content.classList.add("hidden");
+                toggle.addEventListener("click", () => {
+                    content.classList.toggle("hidden");
+                });
+            }
 
             // initialize page on load
             async function on_load(){
-                // modal logic
-                const settingsBtn = el('settings-btn');
-                const modal = el('settings-modal');
-                const closeBtn = el('close-settings');
-                
-                settingsBtn.onclick = () => modal.classList.remove('hidden');
-                closeBtn.onclick = () => modal.classList.add('hidden');
-
-                // settings logic
+                setup_settings_toggle();
                 document.getElementById("timeout-checkbox").checked = localStorage.getItem("auto-reload") == "true";
                 document.getElementById("fc-input").value = localStorage.getItem("highlight-fc") || "";
-                
                 let priv = localStorage.getItem("show-private");
                 if (priv == null){
                     priv = true;
@@ -801,7 +560,6 @@
                     priv = priv == "true";
                 }
                 document.getElementById("private-checkbox").checked = priv;
-                
                 let oh = localStorage.getItem("openhost");
                 if (oh == null){
                     oh = true;
@@ -809,8 +567,6 @@
                     oh = oh == "true";
                 }
                 document.getElementById("openhost-checkbox").checked = oh;
-                
-                // history logic
                 const url = new URL(window.location.href);
                 const params = url.searchParams;
                 const timestamp = params.get("time");
@@ -847,8 +603,9 @@
                     timestamp_part = `?time=${unix_seconds}`;
                     checkbox.disabled = true;
                     history_indicator.style.display = "block";
-                    el("rooms-container").innerHTML = "";
-                    el("loading").style.display = "block";
+                    document.getElementById("tablebody").innerHTML = "";
+                    document.querySelector("#top-container").style.display = "none";
+                    document.querySelector("#loading").style.display = "block";
                 } else {
                     checkbox.disabled = false;
                     history_indicator.style.display = "none";
@@ -909,33 +666,53 @@
                     rooms = [];
                 }
                 
-                const roomsContainer = el("rooms-container");
-                roomsContainer.innerHTML = "";
+                let no_players = 0;
+                const tbody = document.getElementById("tablebody");
+                tbody.innerHTML = "";
                 const url = new URL(window.location.href);
                 const params = url.searchParams;
                 const filter_room = params.get("room");
                 let room_not_found = true;
 
-                el("filter-indicator").style.display = filter_room ? "block" : "none";
+                document.getElementById("filter-indicator").style.display = filter_room ? "block" : "none";
 
                 rooms = filter_fc(rooms);
                 rooms = fix_split_rooms(rooms);
                 let rooms_count = 0;
 
+                const retroRooms = rooms.filter(room => room.rk === 'vs_10').length;
+                const customRooms = rooms.filter(room => room.rk === 'vs_20').length;
+                const showPrivate = document.getElementById("private-checkbox").checked;
+                const otherRooms = rooms.filter(room =>
+                  room.rk !== 'vs_10' &&
+                  room.rk !== 'vs_20' &&
+                  (room.type === 'anybody' || showPrivate)
+                ).length;
+                document.getElementById('room-count-extra').innerHTML = `
+                  <span style="color: white; font-weight: bold">${retroRooms}</span> 
+                  <span style="color: orange;">Retro</span> •
+                  <span style="color: white; font-weight: bold">${customRooms}</span> 
+                  <span style="color: purple;">Custom</span> •
+                  <span style="color: white; font-weight: bold">${otherRooms}</span> 
+                  <span style="color: gray;">Other</span>
+                `;
+
                 for (const room of rooms) {
                     if (filter_room && room.id != filter_room){
                         continue;
                     }
-                    if (!filter_room && !el("private-checkbox").checked && room.type != "anybody"){
+                    if (!filter_room && !document.getElementById("private-checkbox").checked && room.type != "anybody"){
                         continue;
                     }
                     rooms_count += 1;
                     room_not_found = false;
                     
-                    // define room type icon
-                    let room_type_icon = room.type == "anybody" ? "🌎" : "🔒 | Private Room";
+                    let tr = document.createElement("tr");
+                    let room_header = document.createElement("th");
+                    room_header.colSpan = 100;
+                    room_header.classList.add("room-header");
+                    let room_type = room.type == "anybody" ? "🌎 PUBLIC »" : "🔒 PRIVATE ROOM";
                     
-                    // define joinable status
                     let joinable = "✅ Joinable";
                     let joinable_class = "joinable";
                     if (room.split) {
@@ -954,58 +731,35 @@
                     }
 
                     let room_no_players = 0;
-                    
-                    // get room type label (html) and text
-                    var rk = room.rk;
-                    var rk_label_html = "";
-                    var rk_label_text_only = "";
-                    if (rk && rk in ROOM_TYPES){
-                        const type = ROOM_TYPES[rk];
-                        rk_label_html = `<span title="${rk}" style="color: ${type.color};">${type.label}</span>`;
-                        rk_label_text_only = type.label;
-                    } else if (rk) {
-                        rk_label_html = rk.toUpperCase();
-                        rk_label_text_only = rk.toUpperCase();
-                    }
-                    
-                    // define room link url
-                    let room_params = new URL(window.location.href).searchParams;
-                    room_params.set("room", room.id);
-                    let room_link_href = `?${room_params.toString()}`;
+                    tr.appendChild(room_header);
+                    tbody.appendChild(tr);
 
-                    // create room card base
-                    let roomCard = document.createElement("div");
-                    roomCard.className = "room-card";
+                    tr = document.createElement("tr");
+                    tr.classList.add("data-header");
+                    tbody.appendChild(tr);
                     
-                    // create header
-                    let roomHeader = document.createElement("div");
-                    roomHeader.className = "room-card-header";
-                    let header_text = rk_label_text_only ? `${rk_label_html} Room` : "";
-                    roomHeader.innerHTML = `
-                        <span class="room-name">${room_type_icon} ${header_text ? '| ' + header_text : ''}</span>
-                        <a href="${room_link_href}" class="room-info-link" title="Filter this room">ⓘ</a>
-                    `;
-                    roomCard.appendChild(roomHeader);
-                    
-                    // create details container (filled after player loop)
-                    let roomDetails = document.createElement("div");
-                    roomDetails.className = "room-details";
-                    roomCard.appendChild(roomDetails);
+                    let th = document.createElement("th");
+                    th.textContent = "Mii";
+                    th.classList.add("mii-header");
+                    tr.appendChild(th);
 
-                    // create player list container
-                    let playerList = document.createElement("div");
-                    playerList.className = "player-list";
-                    roomCard.appendChild(playerList);
-                    
-                    // create footer container (filled after player loop)
-                    let roomFooter = document.createElement("div");
-                    roomFooter.className = "room-card-footer";
-                    roomCard.appendChild(roomFooter);
-                    
-                    // add card to main container
-                    roomsContainer.appendChild(roomCard);
+                    th = document.createElement("th");
+                    th.textContent = "Mii-Name";
+                    th.colSpan = 2;
+                    tr.appendChild(th);
 
-                    // sort players
+                    th = document.createElement("th");
+                    th.textContent = "Friend Code";
+                    tr.appendChild(th);
+
+                    th = document.createElement("th");
+                    th.textContent = "VR";
+                    tr.appendChild(th);
+
+                    th = document.createElement("th");
+                    th.textContent = "BR";
+                    tr.appendChild(th);
+
                     const highlighted_fcs = (localStorage.getItem("highlight-fc") || "").split(',').map(fc => fc.trim()).filter(fc => fc);
                     const custom_highlighted_fcs = ["4466-7667-0997", "3092-3771-7526"];
                     const sorted_player_keys = Object.keys(room.players).sort((a, b) => {
@@ -1020,102 +774,109 @@
                         return vrB - vrA;
                     });
 
-                    // add players to list
                     for (const player_idx of sorted_player_keys) {
                         let no_miis = ('mii' in room.players[player_idx]) ? room.players[player_idx].mii.length : 1;
                         for (let cur_mii_idx = 0; cur_mii_idx < no_miis; cur_mii_idx++){
+                            no_players++;
                             room_no_players++;
+                            tr = document.createElement("tr");
+                            tbody.appendChild(tr);
                             const player = room.players[player_idx];
                             
-                            let playerRow = document.createElement("div");
-                            playerRow.className = "player-row";
-                            
-                            let miiImg = document.createElement("img");
-                            miiImg.className = "player-mii";
-                            miiImg.width = 40;
-                            miiImg.height = 40;
-                            miiImg.alt = "Mii";
-                            miiImg.src = "empty.png"; // placeholder
+                            let td = document.createElement("td");
+                            td.classList.add("mii-td");
+                            let img = document.createElement("img");
+                            img.width = 64;
+                            img.height = 64;
+                            img.alt = "Mii";
+                            img.classList.add("mii");
+                            img.src = "empty.png";
+                            td.appendChild(img);
+                            tr.appendChild(td);
+
+                            let td_name = document.createElement("td");
+                            td_name.colSpan = 2;
+                            let name_ele = td_name;
+                            if (cur_mii_idx > 0){
+                                name_ele = document.createElement("td");
+                                name_ele.classList.add("guest-name");
+                                td_name.classList.add("guest-td");
+                                td_name.colSpan = 1;
+                                name_ele.colSpan = 1;
+                            }
+                            name_ele.classList.add("mii-name");
+                            name_ele.innerHTML = handle_mii_name('mii' in player ? player.mii[cur_mii_idx].name : player.name);
+                            tr.appendChild(td_name);
+                            if (cur_mii_idx > 0){
+                                tr.appendChild(name_ele);
+                            }
                             if ('mii' in player){
-                                miiImg.setAttribute("mii-data", player.mii[cur_mii_idx].data);
+                                img.setAttribute("mii-data", player.mii[cur_mii_idx].data);
                             }
-                            playerRow.appendChild(miiImg);
 
-                            let playerInfo = document.createElement("div");
-                            playerInfo.className = "player-info";
-                            
-                            let playerName = document.createElement("div");
-                            playerName.className = "player-name";
-                            playerName.innerHTML = handle_mii_name('mii' in player ? player.mii[cur_mii_idx].name : player.name);
-                            playerInfo.appendChild(playerName);
-                            
-                            let playerFc = document.createElement("div");
-                            playerFc.className = "player-fc";
-                            playerFc.textContent = cur_mii_idx == 0 ? player.fc : "Guest";
-                            if (player["openhost"] && player.openhost == "true" && cur_mii_idx == 0) {
-                                playerFc.setAttribute("openhost", "");
-                                playerFc.title = "OpenHost enabled";
-                            }
-                            playerInfo.appendChild(playerFc);
-                            playerRow.appendChild(playerInfo);
-                            
-							let playerVrBr = document.createElement("div");
-							playerVrBr.className = "player-vrbr";
-
-							// Wenn cur_mii_idx 0 ist und beide Werte Zahlen sind, dann anzeigen, sonst fallback
-							playerVrBr.textContent = (cur_mii_idx === 0 && +player.ev && +player.eb)
-								? `${player.ev} VR / ${player.eb} BR`
-								: "🚫 VR/BR";
-
-							playerRow.appendChild(playerVrBr);
-
-								if (player.fc == localStorage.getItem("highlight-fc")){
-                                playerRow.classList.add("highlighted");
+                            td = document.createElement("td");
+                            td.textContent = cur_mii_idx == 0 ? player.fc : "Guest";
+                            if (player.fc == localStorage.getItem("highlight-fc")){
+                                tr.classList.add("highlighted");
                             }
                             if (custom_highlighted_fcs.includes(player.fc)){
-                                playerRow.classList.add("custom-highlighted");
+                                tr.classList.add("custom-highlighted");
                             }
+                            if (player["openhost"] && player.openhost == "true" && cur_mii_idx == 0) {
+                                td.setAttribute("openhost", "");
+                                td.title = "OpenHost enabled";
+                            }
+                            tr.appendChild(td);
 
-                            playerList.appendChild(playerRow);
+                            td = document.createElement("td");
+                            td.textContent = cur_mii_idx == 0 ? player.ev : "";
+                            tr.appendChild(td);
+                            
+                            td = document.createElement("td");
+                            td.textContent = cur_mii_idx == 0 ? player.eb : "";
+                            tr.appendChild(td);
                         }
                     }
 
-                    // update room details
                     var skip_reset = false;
-					roomDetails.innerHTML = `
-						<span class="room-player-count excited">${room_no_players}</span> ${room_no_players === 1 ? 'Player' : 'Players'} | 
-						<span class="${joinable_class}">${joinable}</span>
-					`;
-                    
-                    // update room footer
-                    roomFooter.innerHTML = `
-                        ID: <a href="${room_link_href}" class="room-link">${room.id}</a> • 
-                        Uptime: <span created="${room.created}">0:00:00</span>
-                    `;
-                    
+                    var rk = room.rk;
+                    if (rk && rk in ROOM_TYPES){
+                        const type = ROOM_TYPES[rk];
+                        rk = `<span title="${rk}" style="color: ${type.color};">${type.label}</span>`;
+                    } else if (rk) {
+                        rk = rk.toUpperCase();
+                    }
+                    let room_params = new URL(window.location.href).searchParams;
+                    room_params.set("room", room.id);
+                    let room_link = `?${room_params.toString()}`;
+                    room_header.innerHTML = `${room_type} ${rk? rk + " " : ""} \r\n ${room_no_players} Players\r\n Room: <a href="${room_link}" class="room-link excited">${room.id}</a> - <span class="${joinable_class}">${joinable}</span>\r\n  Uptime: <span created="${room.created}"></span>`;
                     if (uptimes_timer){
                         skip_reset = true;
                     }
                     update_uptimes(skip_reset);
                 }
 
-                el("loading").style.display = "none";
-                
+                document.querySelector("#loading").style.display = "none";
+                if (!filter_room){
+                    document.querySelector("#no-rooms").textContent = rooms_count;
+                    document.querySelector("#no-players").textContent = no_players;
+                    document.querySelector("#top-container").style.display = "flex";
+                }
+
                 if (room_not_found && filter_room){
-                    el("not-found-container").style.display = "block";
+                    document.querySelector("#top-container").style.display = "none";
+                    document.querySelector("#not-found-container").style.display = "block";
                     return;
                 }
 
-                el("not-found-container").style.display = "none";
-                update_openhost_underline(); // update highlights
+                document.querySelector("#not-found-container").style.display = "none";
+                update_openhost_underline();
 
-                // fetch mii images
                 let mii_data_list = [];
                 for (const img_element of document.querySelectorAll("img[mii-data]")){
                     mii_data_list.push(img_element.getAttribute("mii-data"));
                 }
-                
-                if (el("timeout-checkbox").checked) {
+                if (document.getElementById("timeout-checkbox").checked) {
                     if (RELOAD_TIMER){
                         clearInterval(RELOAD_TIMER);
                     }
@@ -1127,7 +888,6 @@
                 }
                 fetch_mii_images(mii_data_list);
             }
-
             if (document.addEventListener)
                 document.addEventListener('DOMContentLoaded', on_load, false)
             else window.onload = fetch_rooms
