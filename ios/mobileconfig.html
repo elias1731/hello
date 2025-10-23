@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title> iOS .mobileconfig Generator</title>
+<style>
+    body {
+        background: #1e1f24;
+        color: #f0f0f0;
+        font-family: 'Rubik', sans-serif;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        min-height: 100vh;
+        padding: 40px 20px;
+    }
+
+    h1 {
+        font-weight: 500;
+        margin-bottom: 10px;
+    }
+
+    .subtitle {
+        color: #999;
+        margin-bottom: 30px;
+    }
+
+    .config-box {
+        background: #2a2b32;
+        padding: 25px;
+        border-radius: 10px;
+        width: 100%;
+        max-width: 600px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    }
+
+    label {
+        display: block;
+        margin-top: 15px;
+        font-weight: 500;
+    }
+
+    input[type="text"], input[type="url"], textarea {
+        width: 100%;
+        padding: 10px;
+        margin-top: 5px;
+        border: none;
+        border-radius: 5px;
+        background: #3a3b45;
+        color: #fff;
+        font-size: 14px;
+    }
+
+    input[type="file"] {
+        margin-top: 10px;
+    }
+
+    button {
+        margin-top: 20px;
+        background: #4b8bff;
+        border: none;
+        color: white;
+        padding: 12px 18px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 15px;
+        transition: 0.2s ease;
+    }
+
+    button:hover {
+        background: #6fa3ff;
+    }
+
+    .btn-row {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+        margin-top: 25px;
+    }
+
+    #generated {
+        display: none;
+        margin-top: 30px;
+    }
+
+    textarea {
+        height: 160px;
+    }
+
+    .footer {
+        margin-top: 30px;
+        color: #888;
+        font-size: 13px;
+    }
+
+    a {
+        color: #4b8bff;
+        text-decoration: none;
+    }
+</style>
+</head>
+<body>
+
+<h1>🍻 iOS .mobileconfig Generator</h1>
+<div class="subtitle">Creator: <strong>🍻 Bitte ein Git!</strong></div>
+
+<div class="config-box">
+    <label for="App_Name">App Name</label>
+    <input type="text" id="App_Name" value="My Web App">
+
+    <label for="App_Short">Short Name</label>
+    <input type="text" id="App_Short" value="mywebapp">
+
+    <label for="App_URL">App URL</label>
+    <input type="url" id="App_URL" value="https://example.com">
+
+    <label for="filePicker">App Icon (.png)</label>
+    <input type="file" id="filePicker" accept="image/png">
+
+    <textarea id="base64textarea" placeholder="Base64 des Icons erscheint hier automatisch..." readonly></textarea>
+
+    <input type="hidden" id="hexSource">
+    <input type="hidden" id="hexSource2">
+
+    <div class="btn-row">
+        <button id="dlbutton">⬇️ Download .mobileconfig</button>
+        <button id="copyurl">🔗 Copy Download URL</button>
+    </div>
+</div>
+
+<div id="generated">
+    <h3>Generierte .mobileconfig</h3>
+    <textarea id="ResultXml" readonly></textarea>
+    <div class="footer">Maintained by <strong>@elias1731</strong></div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script>
+// Dein generator.js integriert:
+
+var template = [
+'<?xml version="1.0" encoding="UTF-8"?>',
+'<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">',
+'<plist version="1.0">',
+'<dict>',
+'<key>ConsentText</key>',
+'<dict>',
+'<key>default</key>',
+'<string>iOS .mobileconfig Generator at: github.com/bitte-ein-git</string>',
+'</dict>',
+' <key>PayloadContent</key>',
+' <array>',
+'   <dict>',
+'     <key>FullScreen</key>',
+'     <true/>',
+'     <key>Icon</key>',
+'     <data><?base64textarea?></data>',
+'     <key>IsRemovable</key>',
+'     <true/>',
+'     <key>Label</key>',
+'     <string><?App_Name?></string>',
+'     <key>PayloadDescription</key>',
+'     <string>Adds „ <?App_Name?> “ as Web Clip.</string>',
+'     <key>PayloadDisplayName</key>',
+'     <string><?App_Name?></string>',
+'     <key>PayloadIdentifier</key>',
+'     <string>de.heyfordy.<?App_Short?></string>',
+'     <key>PayloadOrganization</key>',
+'     <string>🍻 Bitte ein Git!</string>',
+'     <key>PayloadType</key>',
+'     <string>com.apple.webClip.managed</string>',
+'     <key>PayloadUUID</key>',
+'     <string><?hexSource?></string>',
+'     <key>PayloadVersion</key>',
+'     <integer>1</integer>',
+'     <key>Precomposed</key>',
+'     <false/>',
+'     <key>URL</key>',
+'     <string><?App_URL?></string>',
+'   </dict>',
+' </array>',
+' <key>PayloadDescription</key>',
+' <string><?App_Name?></string>',
+' <key>PayloadDisplayName</key>',
+' <string><?App_Name?></string>',
+' <key>PayloadIdentifier</key>',
+' <string>com.profile.config</string>',
+' <key>PayloadOrganization</key>',
+' <string>🍻 Bitte ein Git!</string>',
+' <key>PayloadRemovalDisallowed</key>',
+' <false/>',
+' <key>PayloadType</key>',
+' <string>Configuration</string>',
+' <key>PayloadUUID</key>',
+' <string><?hexSource2?></string>',
+' <key>PayloadVersion</key>',
+' <integer>1</integer>',
+'</dict>',
+'</plist>',
+].join('\r\n');
+
+function generateUUID() {
+    var d = new Date().getTime();
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        var r = (d + Math.random()*16)%16 | 0;
+        d = Math.floor(d/16);
+        return (c=='x' ? r : (r&0x3|0x8)).toString(16);
+    });
+}
+
+function update() {
+  document.getElementById("hexSource").value = generateUUID();
+  document.getElementById("hexSource2").value = generateUUID();
+  var variables = {
+    'App_Name': $('#App_Name').val(),
+    'App_Short': $('#App_Short').val(),
+    'App_URL': $('#App_URL').val(),
+    'base64textarea': $('#base64textarea').val(),
+    'hexSource': $('#hexSource').val(),
+    'hexSource2': $('#hexSource2').val(),
+  };
+  var newXml = template.replace(/<\?(\w+)\?>/g, function(match, name) {
+      return variables[name] || '';
+  });
+
+  $('#ResultXml').val(newXml);
+  const blob = new Blob([newXml], {type: 'application/x-apple-aspen-config'});
+  const url = URL.createObjectURL(blob);
+  $('#generated').show();
+
+  // Download-Link simulieren
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = variables['App_Short'] + '.mobileconfig';
+  a.click();
+
+  // Für Copy-Button speichern
+  window._generatedURL = url;
+}
+
+$('#dlbutton').on('click', update);
+
+$('#copyurl').on('click', function() {
+    if (window._generatedURL) {
+        navigator.clipboard.writeText(window._generatedURL);
+        alert('Download-URL kopiert!');
+    } else {
+        alert('Bitte zuerst eine Datei generieren.');
+    }
+});
+
+function handleFileSelect(evt) {
+    var files = evt.target.files;
+    var file = files[0];
+    if (files && file) {
+        var reader = new FileReader();
+        reader.onload = function(readerEvt) {
+            var binaryString = readerEvt.target.result;
+            document.getElementById("base64textarea").value = btoa(binaryString);
+        };
+        reader.readAsBinaryString(file);
+    }
+}
+
+if (window.File && window.FileReader) {
+    document.getElementById('filePicker').addEventListener('change', handleFileSelect, false);
+} else {
+    alert('Browser unterstützt keine File-APIs.');
+}
+</script>
+
+</body>
+</html>
