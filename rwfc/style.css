@@ -1,592 +1,196 @@
 /* --- Base and Reset --- */
-html {
-    background-color: #24252d;
-    min-height: 100vh;
-  }
-  
-  * {
-      font-family: 'Rubik', sans-serif;
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-  }
-  
-  /* --- Default Theme (Orange) --- */
-  body {
-      width: 100%;
-      color: #fff;
-      background: linear-gradient(-45deg, #39ff0069, #ff4100, #ffc800, #dd4700, #0049ff69);
-      background-size: 200% 200%;
-      animation: Gradient 4s ease infinite;
-      display: flex;
-      flex-direction: column;
-      min-height: 100vh;
-      text-align: center;
-  }
-  
-  @keyframes Gradient {
-      0% { background-position: 0% 50% }
-      50% { background-position: 100% 50% }
-      100% { background-position: 0% 50% }
-  }
-  
-  /* --- Theme Overrides --- */
-  body.theme-blue {
-      background: linear-gradient(-45deg, #00bcdd, #00dd55, #0055dd, #00dd69, #00ff22);
-      background-size: 200% 200%;
-      animation: Gradient 4s ease infinite;
-  }
-  
-  body.theme-dark {
-      background: #1e1f25;
-      animation: none;
-  }
-  
-  body.theme-dark header {
-      background: #111215a0;
-  }
-  
-  body.theme-dark .room-card {
-      background: #282a36;
-  }
-  
-  body.theme-dark .player-row {
-      background: #3a3d4d;
-  }
-  
-  body.theme-dark #settings-content {
-      background: rgba(20, 20, 25, 0.8);
-  }
-  
-  
-  /* --- General Elements --- */
-  hr {
-      color: white;
-  }
-  
-  p {
-      margin-top: 0.5rem;
-      margin-bottom: 0.25rem;
-  }
-  
-  a {
-      color: #ffdaa3; /* default link color */
-  }
-  
-  a:hover {
-      text-decoration: underline;
-  }
-  
-  h1 {
-      margin: 10px 0 0.5rem 0;
-      font-size: 32px;
-      text-decoration: none;
-  }
-  
-  /* --- Header --- */
-  header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0.8rem 1rem;
-    background: #1e1f25a0;
-    backdrop-filter: blur(6px);
-    position: sticky;
-    top: 0;
-    z-index: 10;
-  }
-  header h1 { 
-    font-size: 1.6rem; 
-    display: flex;
-    align-items: center;
-    margin: 0; /* override h1 default */
-  }
-  .header-favicon {
-      height: 2em;
-      width: 2em;
-      margin-right: 0.5rem;
-  }
-  #settings-btn {
-    font-size: 1.8em;
-    background: none;
-    border: none;
-    color: white;
-    cursor: pointer;
-    transition: transform 0.2s;
-  }
-  #settings-btn:hover { transform: rotate(30deg); }
-  
-  /* --- Main Content --- */
-  main { 
-      flex: 1; 
-      padding: 1rem; 
-  }
-  
-  #rooms-container { 
-      display: flex; 
-      flex-direction: column; 
-      gap: 1rem; 
-  }
-  
-  #loading { 
-      text-align: center; 
-      font-weight: bold; 
-      font-size: 1.4rem; 
-      padding: 1rem; 
-  }
-  
-  /* --- Indicators (History / Filter) --- */
-  #history-indicator,
-  #filter-indicator {
-      display: none;
-      padding: 10px;
-      text-align: center;
-      font-style: italic;
-      background: #333;
-      margin: 0 auto 1rem auto;
-      border-radius: 8px;
-      max-width: 90%;
-  }
-  #history-indicator {
-      background-color: #ff000040;
-  }
-  #filter-indicator {
-       background-color: #00aaff40;
-  }
-  
-  /* --- Not Found Container --- */
-  #not-found-container {
-      display: none; 
-      text-align: center; 
-      padding: 1rem;
-      width: 100%;
-      color: red;
-      font-size: 1.2em;
-      margin: 20px 0;
-  }
-  
-  
-  /* --- Settings Modal --- */
-  #settings-modal {
-    position: fixed; top: 0; left: 0;
-    width: 100%; height: 100%;
-    background: rgba(0,0,0,0.6);
-    display: flex; justify-content: center; align-items: center;
-    z-index: 20;
-  }
-  #settings-modal.hidden { display: none; }
-  
-  #settings-content {
-    background: rgba(0,0,0,0.6);
-    padding: 1.5rem;
-    border-radius: 1rem;
-    box-shadow: 0 0 20px rgba(0,0,0,0.4);
-    width: 90%;
-    max-width: 400px;
-  }
-  #settings-content h2 { 
-      margin-bottom: 1rem; 
-  }
-  #settings-content label {
-    display: block;
-    margin-top: 0.5rem;
-    margin-bottom: 0.2rem;
-    display: inline-block;
-    width: 150px;
-  }
-  #settings-content input[type="text"],
-  #settings-content input[type="datetime-local"],
-  #settings-content select {
-    width: 100%;
-    padding: 0.4rem;
-    background: #2e2f36bf;
-    border: none;
-    color: white;
-    border-radius: 0.3rem;
-    font-family: inherit;
-    font-size: 1em;
-  }
-  
-  #settings-content input[type="checkbox"] {
-      transform: scale(1.2);
-  }
-  
-  #settings-content button {
-    margin-top: 1rem;
-    margin-right: 0.5rem;
-    padding: 0.4rem 1rem;
-    border: none;
-    border-radius: 0.4rem;
-    background: #ff9900;
-    color: white;
-    cursor: pointer;
-    font-weight: bold;
-  }
-  #settings-content button:hover { 
-      background: #ffad33; 
-  }
-  #settings-content > div {
-      margin-bottom: 10px;
-  }
-  #settings-content #fc-container input,
-  #settings-content #history-container input,
-  #settings-content #theme-container select {
-      width: auto;
-      display: inline-block;
-      flex-grow: 1;
-  }
-  #settings-content #fc-container,
-  #settings-content #history-container,
-  #settings-content #theme-container {
-      display: inline-block;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 5px;
-  }
-  #settings-content #history-container {
-      width: 100%;
-  }
-  
-  
-  /* --- Room Cards --- */
-  .room-card {
-      background: #2e2f3680;
-      padding: 1rem;
-      border-radius: 0.6rem;
-      box-shadow: 0 4px 10px #00000080;
-      text-align: left;
-  }
-  .room-card-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 0.5rem;
-  }
-  .room-name {
-      font-weight: bold;
-      font-size: 1.2rem;
-  }
-  .room-info-link {
-      font-size: 1.2rem;
-      font-weight: bold;
-      color: #fff;
-      text-decoration: none;
-      padding: 0 0.2rem;
-  }
-  .room-info-link:hover {
-      color: #ff9900;
-  }
-  .room-details {
-      font-size: 0.9rem;
-      color: #aaa;
-      margin-top: 0.5rem;
-      padding-bottom: 0.5rem;
-      border-bottom: 1px solid #444;
-      text-align: center;
-  }
-  .room-player-count {
-      font-weight: bold;
-      font-size: 1.2em;
-      color: #fff;
-  }
-  .room-card-footer {
-      margin-top: 1rem;
-      padding-top: 0.5rem;
-      border-top: 1px solid #444;
-      font-size: 0.6rem;
-      color: #fff;
-      text-align: center;
-  }
-  .room-card-footer a {
-      color: #ff9900;
-      font-weight: bold;
-  }
-  
-  /* --- Player List --- */
-  .player-list {
-      margin-top: 1rem;
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
-  }
-  .player-row {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-      padding: 0.4rem 0.5rem;
-      border-radius: 0.4rem;
-      background: #2e2f36bf;
-      position: relative;
-  }
-  .player-mii {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      background: #444;
-  }
-  .player-info {
-      flex: 1;
-      overflow: hidden;
-  }
-  .player-name {
-      font-size: 1.1rem;
-      font-weight: 600;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      font-family: 'CTMKF', 'Rubik', sans-serif; /* CTMKF für Mii-Namen */
-  }
-  .player-fc {
-      font-size: 0.6rem;
-      color: #aaa;
-  }
-  .player-vrbr {
-      font-size: 0.8rem;
-      font-weight: 400;
-      color: #ddd;
-      white-space: nowrap;
-      width: 65px;
-      text-align: right;
-      transition: opacity 0.3s ease-in-out;
-  }
-  .openhost {
-      text-decoration: underline;
-      text-decoration-color: #00aeff;
-      text-decoration-style: wavy;
-  }
-  
-  /* --- Player Menu --- */
-  .player-menu-btn {
-      background: none;
-      border: none;
-      color: #aaa;
-      font-size: 1.2rem;
-      font-weight: bold;
-      cursor: pointer;
-      padding: 0 0.5rem;
-      margin-left: auto;
-  }
-  .player-menu-btn:hover {
-      color: #fff;
-  }
-  .player-menu {
-      display: none;
-      position: absolute;
-      right: 0;
-      top: 100%;
-      background: #1e1f25;
-      border-radius: 0.4rem;
-      box-shadow: 0 4px 10px #000000a0;
-      z-index: 15;
-      min-width: 180px;
-      overflow: hidden;
-  }
-  .player-menu button {
-      display: block;
-      width: 100%;
-      padding: 0.6rem 1rem;
-      background: none;
-      border: none;
-      color: #fff;
-      text-align: left;
-      cursor: pointer;
-      font-size: 0.9rem;
-  }
-  .player-menu button:hover {
-      background: #2e2f36;
-  }
-  .player-menu .remove-highlight {
-      color: #ff5555;
-  }
-  
-  /* --- Highlighting and Status --- */
-  .player-row.highlighted {
-      background: #38342a;
-      border-left: 3px solid #ff9900;
-  }
-  .player-row.custom-highlighted {
-      background: #2a382e;
-      border-left: 3px solid #00cc33;
-  }
-  .joinable { color: #33ff33; }
-  .not-joinable { color: #ff3333; }
-  .course-selection { color: #ffff33; }
-  .split-room { color: #ff9933; }
-  
-  /* --- Footer --- */
-  .footer-links {
-      text-align: center; 
-      padding: 2rem;
-  }
-  .footer-links h1 a {
-      color: white;
-      text-decoration: none;
-  }
-  .footer-links p {
-      margin: 0.5rem 0;
-  }
-  .footer-button {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      padding: 0.5rem 1rem;
-      background: rgba(0,0,0,0.2);
-      border-radius: 0.4rem;
-      text-decoration: none;
-      color: #fff;
-      font-weight: 500;
-      transition: background 0.2s;
-  }
-  .footer-button:hover {
-      background: rgba(0,0,0,0.4);
-      text-decoration: none;
-  }
-  .footer-button.wiki-link {
-      font-size: 1.1rem;
-      font-weight: bold;
-  }
-  .footer-icon {
-      width: 1em;
-      height: 1em;
-      margin-right: 0.5rem;
-      vertical-align: middle;
-  }
-  
-  
-  /* --- Animations --- */
-  .excited {
-      font-weight: bold;
-      animation-name: excited;
-      animation-delay: 0s;
-      animation-duration: 2s;
-      animation-timing-function: ease-in-out;
-      animation-fill-mode: backwards;
-      animation-iteration-count: infinite;
-  }
-  
-  @keyframes excited {
-      0% { color: #cba6f7; }
-      17% { color: #f38ba8; }
-      33% { color: #fab387; }
-      50% { color: #f9e2af; }
-      67% { color: #a6e3a1; }
-      83% { color: #89b4fa; }
-      100% { color: #cba6f7; }
-  }
-  
-  /* --- CTMKF Wide Chars --- */
-  .wide-char {
-      font-family: 'CTMKF', 'Rubik', sans-serif;
-      font-size: 0.5rem;
-      transform: scaleY(2);
-      display: inline-block;
-  }
-  
-  
-  /* --- Mobile Tweaks --- */
-  @media (max-width: 800px) {
-    header h1 { font-size: 1.6rem; }
-    #loading { font-size: 1.2rem; }
-    .header-favicon {
-        height: 2em;
-        width: 2em;
-    }
-    h1 { font-size: 1.5rem; }
-    #loading { font-size: 1.5rem; }
-    
-    .wide-char {
-        font-size: 0.3rem;
-    }
-  }
-  
-  /* --- Deprecated Table Styles (from old CSS) --- */
-  /* These are no longer used by index.html but kept for reference if needed */
-  table {
-      white-space: pre;
-      font-size: 1.2rem;
-      border-collapse: collapse;
-      border: hidden;
-      width: 90%;
-      margin: 20px auto;
-  }
-  th, td {
-      text-align: center;
-      border-bottom: 1px solid white;
-      padding: 5px 1rem;
-      line-height: 1.8rem;
-  }
-  th {
-      background-color: rgb(0 0 0 / 25%);
-  }
-  td {
-      background-color: rgb(0 0 0 / 20%);
-  }
-  .room-header {
-      padding-top: 1rem;
-      border-right: hidden;
-      border-left: hidden;
-      padding-bottom: 0.2rem;
-      line-height: 1.3;
-      text-align: center;
-      padding: 10px;
-      background-color: rgb(0 0 0 / 33%);
-      border-top: 12px solid gray;
-      margin-top: 12px;
-  }
-  .mii {
-      height: 2rem;
-      width: auto;
-      margin-top: -0.2rem;
-      margin-bottom: -0.3rem;
-      margin-left: -0.3rem;
-      margin-right: -0.3rem;
-      background-color: rgb(0 0 0 / 45%);
-      border-radius: 5px;
-  }
-  .mii-name {
-      font-family: 'CTMKF', 'Rubik', sans-serif;
-  }
-  .mii-td {
-      line-height: 1.3rem;
-      padding: 0;
-      text-align: center;
-  }
-  .data-header {
-      background-color: #24252d;
-  }
-  .conn-fail {
-      padding: 0 0.1rem;
-      font-size: 1rem;
-  }
-  .mii-header {
-      padding: 0 0.4rem;
-      text-align: center;
-  }
-  .guest-td {
-      padding: 0.2rem;
-  }
-  .guest-name {
-      font-style: italic;
-      color: #aaa;
-  }
-  tbody > tr:first-child {
-      border-top: hidden;
-  }
-  @media only screen and (max-width: 800px) {
-      table {
-          font-size: 0.8rem;
-      }
-      th, td {
-          padding: 0 0.4rem;
-      }
-      .mii {
-          height: 1.5rem;
-          margin: -0.2rem;
-      }
-      .conn-fail {
-          font-size: 0.75rem;
-      }
-      .mii-td {
-          line-height: 0.5rem;
-      }
-  }
+html { background-color: #24252d; min-height: 100vh; }
+* { font-family: 'Rubik', sans-serif; margin: 0; padding: 0; box-sizing: border-box; }
+
+/* --- Default Theme (Dark) --- */
+body { width: 100%; color: #fff; background: #1e1f25; display: flex; flex-direction: column; min-height: 100vh; text-align: center; font-size: 1rem; }
+body.theme-orange { background: linear-gradient(-45deg, #39ff0069, #ff4100, #ffc800, #dd4700, #0049ff69) 200% 200%; animation: Gradient 4s ease infinite; }
+body.theme-blue { background: linear-gradient(-45deg, #00bcdd, #00dd55, #0055dd, #00dd69, #00ff22) 200% 200%; animation: Gradient 4s ease infinite; }
+@keyframes Gradient { 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
+
+body.theme-dark header, body header { background: #111215a0; }
+body.theme-dark .room-card, body .room-card { background: #282a36; }
+body.theme-dark .player-row, body .player-row { background: #3a3d4d; }
+body.theme-dark .modal-content, body .modal-content { background: rgba(30, 31, 37, 0.9); }
+body.theme-dark .stat-item, body .stat-item { background: #44475a; }
+body.theme-dark .player-info-modal-vrstats, body .player-info-modal-vrstats { background: #44475a; }
+body.theme-dark .player-info-modal-lastseen, body .player-info-modal-lastseen { color: #ccc; }
+
+body.theme-orange .room-card { background: #2e2f3680; }
+body.theme-orange .player-row { background: #2e2f36bf; }
+body.theme-orange .modal-content { background: rgba(0,0,0,0.6); }
+body.theme-orange .stat-item { background: #3a3d4d; }
+body.theme-orange .player-info-modal-vrstats { background: #3a3d4d; }
+
+body.theme-blue .room-card { background: #2e2f3680; }
+body.theme-blue .player-row { background: #2e2f36bf; }
+body.theme-blue .modal-content { background: rgba(0,0,0,0.6); }
+body.theme-blue .stat-item { background: #3a3d4d; }
+body.theme-blue .player-info-modal-vrstats { background: #3a3d4d; }
+
+/* --- General Elements --- */
+hr { color: white; } p { margin-top: 0.5rem; margin-bottom: 0.25rem; } a { color: #ffdaa3; } a:hover { text-decoration: underline; }
+h1 { margin: 10px 0 0.5rem 0; font-size: 1.5em; text-decoration: none; } h2 { margin-bottom: 1rem; } button { cursor: pointer; } input, select { font-family: inherit; font-size: 1em; }
+
+/* --- Header --- */
+header { display: flex; justify-content: space-between; align-items: center; padding: 0.6rem 1rem; backdrop-filter: blur(6px); position: sticky; top: 0; z-index: 10; flex-wrap: wrap; }
+header h1 { font-size: 1.8em; display: flex; align-items: center; margin: 0; flex-grow: 1; justify-content: left; text-align: center; min-width: 150px; order: 2; }
+.header-favicon { height: 2em; width: 1.8em; margin-right: 0.5rem; }
+.header-buttons { display: flex; align-items: center; gap: 0.5rem; order: 3; margin-left: auto; flex-shrink: 0; }
+#user-profile-btn, #settings-btn { font-size: 1.6em; background: none; border: none; color: white; cursor: pointer; transition: transform 0.2s; padding: 0.3em; line-height: 1; display: flex; align-items: center; justify-content: center; }
+#user-profile-btn:hover, #settings-btn:hover { transform: rotate(15deg); }
+#user-profile-btn svg { width: 1em; height: 1em; fill: currentColor; }
+
+/* Header Stats */
+#header-stats { flex-basis: 100%; text-align: center; font-size: 1.1em; font-weight: 300; color: #FFF; opacity: 1; /* Always visible when not hidden */ height: auto; margin-top: -5px; padding-bottom: 5px; order: 1; transition: opacity 0.3s ease-in-out, height 0.3s ease-in-out, padding 0.3s ease-in-out; }
+#header-stats.hidden { opacity: 0; height: 0; padding-bottom: 0; overflow: hidden; margin-top: -5px; }
+#header-stats .excited { animation: excited 1s infinite; display: inline-block; font-weight: bold; }
+
+/* --- Main Content --- */
+main { flex: 1; padding: 1rem; max-width: 600px; margin: 0 auto; width: 100%; }
+#rooms-container { display: flex; flex-direction: column; gap: 1rem; }
+#loading, #not-found-container { text-align: center; font-weight: bold; font-size: 1.4rem; padding: 1rem; color: #fff; }
+#not-found-container { display: none; color: #ffaaaa; }
+
+/* --- Indicators --- */
+#history-indicator, #filter-indicator { display: none; padding: 10px; text-align: center; font-style: italic; background: #333; margin: 0 auto 1rem auto; border-radius: 8px; max-width: 90%; color: #fff; }
+#history-indicator button, #filter-indicator button { margin-left: 10px; padding: 2px 8px; }
+#history-indicator { background-color: #ff000040; } #filter-indicator { background-color: #00aaff40; }
+
+/* --- Modals Common Styles --- */
+.modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); display: flex; justify-content: center; align-items: center; z-index: 20; opacity: 1; visibility: visible; transition: opacity 0.3s ease, visibility 0.3s ease; }
+.modal.hidden { opacity: 0; visibility: hidden; }
+.modal-content { padding: 1.5rem; border-radius: 1rem; box-shadow: 0 0 20px rgba(0,0,0,0.4); width: 90%; max-width: 450px; max-height: 80vh; overflow-y: auto; position: relative; }
+.modal-content h2 { margin-top: 0; margin-bottom: 1.5rem; text-align: center; }
+.modal-close-btn { margin-top: 1.5rem; padding: 0.6rem 1.2rem; border: none; border-radius: 0.4rem; background: #ff9900; color: white; cursor: pointer; font-weight: bold; display: block; width: fit-content; margin-left: auto; margin-right: auto; }
+.modal-close-btn:hover { background: #ffad33; }
+.modal-close-btn.top-right { position: absolute; top: 10px; right: 10px; background: #555; color: #fff; border: none; border-radius: 50%; width: 28px; height: 28px; font-size: 16px; line-height: 28px; text-align: center; cursor: pointer; margin: 0; padding: 0; z-index: 21; }
+.modal-close-btn.top-right:hover { background: #777; }
+
+/* --- Settings Modal --- */
+.setting-row { margin-bottom: 1rem; display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.setting-row label { display: inline-block; width: 160px; text-align: left; flex-shrink: 0; }
+.setting-row input[type="text"], .setting-row input[type="datetime-local"], .setting-row select { padding: 0.4rem; background: #2e2f36bf; border: 1px solid #555; color: white; border-radius: 0.3rem; flex-grow: 1; min-width: 150px; }
+.setting-row input[type="checkbox"] { transform: scale(1.2); margin-left: 5px; }
+.setting-row button:not(.modal-close-btn):not(.search-icon-btn) { padding: 0.4rem 0.8rem; border: none; border-radius: 0.4rem; background: #555; color: white; } /* Exclude search icon */
+.setting-row button:not(.modal-close-btn):not(.search-icon-btn):hover { background: #777; }
+.history-controls, .history-buttons { width: 100%; } .history-buttons { justify-content: center; }
+.view-mode-btn { font-size: 1.5em; padding: 0.2em 0.5em; opacity: 0.6; } .view-mode-btn.active { opacity: 1; background: #777; }
+#favorites-btn { background-color: #f0c040; color: #333; } #favorites-btn:hover { background-color: #ffe080; }
+
+/* --- Favorites Modal --- */
+#favorites-list-container { max-height: 50vh; overflow-y: auto; margin-bottom: 1rem; border: 1px solid #555; border-radius: 5px; padding: 5px; }
+#favorites-list .player-row { margin-bottom: 5px; cursor: default; }
+#favorites-list .player-info { cursor: pointer; }
+#favorites-list p { text-align: center; color: #aaa; padding: 1rem; }
+.remove-favorite-btn { background: #ff5555; color: white; border: none; border-radius: 50%; width: 25px; height: 25px; font-size: 14px; line-height: 25px; text-align: center; cursor: pointer; margin-left: auto; flex-shrink: 0; /* Prevent shrinking */ }
+.remove-favorite-btn:hover { background: #ff7777; }
+
+/* --- User Profile Modal --- */
+.user-search-container { display: flex; align-items: stretch; /* Align items vertically */ gap: 5px; width: 100%; }
+#user-login-view input[type="text"] { margin-bottom: 0; flex-grow: 1; }
+.search-icon-btn { padding: 0.4rem 0.8rem; /* Consistent padding */ font-size: 1.2em; line-height: 1; background: #555; color: white; border: 1px solid #555; border-radius: 0.3rem; /* Match input */ flex-shrink: 0; /* Prevent shrinking */ }
+.search-icon-btn:hover { background: #777; }
+#user-search-results { margin-top: 1rem; max-height: 40vh; overflow-y: auto; }
+.search-result-row { cursor: pointer; transition: background 0.2s; margin-bottom: 5px; }
+.search-result-row:hover { background: #4a4d5d; }
+.select-profile-btn { margin-left: auto; font-size: 0.9em; padding: 3px 8px; background: #666; color: white; border: none; border-radius: 3px;}
+#user-profile-view { text-align: center; }
+#user-profile-display { margin-bottom: 1.5rem; }
+#logout-btn.large-logout { background: #ff5555; margin-left: auto; margin-right: auto; width: auto; /* Allow button to size naturally */ padding: 0.6rem 2rem; /* More horizontal padding */ }
+#logout-btn.large-logout:hover { background: #ff7777; }
+
+/* Profile Layout Styles */
+.player-info-modal-header { display: flex; align-items: center; gap: 15px; margin-bottom: 1rem; text-align: left; }
+.player-mii-large { width: 60px; height: 60px; border-radius: 5px; background: #555; object-fit: cover; flex-shrink: 0;}
+.player-info-modal-header > div { display: flex; flex-direction: column; }
+.player-info-modal-lastseen { font-size: 0.9em; color: #ccc; margin-bottom: 0.8rem; text-align: center; }
+.player-info-modal-stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); gap: 8px; margin-bottom: 0.8rem; text-align: center; }
+.stat-item { padding: 8px 5px; border-radius: 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.stat-label { font-size: 0.8em; color: #aaa; margin-bottom: 2px; }
+.stat-value { font-size: 1em; font-weight: 500; color: #fff; }
+.vr-stats-heading { font-size: 1em; font-weight: bold; margin-top: 1rem; margin-bottom: 0.5rem; text-align: center; color: #ccc; }
+.stat-value.vr-positive { color: #4CAF50; }
+.stat-value.vr-negative { color: #F44336; }
+.player-info-modal-active-rank { font-size: 0.9em; margin-top: 1rem; text-align: center; color: #ccc;}
+
+/* --- Player Info Modal --- */
+.modal-content.small-modal { max-width: 380px; padding-top: 40px; }
+
+/* --- Room Cards --- */
+.room-card { padding: 1rem; border-radius: 0.6rem; box-shadow: 0 4px 10px #00000080; text-align: left; transition: transform 0.2s ease-in-out; }
+.room-card:hover { transform: translateY(-3px); }
+.room-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
+.room-name { font-weight: bold; font-size: 1.2rem; }
+.room-info-link { font-size: 1.2rem; font-weight: bold; color: #fff; text-decoration: none; padding: 0 0.2rem; }
+.room-info-link:hover { color: #ff9900; }
+.room-details { font-size: 0.9rem; color: #aaa; margin-top: 0.5rem; padding-bottom: 0.5rem; border-bottom: 1px solid #444; text-align: center; }
+.room-player-count { font-weight: bold; font-size: 1.2em; color: #fff; }
+.room-card-footer { margin-top: 1rem; padding-top: 0.5rem; border-top: 1px solid #444; font-size: 0.8em; color: #ccc; text-align: center; }
+.room-card-footer a { color: #ff9900; font-weight: bold; }
+
+/* --- Player List --- */
+.player-list { margin-top: 1rem; display: flex; flex-direction: column; gap: 0.5rem; }
+.player-row { display: flex; align-items: center; gap: 0.75rem; padding: 0.4rem 0.5rem; border-radius: 0.4rem; position: relative; cursor: pointer; }
+.player-mii { width: 40px; height: 40px; border-radius: 50%; background: #444; object-fit: cover; flex-shrink: 0; }
+.player-info { flex: 1; overflow: hidden; }
+.player-name { font-size: 1.1rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: 'CTMKF', 'Rubik', sans-serif; }
+.player-name small { font-size: 0.8em; font-weight: normal; opacity: 0.8; }
+.player-fc { font-size: 0.8em; color: #aaa; }
+.player-vrbr { font-size: 1em; font-weight: 400; color: #ddd; white-space: nowrap; width: 70px; text-align: right; transition: opacity 0.3s ease-in-out; flex-shrink: 0; }
+.openhost { text-decoration: underline; text-decoration-color: #00aeff; text-decoration-style: wavy; }
+
+/* --- Player Menu --- */
+.player-menu-btn { background: none; border: none; color: #aaa; font-size: 1.4rem; font-weight: bold; cursor: pointer; padding: 0 0.5rem; margin-left: auto; line-height: 1; order: 3; z-index: 5; }
+.player-menu-btn:hover { color: #fff; }
+.player-menu { display: none; position: absolute; right: 5px; top: calc(100% - 10px); background: #1e1f25; border-radius: 0.4rem; box-shadow: 0 4px 10px #000000a0; z-index: 15; min-width: 180px; overflow: hidden; }
+.player-menu button { display: block; width: 100%; padding: 0.6rem 1rem; background: none; border: none; color: #fff; text-align: left; cursor: pointer; font-size: 0.9rem; }
+.player-menu button:hover { background: #2e2f36; }
+.player-menu .remove-highlight { color: #ff5555; }
+
+/* --- Highlighting and Status --- */
+.player-row.highlighted { background: #4a443a; border-left: 3px solid #ffcc00; }
+.player-row.is-user { background: #3a4a44; border-left: 3px solid #00cc66; }
+.joinable { color: #33ff33; } .not-joinable { color: #ff3333; } .course-selection { color: #ffff33; } .split-room { color: #ff9933; }
+
+/* --- Footer --- */
+.footer-links { text-align: center; padding: 1.5rem 1rem; font-size: 0.9em; }
+.footer-links p { margin: 0.5rem 0; }
+.footer-button { display: inline-flex; align-items: center; justify-content: center; padding: 0.5rem 1rem; background: rgba(0,0,0,0.2); border-radius: 0.4rem; text-decoration: none; color: #fff; font-weight: 500; transition: background 0.2s; }
+.footer-button:hover { background: rgba(0,0,0,0.4); text-decoration: none; }
+.footer-button.wiki-link { font-size: 1.1em; font-weight: bold; }
+.footer-icon { width: 1em; height: 1em; margin-right: 0.5rem; vertical-align: middle; }
+
+/* --- Animations --- */
+.excited { font-weight: bold; animation: excited 1s infinite; }
+@keyframes excited { 0%,100%{color:#cba6f7} 17%{color:#f38ba8} 33%{color:#fab387} 50%{color:#f9e2af} 67%{color:#a6e3a1} 83%{color:#89b4fa} }
+
+/* --- CTMKF Wide Chars --- */
+.wide-char { font-family: 'CTMKF', 'Rubik', sans-serif; font-size: 0.5rem; transform: scaleY(2); display: inline-block; }
+
+/* --- Desktop View Specific Styles --- */
+body.desktop-view main { max-width: none; padding: 20px; }
+body.desktop-view #rooms-container { flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 20px; }
+body.desktop-view .room-card { width: 420px; flex-grow: 0; flex-shrink: 0; }
+body.desktop-view { font-size: 1.05rem; }
+body.desktop-view header h1 { font-size: 1.6rem; }
+body.desktop-view #header-stats { font-size: 1.2em; }
+body.desktop-view .room-name { font-size: 1.3em; }
+body.desktop-view .room-details { font-size: 1.0em; }
+body.desktop-view .player-mii { width: 48px; height: 48px; }
+body.desktop-view .player-name { font-size: 1.15em; }
+body.desktop-view .player-fc { font-size: 0.9em; }
+body.desktop-view .player-vrbr { font-size: 1.0em; width: 80px; }
+body.desktop-view .modal-content { max-width: 500px; }
+body.desktop-view .modal-content.small-modal { max-width: 400px; }
+
+/* --- Mobile Tweaks --- */
+@media (max-width: 400px) {
+  header h1 { font-size: 1.2rem; } .header-favicon { height: 1.5em; width: 1.5em; }
+  #user-profile-btn, #settings-btn { font-size: 1.6em; } .room-name { font-size: 1.1rem; }
+  .player-name { font-size: 1.0rem; } .player-fc { font-size: 0.7em; }
+  .player-vrbr { font-size: 0.9em; width: 60px; } .modal-content { padding: 1rem; }
+  .setting-row label { width: 120px; }
+  .player-info-modal-stats-grid { grid-template-columns: 1fr 1fr; } /* Stack Rank/VR on smallest */
+  .vr-stats-heading { margin-top: 0.8rem; }
+}
