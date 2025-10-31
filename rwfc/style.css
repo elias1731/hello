@@ -33,16 +33,16 @@ hr { color: white; } p { margin-top: 0.5rem; margin-bottom: 0.25rem; } a { color
 h1 { margin: 10px 0 0.5rem 0; font-size: 1.5em; text-decoration: none; } h2 { margin-bottom: 1rem; } button { cursor: pointer; } input, select { font-family: inherit; font-size: 1em; }
 
 /* --- Header --- */
-header { display: flex; justify-content: space-between; align-items: center; padding: 0.6rem 1rem; backdrop-filter: blur(6px); position: sticky; top: 0; z-index: 10; flex-wrap: wrap; }
-header h1 { font-size: 1.8em; display: flex; align-items: center; margin: 0; flex-grow: 1; justify-content: left; text-align: center; min-width: 150px; order: 2; }
-.header-favicon { height: 2em; width: 1.8em; margin-right: 0.5rem; }
-.header-buttons { display: flex; align-items: center; gap: 0.5rem; order: 3; margin-left: auto; flex-shrink: 0; }
+header { display: flex; justify-content: space-between; align-items: center; padding: 0.6rem 1rem; backdrop-filter: blur(6px); position: sticky; top: 0; z-index: 10; flex-wrap: wrap; gap: 5px; }
+header h1 { font-size: 1.8em; display: flex; align-items: center; margin: 0; flex-grow: 1; flex-shrink: 1; justify-content: left; text-align: left; min-width: 0; order: 2; margin-right: auto; }
+.header-favicon { height: 1.5em; width: 1.5em; margin-right: 0.5rem; }
+.header-buttons { display: flex; align-items: center; gap: 0.5rem; order: 3; margin-left: 0; flex-shrink: 0; }
 #user-profile-btn, #settings-btn { font-size: 1.6em; background: none; border: none; color: white; cursor: pointer; transition: transform 0.2s; padding: 0.3em; line-height: 1; display: flex; align-items: center; justify-content: center; }
 #user-profile-btn:hover, #settings-btn:hover { transform: rotate(15deg); }
 #user-profile-btn svg { width: 1em; height: 1em; fill: currentColor; }
 
 /* Header Stats */
-#header-stats { flex-basis: 100%; text-align: center; font-size: 1.1em; font-weight: 300; color: #FFF; opacity: 1; /* Always visible when not hidden */ height: auto; margin-top: -5px; padding-bottom: 5px; order: 1; transition: opacity 0.3s ease-in-out, height 0.3s ease-in-out, padding 0.3s ease-in-out; }
+#header-stats { flex-basis: 100%; text-align: center; font-size: 1.1em; font-weight: 300; color: #FFF; opacity: 1; height: auto; margin-top: -5px; padding-bottom: 5px; order: 1; transition: opacity 0.3s ease-in-out, height 0.3s ease-in-out, padding 0.3s ease-in-out; }
 #header-stats.hidden { opacity: 0; height: 0; padding-bottom: 0; overflow: hidden; margin-top: -5px; }
 #header-stats .excited { animation: excited 1s infinite; display: inline-block; font-weight: bold; }
 
@@ -72,7 +72,7 @@ main { flex: 1; padding: 1rem; max-width: 600px; margin: 0 auto; width: 100%; }
 .setting-row label { display: inline-block; width: 160px; text-align: left; flex-shrink: 0; }
 .setting-row input[type="text"], .setting-row input[type="datetime-local"], .setting-row select { padding: 0.4rem; background: #2e2f36bf; border: 1px solid #555; color: white; border-radius: 0.3rem; flex-grow: 1; min-width: 150px; }
 .setting-row input[type="checkbox"] { transform: scale(1.2); margin-left: 5px; }
-.setting-row button:not(.modal-close-btn):not(.search-icon-btn) { padding: 0.4rem 0.8rem; border: none; border-radius: 0.4rem; background: #555; color: white; } /* Exclude search icon */
+.setting-row button:not(.modal-close-btn):not(.search-icon-btn) { padding: 0.4rem 0.8rem; border: none; border-radius: 0.4rem; background: #555; color: white; }
 .setting-row button:not(.modal-close-btn):not(.search-icon-btn):hover { background: #777; }
 .history-controls, .history-buttons { width: 100%; } .history-buttons { justify-content: center; }
 .view-mode-btn { font-size: 1.5em; padding: 0.2em 0.5em; opacity: 0.6; } .view-mode-btn.active { opacity: 1; background: #777; }
@@ -83,13 +83,13 @@ main { flex: 1; padding: 1rem; max-width: 600px; margin: 0 auto; width: 100%; }
 #favorites-list .player-row { margin-bottom: 5px; cursor: default; }
 #favorites-list .player-info { cursor: pointer; }
 #favorites-list p { text-align: center; color: #aaa; padding: 1rem; }
-.remove-favorite-btn { background: #ff5555; color: white; border: none; border-radius: 50%; width: 25px; height: 25px; font-size: 14px; line-height: 25px; text-align: center; cursor: pointer; margin-left: auto; flex-shrink: 0; /* Prevent shrinking */ }
+.remove-favorite-btn { background: #ff5555; color: white; border: none; border-radius: 50%; width: 25px; height: 25px; font-size: 14px; line-height: 25px; text-align: center; cursor: pointer; margin-left: auto; flex-shrink: 0; }
 .remove-favorite-btn:hover { background: #ff7777; }
 
 /* --- User Profile Modal --- */
-.user-search-container { display: flex; align-items: stretch; /* Align items vertically */ gap: 5px; width: 100%; }
+.user-search-container { display: flex; align-items: stretch; gap: 5px; width: 100%; }
 #user-login-view input[type="text"] { margin-bottom: 0; flex-grow: 1; }
-.search-icon-btn { padding: 0.4rem 0.8rem; /* Consistent padding */ font-size: 1.2em; line-height: 1; background: #555; color: white; border: 1px solid #555; border-radius: 0.3rem; /* Match input */ flex-shrink: 0; /* Prevent shrinking */ }
+.search-icon-btn { padding: 0.4rem 0.8rem; font-size: 1.2em; line-height: 1; background: #555; color: white; border: 1px solid #555; border-radius: 0.3rem; flex-shrink: 0; }
 .search-icon-btn:hover { background: #777; }
 #user-search-results { margin-top: 1rem; max-height: 40vh; overflow-y: auto; }
 .search-result-row { cursor: pointer; transition: background 0.2s; margin-bottom: 5px; }
@@ -97,7 +97,8 @@ main { flex: 1; padding: 1rem; max-width: 600px; margin: 0 auto; width: 100%; }
 .select-profile-btn { margin-left: auto; font-size: 0.9em; padding: 3px 8px; background: #666; color: white; border: none; border-radius: 3px;}
 #user-profile-view { text-align: center; }
 #user-profile-display { margin-bottom: 1.5rem; }
-#logout-btn.large-logout { background: #ff5555; margin-left: auto; margin-right: auto; width: auto; /* Allow button to size naturally */ padding: 0.6rem 2rem; /* More horizontal padding */ }
+#logout-btn { display: none; }
+#logout-btn.large-logout { background: #ff5555; margin-left: auto; margin-right: auto; width: auto; padding: 0.6rem 2rem; }
 #logout-btn.large-logout:hover { background: #ff7777; }
 
 /* Profile Layout Styles */
@@ -186,11 +187,14 @@ body.desktop-view .modal-content.small-modal { max-width: 400px; }
 
 /* --- Mobile Tweaks --- */
 @media (max-width: 400px) {
-  header h1 { font-size: 1.2rem; } .header-favicon { height: 1.5em; width: 1.5em; }
-  #user-profile-btn, #settings-btn { font-size: 1.6em; } .room-name { font-size: 1.1rem; }
+  header h1 { font-size: 1.2rem; }
+  .header-favicon { height: 1.5em; width: 1.5em; }
+  #user-profile-btn, #settings-btn { font-size: 1.5em; padding: 0.2em; }
+  .header-buttons { gap: 0.3rem; }
+  .room-name { font-size: 1.1rem; }
   .player-name { font-size: 1.0rem; } .player-fc { font-size: 0.7em; }
   .player-vrbr { font-size: 0.9em; width: 60px; } .modal-content { padding: 1rem; }
   .setting-row label { width: 120px; }
-  .player-info-modal-stats-grid { grid-template-columns: 1fr 1fr; } /* Stack Rank/VR on smallest */
+  .player-info-modal-stats-grid { grid-template-columns: 1fr; } /* Stack all stats on smallest */
   .vr-stats-heading { margin-top: 0.8rem; }
 }
