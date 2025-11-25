@@ -4,7 +4,12 @@
     <title>🏎️ RWFC Rooms</title>
     <meta name="description" content="Retro Rewind is a custom track distribution by ZPL featuring every retro track from Super Mario Kart to Mario Kart 7, plus tracks from Mario Kart 8, Tour, and Arcade GP. Built on the Pulsar engine and connected to Retro WFC servers."/>
     <meta name="author" content="heyFordy.de" />
-    <link rel="icon" href="./favicon.ico" sizes="any" />
+
+    <meta name="theme-color" content="#FE9900"/>
+    <meta name="msapplication-TileColor" content="#FE9900">
+    <meta name="msapplication-TileImage" content="./assets/manifest-icon-192.maskable.png">
+
+    <link rel="icon" href="./assets/favicon.ico" sizes="any" />
     <link rel="apple-touch-icon" href="./assets/apple-touch-icon.png" />
     <link rel="apple-touch-startup-image" href="./assets/startup.jpg">
     <link rel="apple-touch-startup-image" href="./assets/apple-splash-640-1136.jpg" media="(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">
@@ -50,16 +55,16 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="🏎️ RWFC" />
+    <meta name="apple-mobile-web-app-title" content="RetroRewind" />
     <meta name="keywords" content="mario kart wii, mkwii, retro rewind, zpl, rooms, online, status, online status, ctgp" />
-    <link rel="stylesheet" href="./style.css" type="text/css" />
-    <link href="./ctmkf.css" rel="Stylesheet" type="text/css" />
-    <link href="./Rubik.css" rel="Stylesheet" type="text/css" />
+    <link rel="stylesheet" href="./assets/style.css" type="text/css" />
+    <link href="./assets/ctmkf.css" rel="Stylesheet" type="text/css" />
+    <link href="./assets/Rubik.css" rel="Stylesheet" type="text/css" />
 </head>
 <body>
 
     <header>
-        <h1><img src="./favicon.ico" alt="Favicon" class="header-favicon" onclick="toggle_info_modal()" style="cursor: pointer;"> Retro Rewind 🏎️</h1>
+        <h1><img src="./assets/favicon.ico" alt="Favicon" class="header-favicon" onclick="toggle_info_modal()" style="cursor: pointer;"> Retro Rewind 🏎️</h1>
         <div id="header-stats" class="hidden"> <span id="header-stats-content"></span> </div>
         <div class="header-buttons">
              <button id="user-profile-btn" title="User Profile"> <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="1em" height="1em"> <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/> <path d="M0 0h24v24H0z" fill="none"/> </svg> </button>
@@ -68,6 +73,19 @@
     </header>
 
     <div id="history-indicator" style="display: none;"> <span style="font-style: normal;">ℹ️</span> Currently viewing history. <button onclick="disable_history()">Back to Live</button> </div>
+    
+    <!-- History Controls - Input removed to avoid duplicate IDs -->
+    <div id="history-controls-main" style="display: none;">
+        <span style="font-style: normal;">ℹ️</span> Currently viewing history.
+        <div class="history-indicator-controls">
+            <button onclick="add_history(-60)">-1h</button>
+            <button onclick="add_history(-1)">-1m</button>
+            <button onclick="add_history(1)">+1m</button>
+            <button onclick="add_history(60)">+1h</button>
+        </div>
+        <button onclick="disable_history()">Back to Live</button>
+    </div>
+
     <div id="filter-indicator" style="display: none;"> <span style="font-style: normal;">ℹ️</span> Room filter applied. <button onclick="disable_filter()">Show all</button> </div>
 
     <main>
@@ -85,15 +103,59 @@
             </div>
             <div class="setting-row"> <label>View Mode:</label> <button id="view-mode-mobile-btn" class="view-mode-btn" onclick="set_view_mode('mobile')" title="Mobile View">📱</button> <button id="view-mode-desktop-btn" class="view-mode-btn" onclick="set_view_mode('desktop')" title="Desktop View">💻</button> </div>
             <div class="setting-row"> <label for="theme-select">Theme:</label> <select id="theme-select" onchange="on_theme_change()"> <option value="dark">Dark</option> <option value="orange">Orange</option> <option value="blue">Blue</option> </select> </div>
-            <div class="setting-row"> <label for="header-stats-checkbox">Show room/player count</label> <input type="checkbox" id="header-stats-checkbox" onchange="on_header_stats_change()" /> </div>
+            
+            <div class="setting-row"> 
+                <label for="header-stats-checkbox">Show room/player count</label> 
+                <label class="switch">
+                    <input type="checkbox" id="header-stats-checkbox" onchange="on_header_stats_change()" />
+                    <span class="slider round"></span>
+                </label>
+            </div>
             <div class="setting-row"> <label for="sort-order-select">Sort rooms by:</label> <select id="sort-order-select" onchange="on_sort_order_change()"> <option value="player_count">Player count</option> <option value="time_created">Time created</option> </select> </div>
-            <div class="setting-row"> <label for="timeout-checkbox">Auto-Refresh</label> <input type="checkbox" id="timeout-checkbox" onchange="on_checkbox()" /> </div>
-            <div class="setting-row"> <label for="private-checkbox">Show Private Rooms</label> <input type="checkbox" id="private-checkbox" onchange="on_private_checkbox()" /> </div>
-            <div class="setting-row"> <label for="openhost-checkbox">Underline "OpenHost"</label> <input type="checkbox" id="openhost-checkbox" onchange="on_openhost_checkbox()" /> </div>
-            <div class="setting-row"> <label for="vr-only-checkbox">Only VR-points</label> <input type="checkbox" id="vr-only-checkbox" onchange="on_vr_only_change()" /> </div>
-            <div class="setting-row"> <button id="favorites-btn" onclick="toggle_favorites_modal()">⭐ Favorites</button> </div>
-            <div class="setting-row history-controls"> <label for="history-input">History:</label> <input type="datetime-local" id="history-input" oninput="on_history_change()" /> </div>
-            <div class="setting-row history-buttons"> <button onclick="add_history(-60)">-1h</button> <button onclick="add_history(-1)">-1m</button> <button onclick="add_history(1)">+1m</button> <button onclick="add_history(60)">+1h</button> </div>
+            <div class="setting-row"> 
+                <label for="timeout-checkbox">Auto-Refresh</label> 
+                <label class="switch">
+                    <input type="checkbox" id="timeout-checkbox" onchange="on_checkbox()" />
+                    <span class="slider round"></span>
+                </label>
+            </div>
+            <div class="setting-row"> 
+                <label for="private-checkbox">Show Private Rooms</label> 
+                <label class="switch">
+                    <input type="checkbox" id="private-checkbox" onchange="on_private_checkbox()" />
+                    <span class="slider round"></span>
+                </label>
+            </div>
+            <div class="setting-row"> 
+                <label for="openhost-checkbox">Underline "OpenHost"</label> 
+                <label class="switch">
+                    <input type="checkbox" id="openhost-checkbox" onchange="on_openhost_checkbox()" />
+                    <span class="slider round"></span>
+                </label>
+            </div>
+            <div class="setting-row"> 
+                <label for="vr-only-checkbox">Only VR-points</label> 
+                <label class="switch">
+                    <input type="checkbox" id="vr-only-checkbox" onchange="on_vr_only_change()" />
+                    <span class="slider round"></span>
+                </label>
+            </div>
+            <div class="setting-row"> 
+                <label for="avg-vr-checkbox">Show Avg. VR</label> 
+                <label class="switch">
+                    <input type="checkbox" id="avg-vr-checkbox" onchange="on_avg_vr_change()" />
+                    <span class="slider round"></span>
+                </label>
+            </div>
+            
+            <div class="setting-row"> 
+                <button id="favorites-btn" onclick="toggle_favorites_modal()">⭐ Favorites</button> 
+            </div>
+            
+            <div class="setting-row"> 
+                <label for="history-input">History Time:</label>
+                <input type="datetime-local" id="history-input" oninput="on_history_change()" /> 
+            </div>
         </div>
     </div>
 
@@ -101,6 +163,14 @@
          <div class="modal-content">
              <button class="modal-close-btn top-right" onclick="toggle_favorites_modal()">X</button>
              <h2>⭐ Favorites</h2>
+             <button class="fav-add-header-btn" onclick="toggle_fav_search()">+ Add New Favorite</button>
+             <div id="fav-search-wrapper">
+                 <div class="setting-row user-search-container">
+                     <input type="text" id="fav-search-input" placeholder="Search Name/FC">
+                     <button class="search-icon-btn" onclick="search_player_for_fav()">🔍</button>
+                 </div>
+                 <div id="fav-search-results"></div>
+             </div>
              <div id="favorites-list-container"> <div id="favorites-list"> <p>No favorites added yet.</p> </div> </div>
          </div>
      </div>
@@ -136,12 +206,78 @@
              <button class="modal-close-btn top-right" onclick="toggle_info_modal()">X</button>
              <h2>Info</h2>
              <div class="info-modal-content" style="text-align: left; padding-left: 20%;">
-                 <p style="display: flex; align-items: center; gap: 0.5rem;"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="footer-icon"><path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path><path d="M12 12m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path><path d="M12 14l0 7"></path><path d="M10 12l-6.75 -2"></path><path d="M14 12l6.75 -2"></path></svg> Retro Rewind <span id="info-rr-version"> v?.?.?</span></p>
+                 <p style="display: flex; align-items: center; gap: 0.5rem;"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="footer-icon"><path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path><path d="M12 14l0 7"></path><path d="M10 12l-6.75 -2"></path><path d="M14 12l6.75 -2"></path></svg> Retro Rewind <span id="info-rr-version"> v?.?.?</span></p>
                  <p style="display: flex; align-items: center; gap: 0.5rem;"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="footer-icon"><path d="M9 19c-4.3 1.4 -4.3 -2.5 -6 -3m12 5v-3.5c0 -1 .1 -1.4 -.5 -2c2.8 -.3 5.5 -1.4 5.5 -6a4.6 4.6 0 0 0 -1.3 -3.2a4.2 4.2 0 0 0 -.1 -3.2s-1.1 -.3 -3.5 1.3a12.3 12.3 0 0 0 -6.2 0c-2.4 -1.6 -3.5 -1.3 -3.5 -1.3a4.2 4.2 0 0 0 -.1 3.2a4.6 4.6 0 0 0 -1.3 3.2c0 4.6 2.7 5.7 5.5 6c-.6 .5 -.6 1.2 -.6 2.2v3.5"></path></svg> WheelWizard <span id="info-ww-version"> v?.?.?</span></p>
                  <button class="modal-close-btn" onclick="location.reload()" style="margin-top: 1.5rem; margin-left: auto; margin-right: auto; display: block;">Refresh</button>
              </div>
          </div>
      </div>
+
+    <div id="nickname-modal" class="modal hidden">
+        <div class="modal-content small-modal" data-fc="">
+            <button class="modal-close-btn top-right" onclick="close_nickname_modal()">X</button>
+            <h2>Edit Nickname</h2>
+            <div id="nickname-modal-content">
+                <div class="setting-row">
+                    <label for="nickname-input">Nickname:</label>
+                    <input type="text" id="nickname-input" placeholder="Enter nickname">
+                </div>
+                <div class="nickname-modal-buttons">
+                    <button class="modal-close-btn" onclick="apply_nickname()">Apply</button>
+                    <button class="modal-close-btn" onclick="reset_nickname()" style="background: #777;">Reset</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="report-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Report Player</h2>
+                <button class="modal-close-btn top-right" onclick="close_report_modal()">X</button>
+            </div>
+            
+            <div id="rr-report-player-display" class="player-info-modal-header">
+                </div>
+
+            <form id="report-form">
+                <input type="hidden" id="rr-report-fc-hidden" name="fc">
+                <input type="hidden" id="rr-report-miiName-hidden" name="miiName">
+
+                <div class="form-group">
+                    <label for="rr-report-category">Report Category *</label>
+                    <select id="rr-report-category" name="category" required>
+                        <option value="">Select a category...</option>
+                        <option value="offensive-mii-name">Offensive Mii Name</option>
+                        <option value="cheating">Cheating</option>
+                        <option value="emulator-speedup">Emulator Speed Up</option>
+                        <option value="trolling">Trolling</option>
+                        <option value="targeting">Targeting</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group" id="rr-other-description-group" style="display: none;">
+                    <label for="rr-report-otherDescription">Please describe *</label>
+                    <textarea id="rr-report-otherDescription" name="otherDescription" placeholder="Describe the issue..." rows="3"></textarea>
+                </div>
+                <div class="form-group" id="rr-additional-details-group" style="display: none;">
+                    <label for="rr-report-reason">Additional Details (Optional)</label>
+                    <textarea id="rr-report-reason" name="reason" placeholder="Add any additional information..." rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="rr-report-file">Upload Evidence (Image/Video)</label>
+                    <input type="file" id="rr-report-file" name="file" accept="image/*,video/*">
+                    <small class="file-info">Max 8MB - Images or videos only</small>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn-cancel modal-close-btn" id="rr-report-cancel">Cancel</button>
+                    <button type="submit" class="btn-submit modal-close-btn">Submit Report</button>
+                </div>
+            </form>
+            <div id="rr-report-status" class="report-status"></div>
+        </div>
+    </div>
+
 
     <div class="footer-links">
         <p> <a href="http://rwfc.net/api/groups" target="_blank" class="footer-button"> API </a> </p>
@@ -150,519 +286,11 @@
         <p> <a href="https://wiki.tockdom.com/wiki/Retro_Rewind" target="_blank" class="footer-button wiki-link"> Retro Rewind Wiki </a> </p>
         <p> <a href="https://github.com/Bitte-ein-Git/rr_app" target="_blank" class="footer-button"> <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="footer-icon"><path d="M9 19c-4.3 1.4 -4.3 -2.5 -6 -3m12 5v-3.5c0 -1 .1 -1.4 -.5 -2c2.8 -.3 5.5 -1.4 5.5 -6a4.6 4.6 0 0 0 -1.3 -3.2a4.2 4.2 0 0 0 -.1 -3.2s-1.1 -.3 -3.5 1.3a12.3 12.3 0 0 0 -6.2 0c-2.4 -1.6 -3.5 -1.3 -3.5 -1.3a4.2 4.2 0 0 0 -.1 3.2a4.6 4.6 0 0 0 -1.3 3.2c0 4.6 2.7 5.7 5.5 6c-.6 .5 -.6 1.2 -.6 2.2v3.5"></path></svg> Page Source </a> </p>
         <p><a href="https://wiki.tockdom.com/wiki/CTMKF" target="_blank">Font "CTMKF"</a></p>
-        <p><a href="https://www.fontsquirrel.com/fonts/rubik" target="_blank">Font "Rubik"</a></p><br><br>
+        <p><a href="https://wiki.tockdom.com/wiki/CTMKF" target="_blank">Font "CTMKF"</a></p>
+        <p><a href="https://github.com/Weebo6464/homepage/tree/main/rooms" target="_blank">Report Webhook by Weebo6464</a></p><br><br>
+        <p> <a href="https://github.com/Bitte-ein-Git/rr_app/blob/main/LICENSE" target="_blank" class="footer-button">© 2025 rr.heyfordy.de</a> </p>
     </div>
 
-    <script type="text/javascript">
-        // helper function
-        const el = (id) => document.getElementById(id);
-
-        // --- Constants ---
-        const API_BASE_URL = "https://api.heyfordy.de/rr_app/player";
-        const RWFC_API_URL = "https://api.heyfordy.de/rwfc";
-        const MII_API_URL = "https://api.heyfordy.de/rr_app/mii";
-        const MII_BATCH_API_URL = "https://api.heyfordy.de/rr_app/mii_batch";
-        const MAX_MIIS_PER_REQUEST = 24;
-        const EXPIRE_TIME = 1000 * 60 * 60 * 24 * 7; // 7 days
-        const RELOAD_TIME = 1000 * 5; // 5 seconds
-
-        // --- Global State ---
-        let RELOAD_TIMER = null; let cur_rooms = []; let FIRST_LOAD = true;
-        let VRBR_FLIPPER_TIMER = null; let VRBR_STATE = 'vr';
-        let HEADER_STATS_TIMER = null;
-        let HISTORY_TIMER = null; let HISTORY_MODE = false; let HISTORY_DATE = null;
-        let FAVORITES = []; let USER_PROFILE = null; let CURRENT_VIEW_MODE = 'mobile';
-
-        // --- Room Types ---
-        const ROOM_TYPES = { "10":{l:"🕹️ Retro Tracks",c:"#FF8C00"},"11":{l:"⏰ Online TT",c:"#FF6347"},"12":{l:"🚀 200cc",c:"#DC143C"},"13":{l:"☂️ Item Rain",c:"#1E90FF"},"14":{l:"Regular Battle",c:"#B22222"},"15":{l:"Elimination Battle",c:"#8B0000"},"20":{l:"🚧 Custom Tracks",c:"#E800A3"},"21":{l:"Vanilla Tracks",c:"#7B68EE"},"22":{l:"CT 200cc",c:"#DA70D6"},"666":{l:"Luminous 150cc",c:"#FFD700"},"667":{l:"Luminous Online TT",c:"#BDB76B"},"668":{l:"CTGP-C",c:"#32CD32"},"751":{l:"Versus",c:"#A9A9A9"},"-1":{l:"Regular",c:"#A9A9A9"},"":{l:"Private",c:"#A9A9A9"},"69":{l:"IKW Default",c:"#ADD8E6"},"70":{l:"IKW Ultras VS",c:"#008080"},"71":{l:"IKW Countdown",c:"#00FFFF"},"72":{l:"IKW Bob-omb Blast",c:"#696969"},"73":{l:"IKW Infinite Accel",c:"#4B0082"},"74":{l:"IKW Banana Slip",c:"#FFFFE0"},"75":{l:"IKW Random Items",c:"#FF00FF"},"76":{l:"IKW Unfair Items",c:"#800000"},"77":{l:"IKW Blue Shell Madness",c:"#0000CD"},"78":{l:"IKW Mushroom Dash",c:"#2E8B57"},"79":{l:"IKW Bumper Karts",c:"#A52A2A"},"80":{l:"IKW Item Rampage",c:"#FA8072"},"81":{l:"IKW Item Rain",c:"#4169E1"},"82":{l:"IKW Shell Break",c:"#2E8B57"},"83":{l:"IKW Riibalanced",c:"#C0C0C0"},"875":{l:"OptPack 150cc",c:"#7CFC00"},"876":{l:"OptPack Online TT",c:"#556B2F"},"877":{l:"OptPack",c:"#000080"},"878":{l:"OptPack",c:"#000080"},"879":{l:"OptPack",c:"#000080"},"880":{l:"OptPack",c:"#000080"},"1312":{l:"WTP 150cc",c:"#008B8B"},"1313":{l:"WTP 200cc",c:"#483D8B"},"1314":{l:"WTP Online TT",c:"#8FBC8F"},"1315":{l:"WTP Item Rain",c:"#00CED1"},"1316":{l:"WTP STYD",c:"#9400D3"} };
-
-        // --- Modals ---
-        const toggle_modal = (m) => el(m).classList.toggle('hidden');
-        const toggle_settings_modal = () => toggle_modal('settings-modal');
-        const toggle_favorites_modal = () => { render_favorites_list(); toggle_modal('favorites-modal'); }
-        const toggle_user_profile_modal = () => { update_user_profile_modal_state(); toggle_modal('user-profile-modal'); }
-        const hide_player_info_modal = () => el('player-info-modal').classList.add('hidden');
-        const toggle_info_modal = () => toggle_modal('info-modal');
-
-        // --- Global Click Listener (Modals/Menus) ---
-        document.addEventListener('click', (e) => {
-            // Global click listener
-            document.querySelectorAll('.modal').forEach(m => { if (e.target === m) m.classList.add('hidden'); });
-        
-            let menu_was_closed = false;
-            document.querySelectorAll('.player-menu').forEach(m => {
-                if (m.style.display === 'block' && !m.contains(e.target) && !e.target.classList.contains('player-menu-btn')) {
-                    m.style.display = 'none';
-                    menu_was_closed = true;
-                }
-            });
-        
-            if (menu_was_closed) {
-                // A menu was closed, resume timer
-                if (RELOAD_TIMER) clearInterval(RELOAD_TIMER);
-                if (el("timeout-checkbox").checked) {
-                    const f = HISTORY_MODE ? on_checkbox : fetch_rooms;
-                    RELOAD_TIMER = setInterval(f, RELOAD_TIME);
-                }
-            }
-        });
-
-        // --- Player Menu ---
-        function toggle_player_menu(m) {
-            // Player menu toggle
-            document.querySelectorAll('.player-menu').forEach(i => { if (i !== m) i.style.display = 'none'; });
-            const is_showing = m.style.display === 'block';
-            m.style.display = is_showing ? 'none' : 'block';
-
-            if (RELOAD_TIMER) clearInterval(RELOAD_TIMER); // Always clear timer
-
-            if (is_showing) {
-                // Menu is now closed, restart timer
-                if (el("timeout-checkbox").checked) {
-                    const f = HISTORY_MODE ? on_checkbox : fetch_rooms;
-                    RELOAD_TIMER = setInterval(f, RELOAD_TIME);
-                }
-            }
-            // If menu is now open, timer remains cleared
-        }
-
-        // --- Relative Time Formatter ---
-        function format_last_seen(dateString) {
-            if (!dateString) return 'N/A';
-            const lastSeenDate = new Date(dateString);
-            const now = new Date();
-            const diffSeconds = Math.floor((now - lastSeenDate) / 1000);
-
-            if (diffSeconds < 120) { // Less than 2 minutes
-                return '<strong style="color: #4CAF50;">Now online</strong>';
-            }
-            if (diffSeconds < 3600) { // Less than 1 hour
-                return `${Math.floor(diffSeconds / 60)} min. ago`;
-            }
-            if (diffSeconds < 86400) { // Less than 24 hours
-                return `${Math.floor(diffSeconds / 3600)}h ago`;
-            }
-            return lastSeenDate.toLocaleString(); // Default
-        }
-
-        // --- Player Info Modal ---
-        async function show_player_info_modal(fc) {
-            const mc = el('player-info-content'); mc.innerHTML = 'Loading player info...';
-            el('player-info-modal').classList.remove('hidden');
-            try {
-                const r = await fetch(`${API_BASE_URL}?info=${fc}`); if (!r.ok) throw new Error(`API error: ${r.status}`);
-                const d = await r.json();
-                const vr24 = d.vrStats?.last24Hours ?? 0; const vr7 = d.vrStats?.lastWeek ?? 0; const vr30 = d.vrStats?.lastMonth ?? 0;
-                const formatVRStat = (v) => v === 0 ? '0' : (v > 0 ? `+${v}` : `${v}`);
-                const vrClass = (v) => v === 0 ? '' : (v > 0 ? 'vr-positive' : 'vr-negative');
-
-                let mk = null;
-                const cachedMii = get_cached_mii_image(d.FC);
-                let ms = 'empty.png';
-                if (cachedMii) {
-                    ms = cachedMii.startsWith('data:image') ? cachedMii : `data:image/png;base64,${cachedMii}`;
-                } else if (d.miiImageBase64) {
-                    ms = `data:image/png;base64,${d.miiImageBase64}`;
-                    set_cached_mii_image(d.FC, ms); // Cache it
-                } else {
-                    mk = d.FC; // Queue for fetch
-                }
-
-                mc.innerHTML = `
-                    <div class="player-info-modal-header"> <img class="player-mii-large" src="${ms}" alt="Mii" ${mk ? `mii-data="${mk}"` : ''}> <div> <div class="player-name">${handle_mii_name(d.name)}</div> <div class="player-fc">${d.FC}</div> </div> </div>
-                    <div class="player-info-modal-lastseen"> Last Seen: ${format_last_seen(d.lastSeen)} </div>
-                    <div class="player-info-modal-stats-grid"> <div class="stat-item"> <span class="stat-label">Rank</span> <span class="stat-value">${d.rank ? `#${d.rank}` : 'N/A'}</span> </div> <div class="stat-item"> <span class="stat-label">VR</span> <span class="stat-value">${d.vr || 'N/A'}</span> </div> </div>
-                    <h3 class="vr-stats-heading">VR Stats</h3>
-                    <div class="player-info-modal-stats-grid"> <div class="stat-item"> <span class="stat-label">24h</span> <span class="stat-value ${vrClass(vr24)}">${formatVRStat(vr24)}</span> </div> <div class="stat-item"> <span class="stat-label">7d</span> <span class="stat-value ${vrClass(vr7)}">${formatVRStat(vr7)}</span> </div> <div class="stat-item"> <span class="stat-label">30d</span> <span class="stat-value ${vrClass(vr30)}">${formatVRStat(vr30)}</span> </div> </div>
-                    <div class="player-info-modal-active-rank"> Active Rank: ${d.activeRank ? `#${d.activeRank}` : 'N/A'} </div>`;
-                
-                if (mk) fetch_mii_images([mk]); // Fetch if missing
-            } catch (e) { console.error("Error fetching player info:", e); mc.innerHTML = `<p style="color:red;">Error loading player info for ${fc}.</p>`; }
-        }
-
-        // --- Copy FC ---
-         function copy_fc(fc) { if (navigator.clipboard) { navigator.clipboard.writeText(fc).catch(e => { console.error('Copy fail: ', e); prompt("Manual copy:", fc); }); } else { prompt("Manual copy:", fc); } document.querySelectorAll('.player-menu').forEach(m => m.style.display = 'none'); }
-
-        // --- Favorites Management ---
-        function load_favorites() { const f = localStorage.getItem("favorites"); FAVORITES = f ? JSON.parse(f) : []; }
-        function save_favorites() { localStorage.setItem("favorites", JSON.stringify(FAVORITES)); }
-        function is_favorite(fc) { return FAVORITES.some(f => f.fc === fc); }
-         
-        async function add_favorite(fc, e) {
-            // Add player to favorites
-            if (e) e.stopPropagation();
-            const btn = e.target;
-            const player_row = btn.closest('.player-row');
-        
-            if (!is_favorite(fc)) {
-                try {
-                    const r = await fetch(`${API_BASE_URL}?info=${fc}`);
-                    if (!r.ok) throw new Error('Player not found');
-                    const d = await r.json();
-                    FAVORITES.push({ fc: d.FC, name: d.name });
-                    save_favorites();
-        
-                    // Update UI instantly
-                    if (player_row) player_row.classList.add("highlighted");
-                    btn.innerHTML = "🚫 Remove Favorite";
-                    btn.classList.add("remove-highlight");
-                    btn.onclick = (ev) => remove_favorite(fc, false, ev);
-        
-                } catch (err) {
-                    console.error("Favorite add fail:", err);
-                }
-            }
-            document.querySelectorAll('.player-menu').forEach(m => m.style.display = 'none');
-            
-            // Restart timer
-            if (RELOAD_TIMER) clearInterval(RELOAD_TIMER);
-            if (el("timeout-checkbox").checked) {
-                const f = HISTORY_MODE ? on_checkbox : fetch_rooms;
-                RELOAD_TIMER = setInterval(f, RELOAD_TIME);
-            }
-        }
-         
-        function remove_favorite(fc, fm = false, e) {
-            // Remove player from favorites
-            if (e) e.stopPropagation();
-            const btn = e.target;
-            const player_row = btn.closest('.player-row');
-        
-            const l = FAVORITES.length;
-            FAVORITES = FAVORITES.filter(f => f.fc !== fc);
-        
-            if (FAVORITES.length < l) {
-                save_favorites();
-                if (fm) {
-                    render_favorites_list();
-                } else {
-                    // Update UI instantly
-                    if (player_row && !player_row.classList.contains('is-user')) {
-                        player_row.classList.remove("highlighted");
-                    }
-                    btn.innerHTML = "⭐ Add Favorite";
-                    btn.classList.remove("remove-highlight");
-                    btn.onclick = (ev) => add_favorite(fc, ev);
-                }
-            }
-            
-            if (!fm) {
-                document.querySelectorAll('.player-menu').forEach(m => m.style.display = 'none');
-                
-                // Restart timer
-                if (RELOAD_TIMER) clearInterval(RELOAD_TIMER);
-                if (el("timeout-checkbox").checked) {
-                    const f = HISTORY_MODE ? on_checkbox : fetch_rooms;
-                    RELOAD_TIMER = setInterval(f, RELOAD_TIME);
-                }
-            }
-        }
-         
-        async function render_favorites_list() {
-            // Render favorites list in modal
-            const lc = el('favorites-list'); if (FAVORITES.length === 0) { lc.innerHTML = '<p>No favorites added yet.</p>'; return; } lc.innerHTML = 'Loading favorites...';
-            let mii_keys = []; let h = '';
-            FAVORITES.forEach((f, i) => {
-                let mk = null;
-                const cachedMii = get_cached_mii_image(f.fc);
-                let ms = 'empty.png';
-                if (cachedMii) {
-                    ms = cachedMii.startsWith('data:image') ? cachedMii : `data:image/png;base64,${cachedMii}`;
-                } else {
-                    mk = f.fc;
-                    mii_keys.push(mk);
-                }
-                h += `<div class="player-row favorite-row"> <img class="player-mii" src="${ms}" alt="Mii" ${mk ? `mii-data="${mk}"` : ''}> <div class="player-info" onclick="show_player_info_modal('${f.fc}')"> <div class="player-name">${handle_mii_name(f.name)}</div> <div class="player-fc">${f.fc}</div> </div> <button class="remove-favorite-btn" onclick="remove_favorite('${f.fc}', true, event)" title="Remove">X</button> </div>`;
-            });
-            lc.innerHTML = h;
-            if (mii_keys.length > 0) fetch_mii_images(mii_keys);
-         }
-
-        // --- User Profile Management ---
-         function load_user_profile() { const p = localStorage.getItem("userProfile"); USER_PROFILE = p ? JSON.parse(p) : null; }
-         function save_user_profile() { if (USER_PROFILE) localStorage.setItem("userProfile", JSON.stringify(USER_PROFILE)); else localStorage.removeItem("userProfile"); }
-         async function search_user() {
-            // Search for user profile
-            const q = el('user-search-input').value.trim(), rc = el('user-search-results'); if (!q) { rc.innerHTML = '<p>Enter name or FC.</p>'; return; } rc.innerHTML = 'Searching...';
-            let a = 0, mA = 2, s = false;
-            while (a < mA && !s) {
-                try {
-                    const r = await fetch(`${API_BASE_URL}?find=${encodeURIComponent(q)}`); if (!r.ok) throw new Error(`API error: ${r.status}`); const p = await r.json(); s = true;
-                    if (!p || p.length === 0) { rc.innerHTML = '<p>No players found.</p>'; return; }
-                    
-                    let mii_keys = []; let h = '';
-                    p.forEach((pl, i) => {
-                        let mk = null;
-                        const cachedMii = get_cached_mii_image(pl.FC);
-                        let ms = 'empty.png';
-                        if (cachedMii) {
-                            ms = cachedMii.startsWith('data:image') ? cachedMii : `data:image/png;base64,${cachedMii}`;
-                        } else {
-                            mk = pl.FC;
-                            mii_keys.push(mk);
-                        }
-                        h += `<div class="player-row search-result-row" onclick="set_user_profile('${pl.FC}', '${encodeURIComponent(pl.name)}')">
-                                  <img class="player-mii" src="${ms}" alt="Mii" ${mk ? `mii-data="${mk}"` : ''}>
-                                  <div class="player-info"> <div class="player-name">${handle_mii_name(pl.name)}</div> <div class="player-fc">${pl.FC}</div> </div>
-                                  <button class="select-profile-btn">Select</button>
-                              </div>`;
-                    });
-                    rc.innerHTML = h;
-                    if (mii_keys.length > 0) fetch_mii_images_batch(mii_keys); // Use new batch endpoint for search
-
-                } catch (e) { a++; console.error(`Search attempt ${a} failed:`, e); if (a >= mA) rc.innerHTML = `<p style="color:red;">Search failed.</p>`; else await new Promise(res => setTimeout(res, 500)); }
-            }
-         }
-        function set_user_profile(fc, en) { const n = decodeURIComponent(en); USER_PROFILE = { fc, n }; save_user_profile(); update_user_profile_modal_state(); reload_rooms(); }
-        function logout_user() { USER_PROFILE = null; save_user_profile(); location.reload(); }
-        async function render_user_profile() {
-            // Render user profile in modal
-            const dc = el('user-profile-display'); if (!USER_PROFILE) { dc.innerHTML = ''; return; } dc.innerHTML = 'Loading profile...';
-             try {
-                const r = await fetch(`${API_BASE_URL}?info=${USER_PROFILE.fc}`); if (!r.ok) throw new Error(`API error: ${r.status}`); const d = await r.json();
-                const vr24 = d.vrStats?.last24Hours ?? 0; const vr7 = d.vrStats?.lastWeek ?? 0; const vr30 = d.vrStats?.lastMonth ?? 0;
-                const formatVRStat = (v) => v === 0 ? '0' : (v > 0 ? `+${v}` : `${v}`);
-                const vrClass = (v) => v === 0 ? '' : (v > 0 ? 'vr-positive' : 'vr-negative');
-
-                let mk = null;
-                const cachedMii = get_cached_mii_image(d.FC);
-                let ms = 'empty.png';
-                if (cachedMii) {
-                    ms = cachedMii.startsWith('data:image') ? cachedMii : `data:image/png;base64,${cachedMii}`;
-                } else if (d.miiImageBase64) {
-                    ms = `data:image/png;base64,${d.miiImageBase64}`;
-                    set_cached_mii_image(d.FC, ms); // Cache it
-                } else {
-                    mk = d.FC;
-                }
-
-                 dc.innerHTML = `
-                     <div class="player-info-modal-header"> <img class="player-mii-large" src="${ms}" alt="Mii" ${mk ? `mii-data="${mk}"` : ''}> <div> <div class="player-name">${handle_mii_name(d.name)}</div> <div class="player-fc">${d.FC}</div> </div> </div>
-                     <div class="player-info-modal-lastseen"> Last Seen: ${format_last_seen(d.lastSeen)} </div>
-                     <div class="player-info-modal-stats-grid"> <div class="stat-item"> <span class="stat-label">Rank</span> <span class="stat-value">${d.rank ? `#${d.rank}` : 'N/A'}</span> </div> <div class="stat-item"> <span class="stat-label">VR</span> <span class="stat-value">${d.vr || 'N/A'}</span> </div> </div>
-                     <h3 class="vr-stats-heading">VR Stats</h3>
-                     <div class="player-info-modal-stats-grid"> <div class="stat-item"> <span class="stat-label">24h</span> <span class="stat-value ${vrClass(vr24)}">${formatVRStat(vr24)}</span> </div> <div class="stat-item"> <span class="stat-label">7d</span> <span class="stat-value ${vrClass(vr7)}">${formatVRStat(vr7)}</span> </div> <div class="stat-item"> <span class="stat-label">30d</span> <span class="stat-value ${vrClass(vr30)}">${formatVRStat(vr30)}</span> </div> </div>
-                     <div class="player-info-modal-active-rank"> Active Rank: ${d.activeRank ? `#${d.activeRank}` : 'N/A'} </div>`;
-                
-                 if (mk) fetch_mii_images([mk]); // Fetch if missing
-             } catch (e) { console.error("Error fetching user profile:", e); dc.innerHTML = `<p style="color:red;">Error loading profile.</p>`; }
-         }
-         function update_user_profile_modal_state() {
-             // Toggle profile modal views
-             const lv = el('user-login-view'), pv = el('user-profile-view'), sc = lv.querySelector('.user-search-container'), sr = el('user-search-results'), lb = el('logout-btn');
-             if (USER_PROFILE) {
-                 lv.classList.add('hidden'); sc.style.display = 'none'; sr.style.display = 'none'; pv.classList.remove('hidden'); lb.style.display = 'block';
-                 render_user_profile();
-             } else {
-                 pv.classList.add('hidden'); lv.classList.remove('hidden'); sc.style.display = 'flex'; sr.style.display = 'block'; lb.style.display = 'none';
-                 el('user-search-input').value = ''; sr.innerHTML = '';
-             }
-         }
-
-        // --- History ---
-        function on_history_change() { if (HISTORY_TIMER) clearTimeout(HISTORY_TIMER); HISTORY_TIMER = setTimeout(change_history, 1000); }
-        function add_history(m) { let i=el("history-input"),t=new Date(i.value).getTime();t+=m*60*1000;let o=new Date().getTimezoneOffset()*60000;t-=o;i.value=new Date(t).toISOString().slice(0,16);on_history_change();}
-        function change_history() { console.log("History enabled."); HISTORY_MODE = true; on_checkbox(); fetch_rooms(); }
-        function disable_history() { HISTORY_MODE = false; let p=new URL(location.href).searchParams; p.delete("time"); history.replaceState(null, null, location.pathname + `?${p.toString()}`); on_checkbox(); fetch_rooms(); }
-
-        // --- Room Filter ---
-        function disable_filter() { let p=new URL(location.href).searchParams; p.delete("room"); history.replaceState(null, null, location.pathname + `?${p.toString()}`); reload_rooms(); }
-
-        // --- Mii Name Handling ---
-        function _escape(s){ return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/(?:\r\n|\r|\n)/g,''); }
-        function handle_mii_name(n){ if (!n) return "Guest"; if (n.length > 10) n=n.substring(0, 10); return filter_mii_name(_escape(n)); }
-        function char_code_is_wide(c){ return (c >= 0xF103 && c <= 0xF12F) || c == 0x2026; }
-        function filter_mii_name(n){ let nw="", sp=false; for(let i=0; i<n.length; i++){ const c=n.charCodeAt(i); if(char_code_is_wide(c)){ if(!sp){ nw+="<span class=\"wide-char\">"; sp=true; } } else { if(sp){ nw+="</span>"; sp=false; } } nw+=n[i]; } if(sp) nw+="</span>"; return nw; }
-
-        // --- Room Splitting/Prioritization ---
-        function fix_split_rooms(rooms){
-          let nr = []; for (let r of rooms){ const pk = Object.keys(r.players); r.split = false; if (pk.length <= 1) { nr.push(r); continue; } let pd = Array.from({length: pk.length}, () => []); for (let i = 0; i < pk.length; i++){ const p = r.players[pk[i]]; const cm = p.conn_map || ""; for (let j = 0; j < cm.length; j++){ if (cm[j] != "0"){ let ti = j; if (ti >= i) ti++; if (ti < pk.length) pd[i].push(ti); } } } let sp = []; let csr = []; for (let i = 0; i < pd.length; i++){ if (sp.includes(i)) continue; let n_r = JSON.parse(JSON.stringify(r)); n_r.players = {}; let npi = []; function ra(idx){ if (sp.includes(idx)) return; sp.push(idx); let cc = pd[idx] || []; for (const ci of cc){ if (ci < pd.length && pd[ci]?.includes(idx)) ra(ci); } npi.push(idx); } ra(i); npi.sort((a, b) => a - b); for (const idx of npi) n_r.players[pk[idx]] = r.players[pk[idx]]; csr.push(n_r); } if (csr.length > 1){ csr.forEach((sr) => { sr.split = !(Object.keys(r.players)[0] in sr.players); }); let pF = []; if (USER_PROFILE) pF.push(USER_PROFILE.fc); FAVORITES.forEach(f => { if (!pF.includes(f.fc)) pF.push(f.fc); }); let tmp = []; for (let s of csr){ let f = false; for (const pi of Object.keys(s.players)){ if (pF.includes(s.players[pi].fc)){ tmp.unshift(s); f = true; break; } } if (!f) tmp.push(s); } csr = tmp; nr = nr.concat(csr); } else { nr.push(r); } } return nr;
-        }
-        function prioritize_rooms(r){ let pF=[]; if(USER_PROFILE)pF.push(USER_PROFILE.fc); FAVORITES.forEach(f=>{if(!pF.includes(f.fc))pF.push(f.fc);}); if(pF.length===0)return r; let p=[],o=[]; for(let i of r){ let f=false; for(let k of Object.keys(i.players)){ if(pF.includes(i.players[k].fc)){p.push(i);f=true;break;}} if(!f)o.push(i);} return p.concat(o); }
-
-        // --- Uptime Update ---
-        let prev_uptime_update_date = null; let uptimes_timer = null;
-        function update_uptimes(sr=false){ const ss=document.querySelectorAll("span[created]"); if(!HISTORY_MODE||sr||FIRST_LOAD){ FIRST_LOAD=false; for(const s of ss){ const c=new Date(s.getAttribute("created")); let n=HISTORY_MODE?HISTORY_DATE:new Date(); const d=n-c; let sc=Math.floor(d/1000),m=Math.floor(sc/60),h=Math.floor(m/60),dy=Math.floor(h/24); h%=24; m%=60; sc%=60; let ps=sc.toString().padStart(2,"0"),pm=m.toString().padStart(2,"0"),ph=h.toString().padStart(2,"0"); let str=`${h}:${pm}:${ps}`; if(dy>0) str=`${dy}:${ph}:${pm}:${ps}`; s.textContent=str; }} if(sr) return; let ms=1000; if(prev_uptime_update_date) ms-=(Date.now()-prev_uptime_update_date); prev_uptime_update_date=Date.now(); if(uptimes_timer) clearTimeout(uptimes_timer); uptimes_timer=setTimeout(update_uptimes, Math.max(0,ms)); }
-
-        // --- Header Stats ---
-        function update_header_stats(rc, pc, isFiltered) { const s=el("header-stats-checkbox").checked, c=el("header-stats"), cs=el("header-stats-content"); if(!s||isFiltered){ c.classList.add('hidden'); if(HEADER_STATS_TIMER) clearTimeout(HEADER_STATS_TIMER); HEADER_STATS_TIMER=null; return; } c.classList.remove('hidden'); cs.innerHTML=`<span class="excited">${rc}</span> ${rc===1?'Room':'Rooms'} • <span class="excited">${pc}</span> ${pc===1?'Player':'Players'}`; }
-
-        // --- VR/BR Flipper ---
-        function start_vrbr_flipper() { if(VRBR_FLIPPER_TIMER) clearInterval(VRBR_FLIPPER_TIMER); if(el("vr-only-checkbox").checked){ document.querySelectorAll('.player-vrbr[data-vr][data-br]').forEach(e=>{e.textContent=`${e.dataset.vr} VR`; e.style.opacity=1;}); return; } const u=()=>{ const es=document.querySelectorAll('.player-vrbr[data-vr][data-br]'); if(el("vr-only-checkbox").checked){ if(VRBR_FLIPPER_TIMER) clearInterval(VRBR_FLIPPER_TIMER); es.forEach(e=>{e.textContent=`${e.dataset.vr} VR`; e.style.opacity=1;}); return; } VRBR_STATE=VRBR_STATE==='vr'?'br':'vr'; for(const e of es) e.style.opacity=0; setTimeout(()=>{ for(const e of es) { e.textContent=(VRBR_STATE==='vr')?`${e.dataset.vr} VR`:`${e.dataset.br} BR`; e.style.opacity=1; }}, 300); }; u(); VRBR_FLIPPER_TIMER=setInterval(u, 3000); }
-
-        // --- Settings Handlers ---
-        function on_vr_only_change() { const c=el("vr-only-checkbox").checked; localStorage.setItem("vr-only", c); if(c){ if(VRBR_FLIPPER_TIMER) clearInterval(VRBR_FLIPPER_TIMER); document.querySelectorAll('.player-vrbr[data-vr][data-br]').forEach(e=>{e.textContent=`${e.dataset.vr} VR`; e.style.opacity=1;}); } else { start_vrbr_flipper(); } }
-        function on_theme_change() { const t=el("theme-select").value; localStorage.setItem("theme", t); apply_theme(t); }
-        function apply_theme(t) { document.body.className=''; if(t==="blue") document.body.classList.add("theme-blue"); else if(t==="orange") document.body.classList.add("theme-orange"); else document.body.classList.add("theme-dark"); document.body.classList.add(CURRENT_VIEW_MODE==='desktop'?'desktop-view':'mobile-view'); }
-        function on_header_stats_change() { const c=el("header-stats-checkbox").checked; localStorage.setItem("show-header-stats", c); reload_rooms(); }
-        function on_sort_order_change() { const s=el("sort-order-select").value; localStorage.setItem("sort-order", s); reload_rooms(); }
-        function on_checkbox(){ const s=el("timeout-checkbox").checked; localStorage.setItem("auto-reload", s); if(RELOAD_TIMER) clearInterval(RELOAD_TIMER); if(s){ const f=HISTORY_MODE?on_checkbox:fetch_rooms; RELOAD_TIMER=setInterval(f, RELOAD_TIME); } }
-        function on_private_checkbox() { const c=el("private-checkbox").checked; localStorage.setItem("show-private", c); reload_rooms(); }
-        function on_openhost_checkbox() { const c=el("openhost-checkbox").checked; localStorage.setItem("openhost", c); update_openhost_underline(); }
-        function update_openhost_underline() { const s=el("openhost-checkbox").checked; document.querySelectorAll(".player-fc[openhost]").forEach(t=>{t.classList.toggle("openhost", s);}); }
-
-        // --- View Mode ---
-         function set_view_mode(m) { CURRENT_VIEW_MODE=(m==='desktop')?'desktop':'mobile'; localStorage.setItem("view-mode", CURRENT_VIEW_MODE); apply_view_mode_styling(); }
-         function apply_view_mode_styling() { const d=(CURRENT_VIEW_MODE==='desktop'); document.body.classList.toggle('desktop-view', d); document.body.classList.toggle('mobile-view', !d); el('view-mode-desktop-btn').classList.toggle('active', d); el('view-mode-mobile-btn').classList.toggle('active', !d); }
-         function detect_initial_view_mode() { const s=localStorage.getItem("view-mode"); if(s) CURRENT_VIEW_MODE=s; else CURRENT_VIEW_MODE=window.innerWidth>768?'desktop':'mobile'; apply_view_mode_styling(); }
-
-        // --- Mii Image Caching/Fetching ---
-        function remove_expired_mii_images(){
-            // Remove expired mii images from local storage
-            let r=[]; for(let i=0; i<localStorage.length; i++){ const k=localStorage.key(i); if(k.startsWith("mii_img_")){ try { const d=JSON.parse(localStorage.getItem(k)); if(!Array.isArray(d)||d.length!==2||typeof d[1]!=='number'||(Date.now()-d[1]>EXPIRE_TIME)) r.push(k); } catch(e){ r.push(k); } } } for(const k of r) localStorage.removeItem(k);
-        }
-        function get_cached_mii_image(k){
-            // Get cached mii image from local storage
-            const c=`mii_img_${k}`; const s=localStorage.getItem(c); if(!s) return null; try { const a=JSON.parse(s); if(!Array.isArray(a)||a.length!==2||typeof a[1]!=='number'||(Date.now()-a[1]>EXPIRE_TIME)){ localStorage.removeItem(c); return null; } return a[0]; } catch(e){ localStorage.removeItem(c); return null; }
-        }
-        function set_cached_mii_image(k, img){
-            // Set cached mii image in local storage with quota handling
-            const c = `mii_img_${k}`;
-            const d = [img, Date.now()];
-            try {
-                localStorage.setItem(c, JSON.stringify(d));
-            } catch(e) {
-                console.error("Mii cache fail. Attempting to clear old cache.", e);
-                remove_expired_mii_images(); // Clear expired
-                try {
-                    localStorage.setItem(c, JSON.stringify(d)); // Try again
-                } catch (e2) {
-                    // Still failing? Clear all mii cache
-                    console.error("Mii cache still full. Clearing all mii cache.", e2);
-                    let r = [];
-                    for (let i = 0; i < localStorage.length; i++) {
-                        if (localStorage.key(i).startsWith("mii_img_")) {
-                            r.push(localStorage.key(i));
-                        }
-                    }
-                    for (const k of r) localStorage.removeItem(k);
-                    try {
-                        localStorage.setItem(c, JSON.stringify(d)); // Last attempt
-                    } catch (e3) {
-                        console.error("Mii cache final attempt failed.", e3);
-                    }
-                }
-            }
-        }
-        function apply_mii_image(k, img){
-            // Apply mii image to relevant elements
-            set_cached_mii_image(k, img); const els=document.querySelectorAll(`img[mii-data="${CSS.escape(k)}"]`); if(!els||els.length===0) return; const src = img.startsWith('data:image') ? img : `data:image/png;base64,${img}`; for(const el of els) { if (el.src !== src) el.src=src; }
-        }
-        async function fetch_mii_images(keys){
-            // Fetch mii images in batches (Umapyoi)
-            let u=[...new Set(keys)].filter(Boolean), f=[]; for(const k of u){ let c=get_cached_mii_image(k); if(c) apply_mii_image(k, c); else f.push(k); } for(let i=0; i<f.length; i+=MAX_MIIS_PER_REQUEST){ const b=f.slice(i, i+MAX_MIIS_PER_REQUEST); if(b.length>0){ try { const r=await fetch(MII_API_URL,{method:"POST",headers:{'Content-Type':'application/json'},body:JSON.stringify(b)}); if(!r.ok) throw new Error(`Mii API: ${r.status}`); const d=await r.json(); for(const k of Object.keys(d)){ if(d[k]) apply_mii_image(k, d[k]); }} catch(e){ console.error("Mii fetch batch error:", e); }}}
-        }
-        async function fetch_mii_images_batch(keys) {
-            // Fetch mii images using the rwfc.net batch endpoint
-            let u = [...new Set(keys)].filter(Boolean), f = [];
-            for (const k of u) {
-                let c = get_cached_mii_image(k);
-                if (c) apply_mii_image(k, c);
-                else f.push(k);
-            }
-            
-            if (f.length === 0) return;
-        
-            try {
-                const r = await fetch(MII_BATCH_API_URL, {
-                    method: "POST",
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ friendCodes: f })
-                });
-                if (!r.ok) throw new Error(`Mii Batch API: ${r.status}`);
-                const d = await r.json();
-                if (d.miis) {
-                    for (const k of Object.keys(d.miis)) {
-                        if (d.miis[k]) apply_mii_image(k, d.miis[k]);
-                    }
-                }
-            } catch (e) {
-                console.error("Mii batch fetch error:", e);
-            }
-        }
-
-        // --- Footer Version Fetching ---
-        async function fetch_versions() { try { const r=await fetch("https://api.heyfordy.de/rr_app/version-rr"); if(r.ok) el("info-rr-version").textContent=` v${(await r.json()).version}`; } catch(e){} try { const w=await fetch("https://api.heyfordy.de/rr_app/version-ww"); if(w.ok) el("info-ww-version").textContent=` v${(await w.json()).version}`; } catch(e){} }
-
-        // --- Initialization ---
-        async function on_load(){
-            // Page load initialization
-            el('settings-btn').onclick=toggle_settings_modal;
-            el('user-profile-btn').onclick=toggle_user_profile_modal;
-            el('user-search-input').onkeydown = (e) => { if (e.key === 'Enter') search_user(); };
-            
-            load_favorites(); load_user_profile(); detect_initial_view_mode();
-            el("timeout-checkbox").checked=localStorage.getItem("auto-reload")==="true";
-            let p=localStorage.getItem("show-private"); p=(p===null)?true:(p==="true"); el("private-checkbox").checked=p;
-            let o=localStorage.getItem("openhost"); o=(o===null)?true:(o==="true"); el("openhost-checkbox").checked=o;
-            el("vr-only-checkbox").checked=localStorage.getItem("vr-only")==="true";
-            let h=localStorage.getItem("show-header-stats"); h=(h===null)?true:(h==="true"); el("header-stats-checkbox").checked=h;
-            const s=localStorage.getItem("sort-order")||"player_count"; el("sort-order-select").value=s;
-            const t=localStorage.getItem("theme")||"dark"; el("theme-select").value=t; apply_theme(t);
-            
-            // Show iOS hints
-            const isIOS = /iPad|iPhone|iPod/.test(navigator.platform) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1 && !window.MSStream);
-            if (isIOS && !window.navigator.standalone) {
-                el('ios-homescreen-hint').style.display = 'block';
-            }
-
-            fetch_versions();
-            const url=new URL(location.href), ps=url.searchParams, ts=ps.get("time");
-            if(ts){ HISTORY_MODE=true; let z=new Date().getTimezoneOffset()*60000; HISTORY_DATE=new Date(parseInt(ts)*1000-z); el("history-input").value=HISTORY_DATE.toISOString().slice(0,16); change_history(); return; }
-            fetch_rooms(); on_checkbox();
-        }
-
-        // --- Main Data Fetching (fetch_rooms) ---
-        async function fetch_rooms() {
-            // Fetch room data from API
-            console.log("Loading room data..."); remove_expired_mii_images(); let cb=el("timeout-checkbox"), hi=el("history-indicator"), tp=""; if(HISTORY_MODE){ let dt=el("history-input").value, ht=Math.max(0, new Date(dt).getTime()); if(isNaN(ht)) ht=0; let hd=new Date(ht); HISTORY_DATE=hd; let us=Math.floor(hd.getTime()/1000); let ps=new URL(location.href).searchParams; ps.set("time", us); history.replaceState(null, null, location.pathname+`?${ps.toString()}`); tp=`?time=${us}`; cb.disabled=true; hi.style.display="block"; el("rooms-container").innerHTML=""; el("loading").style.display="block"; } else { cb.disabled=false; hi.style.display="none"; } try { const r=await fetch(RWFC_API_URL+tp); if(!r.ok) throw new Error(`RWFC API: ${r.status}`); let rd=await r.json(), rms, dt=new Date(); if(HISTORY_MODE){ if(rd&&typeof rd.data !=='undefined'&&typeof rd.timestamp !=='undefined'){ dt=new Date(rd.timestamp*1000); rms=rd.data; } else { rms=rd; dt=HISTORY_DATE; } } else { rms=rd; } if(!Array.isArray(rms)){ console.error("Room data not array:", rms); rms=[]; } cur_rooms=rms; reload_rooms(); let zo=dt.getTimezoneOffset()*60000, lt=new Date(dt.getTime()-zo); let hin=el("history-input"); if(hin && !isNaN(lt.getTime())){ hin.value=lt.toISOString().slice(0,16); } } catch(e){ console.error("Fetch/process error:", e); el("loading").textContent=`Error: ${e.message}`; cur_rooms=[]; reload_rooms(); }
-        }
-
-        // --- Room Rendering (reload_rooms) ---
-        async function reload_rooms(){
-             // Render rooms list
-             let rooms=[...cur_rooms]; if(!Array.isArray(rooms)){ console.error("Cannot reload rooms."); rooms=[]; }
-             const rc=el("rooms-container"); rc.innerHTML=""; const url=new URL(location.href), ps=url.searchParams, fr=ps.get("room"); let rnf=true; const isFiltered = !!fr;
-             el("filter-indicator").style.display= isFiltered ?"block":"none";
-             if(!fr && !el("private-checkbox").checked) rooms=rooms.filter(r=>r.type==="anybody");
-             const so=localStorage.getItem("sort-order")||"player_count"; const gc=(r)=>Object.values(r.players).reduce((c,p)=>c+(p.mii?p.mii.length:1),0); if(so==="time_created") rooms.sort((a,b)=>new Date(a.created)-new Date(b.created)); else rooms.sort((a,b)=>gc(b)-gc(a));
-             rooms=prioritize_rooms(rooms); rooms=fix_split_rooms(rooms);
-             let r_cnt=0, tp_cnt=0; let mii_keys=[];
-             for(const room of rooms){
-                 if(fr && room.id!=fr) continue; r_cnt++; rnf=false;
-                 let icon=room.type=="anybody"?"🌎":"🔒"; let jn="✅ Joinable", jc="joinable"; const pc=Object.keys(room.players).length; if(room.split){ jn="⛓️ Split Room"; jc="split-room"; } else if(room.suspend){ if(pc>=12){ jn="❌ Not Joinable"; jc="not-joinable"; } else { jn="🗺️ Course selection"; jc="course-selection"; } }
-                 var rk=room.rk||"", rk_k=rk.replace(/^(vs|bt)_/,""); if(rk_k==="vs"||rk_k==="bt") rk_k=""; var rk_h="", rk_t=""; const ti=ROOM_TYPES[rk_k]||ROOM_TYPES["-1"]; if(ti){ rk_h=`<span title="${rk||'Unknown'}" style="color: ${ti.c};">${ti.l}</span>`; rk_t=ti.l; } else if(rk){ rk_h=rk.toUpperCase(); rk_t=rk.toUpperCase(); }
-                 let r_ps=new URL(location.href).searchParams; r_ps.set("room", room.id); let r_l=location.pathname+`?${r_ps.toString()}`; let card=document.createElement("div"); card.className="room-card"; let head=document.createElement("div"); head.className="room-card-header"; let h_t=rk_t?`${rk_h} Room`:""; head.innerHTML=`<span class="room-name">${icon} ${h_t?'| '+h_t:''}</span><a href="${r_l}" class="room-info-link" title="Filter this room">ⓘ</a>`; card.appendChild(head); let det=document.createElement("div"); det.className="room-details"; card.appendChild(det); let pl=document.createElement("div"); pl.className="player-list"; card.appendChild(pl); let foot=document.createElement("div"); foot.className="room-card-footer"; card.appendChild(foot); rc.appendChild(card);
-                 const sk=Object.keys(room.players).sort((a,b)=>{ const pA=room.players[a], pB=room.players[b]; const iA=USER_PROFILE&&pA.fc===USER_PROFILE.fc, iB=USER_PROFILE&&pB.fc===USER_PROFILE.fc; if(iA&&!iB) return -1; if(!iA&&iB) return 1; const fA=is_favorite(pA.fc), fB=is_favorite(pB.fc); if(fA&&!fB) return -1; if(!fA&&fB) return 1; const vA=parseInt(pA.ev,10)||0, vB=parseInt(pB.ev,10)||0; return vB-vA; });
-                 let rm_cnt=0;
-                 for(const p_idx of sk){
-                     const p=room.players[p_idx]; let nm=(p.mii&&p.mii.length>0)?p.mii.length:1;
-                     for(let cmi=0; cmi<nm; cmi++){
-                         rm_cnt++; let pr=document.createElement("div"); pr.className="player-row"; const isGuest = cmi > 0;
-                         if (!isGuest) pr.onclick=()=>show_player_info_modal(p.fc); else pr.style.cursor = 'default';
-                         let mi=document.createElement("img"); mi.className="player-mii"; mi.alt="Mii"; mi.src="empty.png"; let mk=null; if(p.mii&&p.mii[cmi]&&p.mii[cmi].data){ mk=p.mii[cmi].data; mi.setAttribute("mii-data", mk); mii_keys.push(mk); } pr.appendChild(mi);
-                         let pi=document.createElement("div"); pi.className="player-info"; let pn=document.createElement("div"); pn.className="player-name"; const iu=USER_PROFILE&&p.fc===USER_PROFILE.fc&&!isGuest; const bn=(p.mii&&p.mii[cmi])?p.mii[cmi].name:p.name; pn.innerHTML=iu?`You <small>${handle_mii_name(bn)}</small>`:handle_mii_name(bn); pi.appendChild(pn); let pf=document.createElement("div"); pf.className="player-fc"; pf.textContent=isGuest?"Guest":p.fc; if(p.openhost==="true"&&!isGuest){ pf.setAttribute("openhost",""); pf.title="OpenHost enabled"; } pi.appendChild(pf); pr.appendChild(pi);
-                         if (!isGuest) {
-                             let pv=document.createElement("div"); pv.className="player-vrbr";
-                             if(p.ev && p.eb){ pv.dataset.vr=p.ev; pv.dataset.br=p.eb; } else { pv.textContent="🚫 VR/BR"; }
-                             pr.appendChild(pv);
-                         }
-                         let mb=document.createElement("button"); mb.className="player-menu-btn"; mb.innerHTML="⋮"; mb.title="Player Menu"; mb.onclick=(e)=>{ e.stopPropagation(); toggle_player_menu(mm); };
-                         let mm=document.createElement("div"); mm.className="player-menu"; const fc=isGuest?null:p.fc;
-                         if(fc){ const iF=is_favorite(fc); let bf=document.createElement("button"); bf.innerHTML=iF?"🚫 Remove Favorite":"⭐ Add Favorite"; bf.onclick=(e)=>iF?remove_favorite(fc, false, e):add_favorite(fc, e); if(iF) bf.classList.add("remove-highlight"); mm.appendChild(bf); let bc=document.createElement("button"); bc.innerHTML="🔗 Copy FC"; bc.onclick=(e)=>{e.stopPropagation(); copy_fc(fc);}; mm.appendChild(bc); pr.appendChild(mb); pr.appendChild(mm); }
-                         if(iu) pr.classList.add("is-user"); else if(is_favorite(p.fc)) pr.classList.add("highlighted");
-                         pl.appendChild(pr);
-                     }
-                 }
-                 tp_cnt+=rm_cnt; det.innerHTML=`<span class="room-player-count excited">${rm_cnt}</span> ${rm_cnt===1?'Player':'Players'} | <span class="${jc}">${jn}</span>`; foot.innerHTML=`ID: <a href="${r_l}" class="room-link">${room.id}</a> • Uptime: <span created="${room.created}">0:00:00</span>`;
-             }
-             el("loading").style.display="none"; if(rnf&&fr){ el("not-found-container").style.display="block"; return; } el("not-found-container").style.display="none";
-             update_openhost_underline(); update_uptimes(!!uptimes_timer); start_vrbr_flipper(); update_header_stats(r_cnt, tp_cnt, isFiltered);
-             fetch_mii_images(mii_keys);
-        }
-
-        // --- Initial Load Trigger ---
-        if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', on_load); else on_load();
-    </script>
+    <script src="./rr.js" defer></script>
 </body>
 </html>
