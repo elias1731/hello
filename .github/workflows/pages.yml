@@ -1,0 +1,34 @@
+name: Update Site & Config
+
+on:
+  push:
+    paths:
+      - 'links.json'
+      - 'radio/index.html'
+      - 'index.html'
+      - 'assets/**'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 Repository Checkout
+        uses: actions/checkout@v4
+
+      - name: 🕒 Update Timestamp
+        # Creates/Updates a file to ensure a commit is possible and Pages rebuilds
+        run: |
+          echo "Last updated: $(date)" > last_build_info.txt
+
+      - name: 🌍 Commit & Push
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "🌍 • Seite autom. aktualisiert!"
+          file_pattern: '.'
+          skip_dirty_check: false
+
+
