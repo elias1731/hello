@@ -1,0 +1,106 @@
+/* Specific Styles for the Radio Page
+    Handles the player layout and station list items.
+*/
+
+/* Player specific layout */
+.player-container {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* Cover Art Box */
+.cover-art-box {
+    width: 180px;
+    height: 180px;
+    background: #333;
+    margin: 20px auto;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+.cover-art-box img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Status Text */
+#player-status {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    margin-bottom: 25px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 500;
+}
+
+/* Big Play Button */
+.big-play-btn {
+    width: 70px;
+    height: 70px;
+    margin: 0 auto;
+    background: white;
+    color: black;
+    font-size: 1.8rem;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s, background-color 0.2s;
+    box-shadow: 0 0 20px rgba(255,255,255,0.2);
+}
+
+.big-play-btn:hover {
+    transform: scale(1.05);
+    background: #f0f0f0;
+}
+
+.big-play-btn:active {
+    transform: scale(0.95);
+}
+
+/* Station List Items */
+.station-list-item {
+    background: #252525;
+    padding: 15px;
+    margin-bottom: 10px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    border: 1px solid transparent;
+}
+
+.station-list-item:hover {
+    background: #333;
+    border-color: rgba(255,255,255,0.1);
+}
+
+.station-list-item span {
+    font-weight: 500;
+}
+
+/* Delete button in Settings */
+.delete-btn {
+    color: #ff4444;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 4px;
+    transition: background 0.2s;
+}
+
+.delete-btn:hover {
+    background: rgba(255, 68, 68, 0.1);
+}
+

@@ -1,0 +1,75 @@
+[
+  {
+    "category": "🔗 Social Links",
+    "items": [
+      {
+        "name": "YouTube",
+        "url": "https://youtube.com/@heyfordy",
+        "icon": "fa-brands fa-youtube"
+      },
+      {
+        "name": "Twitch",
+        "url": "https://twitch.tv/heyfordy",
+        "icon": "fa-brands fa-twitch"
+      },
+      {
+        "name": "Instagram",
+        "url": "https://instagram.com/heyfordy",
+        "icon": "fa-brands fa-instagram"
+      },
+      {
+        "name": "Discord",
+        "url": "https://discord.gg/yourinvite",
+        "icon": "fa-brands fa-discord"
+      }
+    ]
+  },
+  {
+    "category": "🚀 Projekte",
+    "items": [
+      {
+        "name": "Retro Rewind Rooms",
+        "url": "rwfc/index.html",
+        "icon": "fa-solid fa-dharmachakra"
+      },
+      {
+        "name": "Web Radio",
+        "url": "radio/index.html",
+        "icon": "fa-solid fa-radio",
+        "target": "_self"
+      },
+      {
+        "name": "FritzBox Tools",
+        "url": "FritzBox-JSTool.html",
+        "icon": "fa-solid fa-screwdriver-wrench"
+      },
+      {
+        "name": "RR App",
+        "url": "https://bitte-ein-git.github.io/rr_app",
+        "icon": "fa-solid fa-mobile-screen"
+      },
+      {
+        "name": "Mario Kart Wii",
+        "url": "mkw.html",
+        "icon": "fa-solid fa-gamepad"
+      }
+    ]
+  },
+  {
+    "category": "🎮 Gaming & Apps",
+    "items": [
+      {
+        "name": "Xbox",
+        "url": "xbox/index.html",
+        "icon": "fa-brands fa-xbox"
+      },
+      {
+        "name": "SideStore Repo",
+        "url": "#",
+        "icon": "fa-solid fa-store"
+      }
+    ]
+  }
+]
+
+
