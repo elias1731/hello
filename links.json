@@ -1,6 +1,6 @@
 [
   {
-    "category": "🔗 Social Links",
+    "category": "🔗 Social Media",
     "items": [
       {
         "name": "YouTube",
@@ -14,24 +14,34 @@
       },
       {
         "name": "Instagram",
-        "url": "https://instagram.com/heyfordy",
+        "url": "https://instagram.com/elias_1731",
         "icon": "fa-brands fa-instagram"
       },
       {
         "name": "Discord",
-        "url": "https://discord.gg/yourinvite",
+        "url": "https://discordapp.com/users/238632321773731840/",
         "icon": "fa-brands fa-discord"
       }
     ]
   },
   {
-    "category": "🚀 Projekte",
+    "category": "🎮 Gaming",
     "items": [
       {
-        "name": "Retro Rewind Rooms",
-        "url": "rwfc/index.html",
-        "icon": "fa-solid fa-dharmachakra"
+        "name": "Xbox Profil",
+        "url": "https://rr.heyfordy.de/xbox/",
+        "icon": "fa-brands fa-xbox"
       },
+      {
+        "name": "Retro Rewind App",
+        "url": "https://rr.heyfordy.de",
+        "icon": "fa-solid fa-car-burst"
+      }
+    ]
+  },
+  {
+    "category": "🚀 Meine Projekte",
+    "items": [
       {
         "name": "Web Radio",
         "url": "radio/index.html",
@@ -39,37 +49,22 @@
         "target": "_self"
       },
       {
-        "name": "FritzBox Tools",
+        "name": "FritzBox JSTools",
         "url": "FritzBox-JSTool.html",
-        "icon": "fa-solid fa-screwdriver-wrench"
-      },
-      {
-        "name": "RR App",
-        "url": "https://bitte-ein-git.github.io/rr_app",
-        "icon": "fa-solid fa-mobile-screen"
-      },
-      {
-        "name": "Mario Kart Wii",
-        "url": "mkw.html",
-        "icon": "fa-solid fa-gamepad"
-      }
-    ]
-  },
-  {
-    "category": "🎮 Gaming & Apps",
-    "items": [
-      {
-        "name": "Xbox",
-        "url": "xbox/index.html",
-        "icon": "fa-brands fa-xbox"
+        "icon": "fa-solid fa-server"
       },
       {
         "name": "SideStore Repo",
-        "url": "#",
-        "icon": "fa-solid fa-store"
+        "url": "https://repo.heyfordy.de/",
+        "icon": "fa-brands fa-app-store-ios"
+      },
+      {
+        "name": "Powerful commands",
+        "url": "https://github.com/Bitte-ein-Git/run",
+        "icon": "fa-solid fa-terminal"
       }
     ]
-  }
+  },
 ]
 
 
