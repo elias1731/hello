@@ -1,103 +1,108 @@
 <!DOCTYPE html>
-<html lang="de" >
-
-<head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<html lang="de">
+<head>
+    <!-- Meta Data -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>heyFordy.de</title>
     
-    <title>heyFordy - Social Links</title>
-
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-	<link rel="stylesheet" type="text/css" href="assets/style.css">
-	  <link rel="icon" type="image/png" href="./assets/icon.png">
-	<link rel="stylesheet" type="text/css" href="rwfc/Rubik.css">
-    <link rel="stylesheet" href="assets/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+    <!-- Assets -->
+    <link rel="icon" type="image/png" href="assets/icon.png">
+    
+    <!-- Fonts: Rubik -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome (Icons) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Main Style -->
+    <link rel="stylesheet" href="assets/style.css">
 </head>
-
 <body>
-        <!-- #Meddl Leude -->
-	
-    <div class="container">
-    <div class="col-xs-12">
-            <div class="text-center" style="padding-top: 30px; padding-bottom: 10px;">
-				<img src="https://raw.githubusercontent.com/elias1731/hello/refs/heads/main/assets/Fordy.png" alt="heyFordy" style="height: 14rem;" />
-				<hr style="height: 0.2rem;border: none;background-color: #ffffff40;">
-              <!--  <img class="backdrop linktree"> -->
-                <h2 style="color: #ffffff; font-family: 'Rubik'; font-size: 2.5rem;">Social Links</h2>
+
+    <!-- Header Section -->
+    <header>
+        <div class="header-brand">
+            <img src="assets/icon.png" alt="Icon" onerror="this.style.display='none'">
+            <span class="rainbow-text">» heyFordy.de</span>
+        </div>
+        <div class="header-actions">
+            <!-- GitHub Link -->
+            <a href="https://github.com/bitte-ein-git" target="_blank" class="round-btn" title="GitHub">
+                <i class="fa-brands fa-github"></i>
+            </a>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main>
+        <!-- Logo Hero Area -->
+        <div style="text-align: center; margin-bottom: 40px;">
+            <img src="assets/Fordy.png" alt="Fordy Logo" style="max-width: 180px; filter: drop-shadow(0 0 10px rgba(0,0,0,0.3));">
+        </div>
+
+        <!-- Links Container (Populated via JS) -->
+        <div id="content-container">
+            <!-- Loading State -->
+            <div class="content-box">
+                <div class="box-title"><i class="fa-solid fa-spinner fa-spin"></i> Lade...</div>
             </div>
-    </div>
-    </div>
+        </div>
+    </main>
 
+    <!-- Footer Section -->
+    <footer>
+        <div style="margin-bottom: 15px; display: flex; flex-wrap: wrap; justify-content: center; gap: 5px;">
+            <a href="https://heyfordy.de/datenschutz" class="footer-source-btn">Datenschutz</a>
+            <a href="https://heyfordy.de/impressum" class="footer-source-btn">Impressum</a>
+            <a href="https://github.com/elias1731/hello" target="_blank" class="footer-source-btn">
+                © <span id="year">2025</span> heyFordy.de
+            </a>
+        </div>
+        <div class="footer-thanks">Thanks for your visit ♥</div>
+    </footer>
 
-    <div class="container">
-    <div class="col-xs-12">
-            <div class="text-center">
-                <div style="padding-bottom: 30px;">
-                    <button onclick="location.href='https://www.twitch.tv/heyfordy'" type="button" class="btn btn-outline-light" style="width: 80%; padding-top:10px; padding-bottom:10px; font-weight: 800;">Twitch</button>
-                </div>
-                <div style="padding-bottom: 30px;">
-                    <button onclick="location.href='https://www.youtube.com/@heyFordy'" type="button" class="btn btn-outline-light" style="width: 80%; padding-top:10px; padding-bottom:10px; font-weight: 600;">YouTube</button>
-                </div>
-                <div style="padding-bottom: 30px;">
-                    <button onclick="location.href='https://instagram.com/elias_1731'" type="button" class="btn btn-outline-light" style="width: 80%; padding-top:10px; padding-bottom:10px; font-weight: 800;">Instagram</button>
-                </div>
-                <div style="padding-bottom: 30px;">
-                    <button onclick="location.href='https://heyfordy.de/xbox'" type="button" class="btn btn-outline-light" style="width: 80%; padding-top:10px; padding-bottom:10px; font-weight: 600;">Xbox Profil</button>
-                </div
-				
-                </br><hr style="height: 0.2rem;border: none;background-color: #ffffff40;"></br><div style="padding-bottom: 30px;">
-				
-				<div class="text-center">
-					 <a style="color: #ffffff; font-family: 'Rubik'; font-size: 1.5rem;">🔗 | Weitere Links</a>
-				</div></br>
-                <div style="padding-bottom: 30px;">
-                    <button onclick="location.href='https://repo.heyfordy.de'" type="button" class="btn btn-outline-light" style="width: 80%; padding-top:10px; padding-bottom:10px; font-weight: 800;">SideStore-Repo</button>
-                </div>
-                <div style="padding-bottom: 30px;">
-                    <button onclick="location.href='https://github.com/Bitte-ein-Git'" type="button" class="btn btn-outline-light" style="width: 80%; padding-top:10px; padding-bottom:10px; font-weight: 600;">GitHub Stuff</button>
-                </div>
-		<div style="padding-bottom: 30px;">
-                    <button onclick="location.href='https://rr.heyfordy.de/'" type="button" class="btn btn-outline-light shake" style="width: 80%; padding-top:10px; padding-bottom:10px; font-weight: 800;">RWFC Status</button>
-                </div></br>
-                <div style="padding-bottom: 30px;">
-                    <button onclick="location.href='https://heyfordy.de/FritzBox-JSTool'" type="button" class="btn btn-outline-light" style="width: 80%; padding-top:10px; padding-bottom:10px; font-weight: 800;">FRiTZ!Box JSTools</button>
-                </div>
+    <!-- Scripts -->
+    <script>
+        // Initialize Year
+        document.getElementById('year').textContent = new Date().getFullYear();
+
+        // Load and Render Links
+        fetch('links.json')
+            .then(res => res.json())
+            .then(data => {
+                const container = document.getElementById('content-container');
+                container.innerHTML = ''; // Clear loading
+                
+                data.forEach(cat => {
+                    // Create Category Box
+                    const box = document.createElement('div');
+                    box.className = 'content-box';
                     
-	<!-- ###
-		    links vorerst fürs Design ausgeblendet, sind jedoch weiterhin aktuell ###
-		    
-                <div style="padding-bottom: 30px;">
-                    <button onclick="location.href='https://steamcommunity.com/id/heyfordyttv'" type="button" class="btn btn-outline-light" style="width: 80%; padding-top:10px; padding-bottom:10px; font-weight: 600;">Steam</button>
-                </div>
-              	<div style="padding-bottom: 30px;">
-                    <button onclick="location.href='https://paypal.me/arminmeiwes'" type="button" class="btn btn-outline-light" style="width: 80%; padding-top:10px; padding-bottom:10px; font-weight: 600;">PayPal</button>
-                </div>
-	-->
-            </div>
-    </div>
-    </div>
-
-				<div class="text-center">
-					Thanks for your visit <a>♥</a> | <a href="https://github.com/elias1731/">(github)</a>
-				</div>
-			<hr style="height: 0.2rem;border: none;background-color: #ffffff40;">
-				</br></br></br></br></br></br></br>
-
-			</div>
-              <!--  <div style="padding-bottom: 30px;">
-                    <button onclick="location.href='https://elias1731.github.io/hello/datenschutz.html'" type="button" class="btn btn-outline-light" style="width: 100%; padding-top:10px; padding-bottom:10px; font-weight: 600;">Datenschutz</button>
-                </div> -->
-			
-                <div style="padding-bottom: 30px;">
-                    <button onclick="location.href='https://heyfordy.de/impressum.html'" type="button" class="btn btn-outline-light" style="width: 100%; padding-top:10px; padding-bottom:10px; font-weight: 600;">Impressum</button>
-                </div>
-				
-			</div>
-
-
-    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
-    <!-- This pre-lander was created by Brandon Nilsson -->
-    <!-- You're welcome to edit, reproduce and change this template as long as original contributation stays present on the website at all times.  -->
+                    // Generate HTML for items
+                    const linksHtml = cat.items.map(item => `
+                        <a href="${item.url}" target="${item.target || '_blank'}" class="link-btn">
+                            <i class="${item.icon}"></i>
+                            <span>${item.name}</span>
+                        </a>
+                    `).join('');
+                    
+                    box.innerHTML = `
+                        <div class="box-title">${cat.category}</div>
+                        <div class="link-grid">${linksHtml}</div>
+                    `;
+                    container.appendChild(box);
+                });
+            })
+            .catch(err => {
+                console.error("Error loading links:", err);
+                document.getElementById('content-container').innerHTML = 
+                    '<div class="content-box"><div class="box-title">Fehler beim Laden der Konfiguration</div></div>';
+            });
+    </script>
 </body>
-
 </html>
+
+

@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <!-- Meta Data -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>heyFordy Radio</title>
+    
+    <!-- Assets (Relative Paths) -->
+    <link rel="icon" type="image/png" href="../assets/icon.png">
+    
+    <!-- Fonts: Rubik -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Global Style (Parent) -->
+    <link rel="stylesheet" href="../assets/style.css">
+    <!-- Local Radio Style -->
+    <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+    <!-- Header -->
+    <header>
+        <div class="header-brand">
+            <i class="fa-solid fa-radio" style="font-size: 1.5rem; margin-right: 10px;"></i>
+            <span class="rainbow-text">heyFordy Radio</span>
+        </div>
+        <div class="header-actions">
+            <!-- Settings Toggle -->
+            <button onclick="openSettings()" class="round-btn">
+                <i class="fa-solid fa-gear"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main>
+        <!-- Player Controls -->
+        <div class="content-box player-container">
+            <div class="box-title">Jetzige Wiedergabe</div>
+            
+            <div class="cover-art-box">
+                <img id="player-cover" src="../assets/icon.png" alt="Station Logo">
+            </div>
+            
+            <h2 id="player-title" style="margin-bottom: 5px;">Kein Sender</h2>
+            <div id="player-status">Bereit</div>
+            
+            <audio id="audio-el" preload="none"></audio>
+
+            <button onclick="togglePlay()" class="big-play-btn">
+                <i id="play-icon" class="fa-solid fa-play"></i>
+            </button>
+        </div>
+
+        <!-- Station List -->
+        <div class="content-box">
+            <div class="box-title">Meine Sender</div>
+            <div id="station-list">
+                <!-- Javascript will inject list here -->
+            </div>
+        </div>
+    </main>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="modal">
+        <div class="modal-content">
+            <h3 style="margin-bottom: 15px;">Sender verwalten</h3>
+            
+            <div id="settings-list" style="max-height: 200px; overflow-y: auto; margin-bottom: 15px;">
+                <!-- Deletable list items -->
+            </div>
+            
+            <div style="border-top: 1px solid #444; padding-top: 15px;">
+                <h4>Neuer Sender</h4>
+                <input type="text" id="new-name" placeholder="Sender Name">
+                <input type="text" id="new-url" placeholder="Stream URL (mp3/m3u8)">
+                <div style="text-align: right; margin-top: 10px;">
+                    <button onclick="closeSettings()" class="modal-btn">Abbrechen</button>
+                    <button onclick="addStation()" class="modal-btn save">Hinzufügen</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <a href="../index.html" class="footer-source-btn">
+            <i class="fa-solid fa-arrow-left"></i> heyFordy.de
+        </a>
+        <div class="footer-thanks">Thanks for your visit ♥</div>
+    </footer>
+
+    <!-- Radio Logic -->
+    <script>
+        // Initial Station Data
+        const defaultStations = [
+            { name: "ILoveRadio", url: "https://streams.ilovemusic.de/iloveradio1.mp3" },
+            { name: "BigFM", url: "http://streams.bigfm.de/bigfm-deutschland-128-mp3" }
+        ];
+
+        // Load State
+        let stations = JSON.parse(localStorage.getItem('radio_stations')) || defaultStations;
+        const audio = document.getElementById('audio-el');
+        let isPlaying = false;
+
+        // Initialize App
+        renderStations();
+
+        // --- Core Functions ---
+
+        function renderStations() {
+            const list = document.getElementById('station-list');
+            const settList = document.getElementById('settings-list');
+            list.innerHTML = '';
+            settList.innerHTML = '';
+
+            stations.forEach((s, i) => {
+                // Main View List
+                list.innerHTML += `
+                    <div class="station-list-item" onclick="playStation(${i})">
+                        <span>${s.name}</span>
+                        <i class="fa-solid fa-play" style="color:#aaa;"></i>
+                    </div>`;
+                
+                // Settings View List
+                settList.innerHTML += `
+                    <div class="station-list-item" style="cursor: default; padding: 10px;">
+                        <span style="font-size: 0.9rem;">${s.name}</span>
+                        <i class="fa-solid fa-trash delete-btn" onclick="removeStation(${i})"></i>
+                    </div>`;
+            });
+        }
+
+        function playStation(index) {
+            const s = stations[index];
+            document.getElementById('player-title').innerText = s.name;
+            document.getElementById('player-status').innerText = "Verbinde...";
+            
+            audio.src = s.url;
+            
+            audio.play().then(() => {
+                isPlaying = true;
+                updateUI();
+                document.getElementById('player-status').innerText = "LIVE";
+                
+                // Update Metadata for Lock Screen / Notification Center
+                if('mediaSession' in navigator){
+                    navigator.mediaSession.metadata = new MediaMetadata({ 
+                        title: s.name, 
+                        artist: "heyFordy Radio", 
+                        artwork: [{ src: '../assets/icon.png', sizes: '512x512', type: 'image/png' }] 
+                    });
+                    navigator.mediaSession.setActionHandler('play', () => audio.play());
+                    navigator.mediaSession.setActionHandler('pause', () => audio.pause());
+                }
+            }).catch(e => {
+                console.error(e);
+                document.getElementById('player-status').innerText = "Fehler";
+            });
+        }
+
+        function togglePlay() {
+            if(!audio.src) return;
+            
+            if(audio.paused) { 
+                audio.play(); 
+                isPlaying = true; 
+            } else { 
+                audio.pause(); 
+                isPlaying = false; 
+            }
+            updateUI();
+        }
+
+        function updateUI() {
+            const icon = document.getElementById('play-icon');
+            icon.className = isPlaying ? 'fa-solid fa-pause' : 'fa-solid fa-play';
+        }
+
+        // --- Settings Management ---
+
+        function openSettings() { document.getElementById('settings-modal').style.display = 'flex'; }
+        function closeSettings() { document.getElementById('settings-modal').style.display = 'none'; }
+        
+        function addStation() {
+            const name = document.getElementById('new-name').value;
+            const url = document.getElementById('new-url').value;
+            if(name && url) {
+                stations.push({ name, url });
+                save();
+                document.getElementById('new-name').value = '';
+                document.getElementById('new-url').value = '';
+                renderStations();
+            }
+        }
+
+        function removeStation(index) {
+            if(confirm('Sender wirklich löschen?')) {
+                stations.splice(index, 1);
+                save();
+                renderStations();
+            }
+        }
+
+        function save() {
+            localStorage.setItem('radio_stations', JSON.stringify(stations));
+        }
+
+        // Close modal when clicking background
+        window.onclick = function(event) {
+            if (event.target == document.getElementById('settings-modal')) closeSettings();
+        }
+    </script>
+</body>
+</html>
+
+
