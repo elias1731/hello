@@ -1,108 +1,71 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-    <!-- Meta Data -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>heyFordy.de</title>
-    
-    <!-- Assets -->
     <link rel="icon" type="image/png" href="assets/icon.png">
     
-    <!-- Fonts: Rubik -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <!-- Fonts & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;700&display=swap" rel="stylesheet">
-    
-    <!-- FontAwesome (Icons) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- Main Style -->
+    <!-- Shared Style -->
     <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
 
-    <!-- Header Section -->
     <header>
         <div class="header-brand">
             <img src="assets/icon.png" alt="Icon" onerror="this.style.display='none'">
             <span class="rainbow-text">» heyFordy.de</span>
         </div>
         <div class="header-actions">
-            <!-- GitHub Link -->
-            <a href="https://github.com/bitte-ein-git" target="_blank" class="round-btn" title="GitHub">
+            <a href="https://github.com/bitte-ein-git" target="_blank" class="round-btn">
                 <i class="fa-brands fa-github"></i>
             </a>
         </div>
     </header>
 
-    <!-- Main Content -->
     <main>
-        <!-- Logo Hero Area -->
         <div style="text-align: center; margin-bottom: 40px;">
-            <img src="assets/Fordy.png" alt="Fordy Logo" style="max-width: 180px; filter: drop-shadow(0 0 10px rgba(0,0,0,0.3));">
+            <img src="assets/Fordy.png" alt="Fordy Logo" style="max-width: 256px; filter: drop-shadow(0 0 15px rgba(255,255,255,0.2));">
         </div>
 
-        <!-- Links Container (Populated via JS) -->
         <div id="content-container">
-            <!-- Loading State -->
-            <div class="content-box">
-                <div class="box-title"><i class="fa-solid fa-spinner fa-spin"></i> Lade...</div>
-            </div>
+            <div class="content-box"><div class="box-title"><i class="fa-solid fa-spinner fa-spin"></i> Lade...</div></div>
         </div>
     </main>
 
-    <!-- Footer Section -->
     <footer>
-        <div style="margin-bottom: 15px; display: flex; flex-wrap: wrap; justify-content: center; gap: 5px;">
+        <div style="margin-bottom: 10px;">
             <a href="https://heyfordy.de/datenschutz" class="footer-source-btn">Datenschutz</a>
             <a href="https://heyfordy.de/impressum" class="footer-source-btn">Impressum</a>
-            <a href="https://github.com/elias1731/hello" target="_blank" class="footer-source-btn">
-                © <span id="year">2025</span> heyFordy.de
-            </a>
+            <a href="https://github.com/elias1731/hello" target="_blank" class="footer-source-btn">© <span id="year"></span> heyFordy.de</a>
         </div>
         <div class="footer-thanks">Thanks for your visit ♥</div>
     </footer>
 
-    <!-- Scripts -->
     <script>
-        // Initialize Year
         document.getElementById('year').textContent = new Date().getFullYear();
 
-        // Load and Render Links
         fetch('links.json')
             .then(res => res.json())
             .then(data => {
                 const container = document.getElementById('content-container');
-                container.innerHTML = ''; // Clear loading
-                
+                container.innerHTML = '';
                 data.forEach(cat => {
-                    // Create Category Box
                     const box = document.createElement('div');
                     box.className = 'content-box';
-                    
-                    // Generate HTML for items
-                    const linksHtml = cat.items.map(item => `
-                        <a href="${item.url}" target="${item.target || '_blank'}" class="link-btn">
-                            <i class="${item.icon}"></i>
-                            <span>${item.name}</span>
-                        </a>
-                    `).join('');
-                    
-                    box.innerHTML = `
-                        <div class="box-title">${cat.category}</div>
-                        <div class="link-grid">${linksHtml}</div>
-                    `;
+                    const items = cat.items.map(i => `
+                        <a href="${i.url}" target="${i.target || '_blank'}" class="link-btn">
+                            <i class="${i.icon}"></i> <span>${i.name}</span>
+                        </a>`).join('');
+                    box.innerHTML = `<div class="box-title">${cat.category}</div><div class="link-grid">${items}</div>`;
                     container.appendChild(box);
                 });
             })
-            .catch(err => {
-                console.error("Error loading links:", err);
-                document.getElementById('content-container').innerHTML = 
-                    '<div class="content-box"><div class="box-title">Fehler beim Laden der Konfiguration</div></div>';
-            });
+            .catch(e => console.error("Config Error", e));
     </script>
 </body>
 </html>
-
-
