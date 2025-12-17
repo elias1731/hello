@@ -90,22 +90,24 @@
         }
 
         // --- Config & State ---
-        // Mapping für die API-Keys der Standardsender
-        const apiKeys = {
-            "RADIO BOB! Livestream National": "radio-bob",
-            "Eldoradio": "eldoradio"
-        };
-
         const defaultStations = [
             {
-                name: "RADIO BOB! Livestream National",
-                url: "https://streams.radiobob.de/bob-national/mp3-320/mediaplayer",
-                logo: "https://cdn-profiles.tunein.com/s323217/images/logod.jpg?t=638126635790000000"
+                name: "Eldoradio",
+                apiId: "eldoradio",
+                url: "https://sc.bce.lu/eldo",
+                logo: "https://heyfordy.de/radio/assets/eldo.lu.png"
             },
             {
-                name: "Eldoradio",
-                url: "https://sc.bce.lu/eldo",
-                logo: "https://play-lh.googleusercontent.com/kjC3uu-gR5wt5jMqhpHKRPq2ZTsA5M3UIX8cZZfq-sEKRQTLTj5oSMRDioK5eDOkTi5O"
+                name: "RADIO BOB! Livestream National",
+                apiId: "radio-bob",
+                url: "https://streams.radiobob.de/bob-national/mp3-320/mediaplayer",
+                logo: "https://heyfordy.de/radio/assets/radio-bob.png"
+            },
+            {
+                name: "RTL.lu",
+                apiId: "rtl.lu",
+                url: "https://sc.bce.lu/rtl",
+                logo: "https://heyfordy.de/radio/assets/rtl.lu.png"
             }
         ];
 
@@ -126,8 +128,6 @@
             document.getElementById('player-title').innerText = s.name;
             document.getElementById('player-artist').innerText = "";
             document.getElementById('player-status').innerText = "Verbinde...";
-            
-            // Check if we have an API override for the logo initially, otherwise default
             document.getElementById('player-img').src = s.logo || '../assets/icon.png';
             
             // Highlight list
@@ -141,10 +141,9 @@
                 updatePlayBtn(true);
                 document.getElementById('player-status').innerText = "LIVE";
                 
-                // Start polling API for defaults or basic meta for custom
+                // Start polling API
                 startMetaFetcher(s);
                 
-                // Initial Media Session (will be updated by fetcher)
                 updateMediaSession(s.name, "Live Radio", s.logo);
             }).catch(e => {
                 console.error(e);
@@ -168,64 +167,42 @@
             icon.className = isPlaying ? 'fa-solid fa-pause' : 'fa-solid fa-play';
         }
 
-        // --- Metadata Logic ---
+        // --- Metadata & Cover Logic ---
         function startMetaFetcher(station) {
             if (metaInterval) clearInterval(metaInterval);
             
             const fetchInfo = () => {
-                const apiKey = apiKeys[station.name];
-
-                if (apiKey) {
-                    // Logik für Standard-Sender (API nutzen)
-                    Promise.all([
-                        fetch('https://api.heyfordy.de/radio').then(r => r.json()).catch(() => null),
-                        fetch('https://api.heyfordy.de/radio-img').then(r => r.json()).catch(() => null)
-                    ]).then(([textData, imgData]) => {
-                        let title = station.name;
-                        let artist = "Live Radio";
-                        let currentLogo = station.logo;
-
-                        // 1. Title/Artist Logic
-                        if (textData && textData[apiKey]) {
-                            const rawTitle = textData[apiKey];
-                            const lowerTitle = rawTitle.toLowerCase();
+                // Nur wenn Sender eine apiId hat (Standard-Sender)
+                if (station.apiId) {
+                    fetch('https://api.heyfordy.de/radio')
+                        .then(r => r.json())
+                        .then(data => {
+                            // Finde den Sender im Array
+                            const stationData = data.find(item => item.id === station.apiId);
                             
-                            // Check for blocked strings
-                            if (lowerTitle.includes("radio bob") || lowerTitle.includes("eldoradio")) {
-                                title = station.name;
-                                artist = "heyFordy's Radio";
-                            } else {
-                                title = rawTitle; // "Titel aus API"
-                                artist = station.name; // "Sendername"
+                            if (stationData && stationData.playing) {
+                                const rawTitle = stationData.playing; // "Artist - Title"
+                                const stationLogo = stationData.logo || station.logo;
+
+                                // Basic UI Update Text
+                                updateUIText(rawTitle, station.name);
+
+                                // iTunes Cover Fetch
+                                fetchItunesCover(rawTitle, stationLogo).then(coverUrl => {
+                                    const finalCover = coverUrl || stationLogo || '../assets/icon.png';
+                                    
+                                    // Update Image
+                                    const imgEl = document.getElementById('player-img');
+                                    if(imgEl.src !== finalCover) imgEl.src = finalCover;
+
+                                    // Update MediaSession
+                                    updateMediaSession(rawTitle, station.name, finalCover);
+                                });
                             }
-                        }
-
-                        // 2. Image Logic
-                        if (imgData && imgData[apiKey]) {
-                            currentLogo = imgData[apiKey];
-                        }
-
-                        // Update UI
-                        document.getElementById('player-title').innerText = title;
-                        document.getElementById('player-artist').innerText = artist;
-                        const imgEl = document.getElementById('player-img');
-                        if(imgEl.src !== currentLogo) imgEl.src = currentLogo || '../assets/icon.png';
-
-                        // Update MediaSession
-                        updateMediaSession(title, artist, currentLogo);
-                    });
-
+                        })
+                        .catch(err => console.log("API Fetch Error:", err));
                 } else {
-                    // Logik für Custom Sender
-                    // Wir nutzen den Sendernamen als Titel, da wir ICY-Tags nicht via JS lesen können (CORS).
-                    // Wenn der Browser native Tags erkennt, zeigt er sie im OS an, 
-                    // aber wir setzen hier den Fallback für die UI.
-                    document.getElementById('player-title').innerText = station.name;
-                    document.getElementById('player-artist').innerText = "Live Stream";
-                    
-                    // Reset Logo to station default
-                    document.getElementById('player-img').src = station.logo || '../assets/icon.png';
-                    
+                    // Custom Sender ohne API
                     updateMediaSession(station.name, "Live Stream", station.logo);
                 }
             };
@@ -234,11 +211,59 @@
             metaInterval = setInterval(fetchInfo, 10000); // Alle 10s aktualisieren
         }
 
+        // Hilfsfunktion: iTunes Cover laden
+        async function fetchItunesCover(trackInfo, fallbackLogo) {
+            if (!trackInfo) return fallbackLogo;
+
+            // 1. String bereinigen: "-" entfernen, Leerzeichen durch "+" ersetzen
+            // Wir entfernen Bindestriche und ersetzen ALLE Leerzeichen durch Plus
+            const cleanTerm = trackInfo.replace(/-/g, '').replace(/\s+/g, '+');
+            
+            const url = `https://itunes.apple.com/search?term=${cleanTerm}&entity=album&limit=1`;
+
+            try {
+                const res = await fetch(url);
+                const data = await res.json();
+
+                if (data.resultCount > 0 && data.results[0].artworkUrl100) {
+                    let artUrl = data.results[0].artworkUrl100;
+                    // 100x100 durch 512x512 ersetzen für bessere Qualität
+                    return artUrl.replace('100x100bb', '512x512bb');
+                }
+            } catch (e) {
+                console.warn("iTunes Fetch failed:", e);
+            }
+            return fallbackLogo;
+        }
+
+        function updateUIText(rawTitle, stationName) {
+            // Wir versuchen Artist und Titel zu trennen für eine schönere Anzeige,
+            // falls ein Bindestrich vorhanden ist.
+            if (rawTitle.includes(' - ')) {
+                const parts = rawTitle.split(' - ');
+                document.getElementById('player-title').innerText = parts[1] || parts[0];
+                document.getElementById('player-artist').innerText = parts[0];
+            } else {
+                document.getElementById('player-title').innerText = rawTitle;
+                document.getElementById('player-artist').innerText = stationName;
+            }
+        }
+
         function updateMediaSession(title, artist, artworkUrl) {
             if ('mediaSession' in navigator) {
+                // Falls Title "Artist - Song" ist, splitten wir es für die MediaSession Metadaten
+                let displayTitle = title;
+                let displayArtist = artist;
+                
+                if (title.includes(' - ')) {
+                    const parts = title.split(' - ');
+                    displayArtist = parts[0];
+                    displayTitle = parts[1] || "";
+                }
+
                 navigator.mediaSession.metadata = new MediaMetadata({
-                    title: title,
-                    artist: artist,
+                    title: displayTitle,
+                    artist: displayArtist,
                     artwork: [
                         { src: artworkUrl || '../assets/icon.png', sizes: '512x512', type: 'image/png' }
                     ]
@@ -290,8 +315,6 @@
             const name = document.getElementById('new-name').value;
             const url = document.getElementById('new-url').value;
             const logo = document.getElementById('new-logo').value;
-            
-            // Meta URL ignoriert/entfernt wie angefordert
 
             if (name && url) {
                 stations.push({ name, url, logo });
@@ -312,7 +335,6 @@
 
         function save() { localStorage.setItem('radio_stations', JSON.stringify(stations)); }
 
-        // Close on outside click
         window.onclick = (e) => {
             if (e.target == document.getElementById('settings-modal')) closeSettings();
         }
