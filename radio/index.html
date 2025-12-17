@@ -66,6 +66,16 @@
     <div id="settings-modal" class="modal">
         <div class="modal-content">
             <button class="modal-close-btn-x" onclick="closeSettings()">X</button>
+            <h3 style="margin-bottom:15px; border-bottom:1px solid #444; padding-bottom:10px;">Einstellungen</h3>
+            
+            <div style="background:#111; padding:15px; border-radius:8px; margin-bottom: 20px;">
+                <h4 style="margin-bottom:10px; color:var(--text-muted);">Startverhalten (Autoplay)</h4>
+                <select id="autoplay-select" onchange="saveAutoplaySetting()" style="width:100%; padding:10px; background:#222; border:1px solid #444; color:white; border-radius:4px; font-family:inherit;">
+                    <option value="none">Kein Autoplay</option>
+                    <option value="last">Zuletzt gehört</option>
+                    </select>
+            </div>
+
             <h3 style="margin-bottom:15px; border-bottom:1px solid #444; padding-bottom:10px;">Sender verwalten</h3>
             
             <div id="settings-list" style="max-height: 200px; overflow-y: auto; margin-bottom: 20px;"></div>
@@ -112,16 +122,62 @@
         ];
 
         let stations = JSON.parse(localStorage.getItem('radio_stations')) || defaultStations;
+        let autoplaySetting = localStorage.getItem('radio_autoplay') || 'last';
+        let lastPlayedIndex = parseInt(localStorage.getItem('radio_last_index')) || 0;
+        
         let currentStationIndex = -1;
         let metaInterval = null;
         const audio = document.getElementById('audio-el');
 
         // --- Init ---
         renderStations();
+        renderAutoplayOptions(); // Settings Dropdown füllen
+        handleStartup(); // Check URL param or Autoplay
+
+        // --- Startup Logic ---
+        function handleStartup() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const playParam = urlParams.get('play');
+
+            if (playParam) {
+                // 1. Priorität: URL Parameter (?play=id oder ?play=name)
+                // Suche zuerst nach ID, dann nach Name (case insensitive)
+                let targetIndex = stations.findIndex(s => s.apiId === playParam);
+                if (targetIndex === -1) {
+                    targetIndex = stations.findIndex(s => s.name.toLowerCase() === playParam.toLowerCase());
+                }
+
+                if (targetIndex !== -1) {
+                    console.log("Starting via URL Param:", stations[targetIndex].name);
+                    playStation(targetIndex);
+                }
+            } else {
+                // 2. Priorität: Autoplay Einstellung
+                if (autoplaySetting === 'none') return;
+
+                let targetIndex = -1;
+                if (autoplaySetting === 'last') {
+                    if (lastPlayedIndex >= 0 && lastPlayedIndex < stations.length) {
+                        targetIndex = lastPlayedIndex;
+                    }
+                } else {
+                    // ID eines spezifischen Senders
+                    targetIndex = stations.findIndex(s => s.apiId === autoplaySetting || s.name === autoplaySetting);
+                }
+
+                if (targetIndex !== -1) {
+                    console.log("Autoplay starting:", stations[targetIndex].name);
+                    playStation(targetIndex);
+                }
+            }
+        }
 
         // --- Player Functions ---
         function playStation(index) {
             currentStationIndex = index;
+            // Save Last Played
+            localStorage.setItem('radio_last_index', index);
+            
             const s = stations[index];
             
             // UI Reset
@@ -146,19 +202,30 @@
                 
                 updateMediaSession(s.name, "Live Radio", s.logo);
             }).catch(e => {
-                console.error(e);
-                document.getElementById('player-status').innerText = "Fehler (Stream offline?)";
+                console.error("Playback failed (Autoplay blocked?):", e);
+                updatePlayBtn(false);
+                document.getElementById('player-status').innerText = "Bereit (Tippen zum Starten)";
+                // Trotz Fehler (Blockierung) Metadaten laden, damit UI aktuell ist
+                startMetaFetcher(s); 
             });
         }
 
         function togglePlay() {
+            if (!audio.src && currentStationIndex !== -1) {
+                // Falls src weg ist aber ein Sender gewählt war (Edge Case), neu laden
+                playStation(currentStationIndex);
+                return;
+            }
             if (!audio.src) return;
+
             if (audio.paused) {
                 audio.play();
                 updatePlayBtn(true);
+                document.getElementById('player-status').innerText = "LIVE";
             } else {
                 audio.pause();
                 updatePlayBtn(false);
+                document.getElementById('player-status').innerText = "PAUSE";
             }
         }
 
@@ -181,7 +248,7 @@
                             const stationData = data.find(item => item.id === station.apiId);
                             
                             if (stationData && stationData.playing) {
-                                const rawTitle = stationData.playing; // "Artist - Title"
+                                const rawTitle = stationData.playing;
                                 const stationLogo = stationData.logo || station.logo;
 
                                 // Basic UI Update Text
@@ -211,23 +278,23 @@
             metaInterval = setInterval(fetchInfo, 10000); // Alle 10s aktualisieren
         }
 
-        // Hilfsfunktion: iTunes Cover laden
         async function fetchItunesCover(trackInfo, fallbackLogo) {
             if (!trackInfo) return fallbackLogo;
-
-            // 1. String bereinigen: "-" entfernen, Leerzeichen durch "+" ersetzen
-            // Wir entfernen Bindestriche und ersetzen ALLE Leerzeichen durch Plus
-            const cleanTerm = trackInfo.replace(/-/g, '').replace(/\s+/g, '+');
-            
-            const url = `https://itunes.apple.com/search?term=${cleanTerm}&entity=album&limit=1`;
-
             try {
+                let cleanTerm = trackInfo
+                    .replace(/['"]/g, '')       // Entfernt ' und "
+                    .replace(/[-]/g, ' ')       // Bindestriche zu Leerzeichen
+                    .replace(/\s+/g, ' ')       // Doppelte Leerzeichen weg
+                    .trim();
+
+                const encodedTerm = encodeURIComponent(cleanTerm);
+                const url = `https://itunes.apple.com/search?term=${encodedTerm}&entity=album&limit=1`;
+                
                 const res = await fetch(url);
                 const data = await res.json();
 
                 if (data.resultCount > 0 && data.results[0].artworkUrl100) {
                     let artUrl = data.results[0].artworkUrl100;
-                    // 100x100 durch 512x512 ersetzen für bessere Qualität
                     return artUrl.replace('100x100bb', '512x512bb');
                 }
             } catch (e) {
@@ -237,8 +304,6 @@
         }
 
         function updateUIText(rawTitle, stationName) {
-            // Wir versuchen Artist und Titel zu trennen für eine schönere Anzeige,
-            // falls ein Bindestrich vorhanden ist.
             if (rawTitle.includes(' - ')) {
                 const parts = rawTitle.split(' - ');
                 document.getElementById('player-title').innerText = parts[1] || parts[0];
@@ -251,7 +316,6 @@
 
         function updateMediaSession(title, artist, artworkUrl) {
             if ('mediaSession' in navigator) {
-                // Falls Title "Artist - Song" ist, splitten wir es für die MediaSession Metadaten
                 let displayTitle = title;
                 let displayArtist = artist;
                 
@@ -305,11 +369,34 @@
                     </div>
                 `;
             });
+            
+            renderAutoplayOptions();
+        }
+
+        function renderAutoplayOptions() {
+            const select = document.getElementById('autoplay-select');
+            // Keep first 2 options (none, last)
+            select.innerHTML = `
+                <option value="none" ${autoplaySetting === 'none' ? 'selected' : ''}>Kein Autoplay</option>
+                <option value="last" ${autoplaySetting === 'last' ? 'selected' : ''}>Zuletzt gehört</option>
+            `;
+            
+            stations.forEach(s => {
+                // Use API ID if available, else Name as value
+                const val = s.apiId || s.name;
+                const isSelected = (autoplaySetting === val);
+                select.innerHTML += `<option value="${val}" ${isSelected ? 'selected' : ''}>${s.name}</option>`;
+            });
         }
 
         // --- Settings ---
         function openSettings() { document.getElementById('settings-modal').style.display = 'flex'; }
         function closeSettings() { document.getElementById('settings-modal').style.display = 'none'; }
+        
+        function saveAutoplaySetting() {
+            autoplaySetting = document.getElementById('autoplay-select').value;
+            localStorage.setItem('radio_autoplay', autoplaySetting);
+        }
 
         function addStation() {
             const name = document.getElementById('new-name').value;
