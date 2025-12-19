@@ -4,6 +4,7 @@
     --text-muted: #cccccc;
     --accent: #4caf50;
     --modal-bg: #1e1e1e;
+    --header-height: 55px;
     --safe-area-top: env(safe-area-inset-top, 20px);
     --safe-area-bottom: env(safe-area-inset-bottom, 20px);
 }
@@ -42,7 +43,7 @@ header {
     background: rgba(30, 30, 30, 0.3);
     backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
     position: sticky; top: 0; z-index: 100;
-    height: calc(55px + var(--safe-area-top));
+    height: calc(var(--header-height) + var(--safe-area-top));
     padding-top: var(--safe-area-top);
     padding-left: 20px; padding-right: 20px;
     width: 100%;
@@ -145,17 +146,19 @@ footer#main-footer {
     border-top: 1px solid rgba(255,255,255,0.1);
     z-index: 150;
     display: flex; flex-direction: column;
-    height: calc(60px + var(--safe-area-bottom));
-    transition: height 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+    height: calc(var(--header-height) + var(--safe-area-bottom));
+    transition: height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     box-shadow: 0 -5px 30px rgba(0,0,0,0.5);
+    overflow: hidden;
 }
 
-footer.expanded { height: 75vh; }
+/* Explicitly use ID to override collapsed height */
+footer#main-footer.expanded { height: 75vh; }
 
 .footer-header {
-    height: 60px; 
+    height: var(--header-height); 
     display: flex; 
-    justify-content: center; /* Centering fix */
+    justify-content: center;
     align-items: center;
     cursor: pointer; 
     color: rgba(255,255,255,0.9);
@@ -164,7 +167,7 @@ footer.expanded { height: 75vh; }
 }
 
 .footer-header span:first-child {
-    font-size: 1.3rem; /* Larger font fix */
+    font-size: 1.1rem;
     font-weight: 700;
     letter-spacing: 1px;
     text-align: center;
@@ -172,21 +175,21 @@ footer.expanded { height: 75vh; }
 
 #footer-arrow {
     position: absolute;
-    right: 25px; /* Absolute positioning fix */
-    font-size: 1.2rem;
+    right: 25px;
+    font-size: 1rem;
 }
 
 .footer-content {
     flex: 1; overflow-y: auto; padding: 10px 20px;
-    opacity: 0; transition: opacity 0.3s;
+    opacity: 0; transition: opacity 0.2s;
 }
-footer.expanded .footer-content { opacity: 1; }
+footer#main-footer.expanded .footer-content { opacity: 1; }
 
 .footer-link-wrapper {
     text-align: center; padding: 20px; padding-bottom: calc(20px + var(--safe-area-bottom));
-    opacity: 0; transition: opacity 0.3s; flex-shrink: 0;
+    opacity: 0; transition: opacity 0.2s; flex-shrink: 0;
 }
-footer.expanded .footer-link-wrapper { opacity: 1; }
+footer#main-footer.expanded .footer-link-wrapper { opacity: 1; }
 .footer-source-btn { text-decoration: none; color: rgba(255,255,255,0.4); font-size: 0.8rem; font-weight: bold; }
 
 /* List Items */

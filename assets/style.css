@@ -1,10 +1,8 @@
-/* Global Stylesheet for heyFordy.de
-    Contains variables, background animations, typography, and shared layout components.
-*/
+/* Global Stylesheet for heyFordy.de */
 
 :root {
-    /* Animated Gradient Colors */
-    --bg-gradient: linear-gradient(-45deg, #ff9966, #ff5e62, #a18cd1, #fbc2eb);
+    /* Restore legacy gradient colors */
+    --bg-gradient: linear-gradient(-45deg, #39ff0069, #ff4100, #ffc800, #dd4700, #0049ff69);
     --box-bg: rgba(30, 30, 30, 0.9);
     --text-main: #ffffff;
     --text-muted: #cccccc;
@@ -16,10 +14,10 @@
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
 body {
-    /* Background Animation */
+    /* Legacy background animation settings */
     background: var(--bg-gradient);
-    background-size: 400% 400%;
-    animation: gradientBG 15s ease infinite;
+    background-size: 200% 200%;
+    animation: gradientBG 4s ease infinite;
     
     color: var(--text-main);
     font-family: 'Rubik', sans-serif;
