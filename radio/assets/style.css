@@ -25,7 +25,7 @@ body {
     position: fixed;
     top: 0; left: 0; width: 100%; height: 100%;
     z-index: -1;
-    transition: background 3s ease; /* 3s Fade */
+    transition: background 3s ease;
     background: radial-gradient(circle at 50% 50%, rgba(255, 100, 0, 0.4), transparent 80%),
                 linear-gradient(135deg, #1a1a1a 0%, #000 100%);
 }
@@ -66,7 +66,7 @@ header {
 /* --- Main Layout --- */
 main {
     flex: 1; 
-    overflow-y: hidden; /* Lock main scroll if content fits */
+    overflow-y: hidden;
     padding: 10px 20px 80px 20px; 
     display: flex; flex-direction: column; justify-content: center; 
 }
@@ -125,7 +125,7 @@ main {
     display: flex; align-items: center; gap: 15px;
     margin-bottom: 20px; max-width: 350px; margin-left: auto; margin-right: auto; width: 100%;
     border: 1px solid rgba(255,255,255,0.05);
-    position: relative; z-index: 50; /* Z-Index fix */
+    position: relative; z-index: 50;
 }
 .volume-btn { background: none; border: none; color: white; font-size: 1.2rem; width: 30px; cursor: pointer; }
 input[type=range] { flex: 1; -webkit-appearance: none; background: transparent; cursor: pointer; }
@@ -145,7 +145,6 @@ footer#main-footer {
     border-top: 1px solid rgba(255,255,255,0.1);
     z-index: 150;
     display: flex; flex-direction: column;
-    /* Base height shows header. Expands upwards because it's fixed at bottom. */
     height: calc(60px + var(--safe-area-bottom));
     transition: height 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
     box-shadow: 0 -5px 30px rgba(0,0,0,0.5);
@@ -154,9 +153,27 @@ footer#main-footer {
 footer.expanded { height: 75vh; }
 
 .footer-header {
-    height: 60px; display: flex; justify-content: space-between; align-items: center;
-    padding: 0 25px; cursor: pointer; font-weight: 700; font-size: 1.1rem; letter-spacing: 1px;
-    color: rgba(255,255,255,0.9); flex-shrink: 0;
+    height: 60px; 
+    display: flex; 
+    justify-content: center; /* Centering fix */
+    align-items: center;
+    cursor: pointer; 
+    color: rgba(255,255,255,0.9);
+    position: relative;
+    flex-shrink: 0;
+}
+
+.footer-header span:first-child {
+    font-size: 1.3rem; /* Larger font fix */
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-align: center;
+}
+
+#footer-arrow {
+    position: absolute;
+    right: 25px; /* Absolute positioning fix */
+    font-size: 1.2rem;
 }
 
 .footer-content {

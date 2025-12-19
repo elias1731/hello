@@ -84,13 +84,13 @@
                 <img id="player-overlay-logo" class="station-logo-overlay" src="" alt="Station Overlay">
             </div>
             
-            <div id="player-info">
+
                 <div id="player-title">𝓕𝓸𝓻𝓭𝔂•𝗥𝗮𝗱𝗶𝗼</div>
                 <div id="player-artist">Wähle einen Sender</div>
-            </div>
+
             
             <div id="player-status">◽️ BEREIT</div>
- 
+            
             <audio id="audio-el" preload="none"></audio>
 
             <div class="controls">
@@ -225,13 +225,12 @@
         audio.addEventListener('playing', () => {
             updateStatus("playing");
             updatePlayBtn(true);
-            changeCover(currentCoverUrl); // Restore art on play
+            changeCover(currentCoverUrl);
         });
         audio.addEventListener('pause', () => {
             updateStatus("pause");
             updatePlayBtn(false);
             if (currentStationIndex !== -1) {
-                // Show Logo on Pause
                 changeCover(stations[currentStationIndex].logo || './assets/app.png');
             }
         });
@@ -261,20 +260,20 @@
             }
         }
 
-        // --- Player ---
+        // --- Player Logic ---
         function playStation(index) {
             currentStationIndex = index;
             localStorage.setItem('radio_last_index', index);
             const s = stations[index];
             
-            // UI Init - Use List Name as fallback during load
+            // Close footer immediately upon selection
+            toggleFooter(false);
+            
+            // UI Init
             document.getElementById('player-title').innerText = s.name; 
             document.getElementById('player-artist').innerText = "";
             updateStatus("loading");
             updatePlayBtn(true);
-            
-            // Close Footer automatically
-            toggleFooter(false);
 
             // Reset Art & BG
             hideOverlayLogo();
@@ -388,7 +387,6 @@
             const isBlocked = blockedTitles.includes(rawTitle) || !rawTitle;
 
             if (isBlocked) {
-                // Fallback: Display List Name
                 document.getElementById('player-title').innerText = station.name; 
                 document.getElementById('player-artist').innerText = "𝓕𝓸𝓻𝓭𝔂•𝗥𝗮𝗱𝗶𝗼";
                 updateCoverAndSession(fallbackLogo, station.name, "𝓕𝓸𝓻𝓭𝔂•𝗥𝗮𝗱𝗶𝗼", false);
@@ -413,7 +411,6 @@
             const finalCover = coverUrl || './assets/app.png';
             currentCoverUrl = finalCover;
 
-            // Only update UI if playing. If paused, we show Logo.
             if (!audio.paused) {
                 changeCover(finalCover);
             }
@@ -432,9 +429,7 @@
 
         function changeCover(newSrc) {
             const img = document.getElementById('player-img');
-            // Fade Out
             img.style.opacity = 0;
-            // Swap & Fade In
             setTimeout(() => {
                 img.src = newSrc;
                 img.onload = () => { img.style.opacity = 1; };
@@ -463,7 +458,6 @@
                 for(let i=0; i<p.length; i+=40) { r+=p[i]; g+=p[i+1]; b+=p[i+2]; c++; }
                 r=Math.floor(r/c); g=Math.floor(g/c); b=Math.floor(b/c);
                 
-                // Increased opacity for vivid colors
                 document.getElementById('dynamic-bg').style.background = 
                     `radial-gradient(circle at 30% 30%, rgba(${r}, ${g}, ${b}, 0.7), transparent 70%),
                      radial-gradient(circle at 70% 70%, rgba(${r}, ${g}, ${b}, 0.4), transparent 70%),
@@ -489,7 +483,7 @@
             }
         }
 
-        // --- Footer Logic (Opens UP) ---
+        // --- Footer Logic ---
         function toggleFooter(forceState) {
             const footer = document.getElementById('main-footer');
             const arrow = document.getElementById('footer-arrow');
