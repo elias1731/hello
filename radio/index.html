@@ -80,11 +80,11 @@
 	<main>
 		<div class="content-box player-container">
 			<div class="cover-art-wrapper">
-				<img id="player-img" src="./assets/app.png" alt="Station Logo" crossorigin="anonymous">
+				<img id="player-img" src="./assets/app.png" alt="Station Logo">
 				<img id="player-overlay-logo" class="station-logo-overlay" src="" alt="Station Overlay">
 			</div>
 			
-			<div id="player-title">𝓕𝓸𝓻𝓭𝔂•𝗥𝗮𝗱𝗶𝗼</div>
+			<div id="player-title">𝓕𝓸𝓻𝓭𝔂•𝗥𝗮𝗱𝗶ο</div>
 			<div id="player-artist"></div>
 			
 			<div id="player-status">◽️ BEREIT</div>
@@ -116,7 +116,6 @@
 		<div class="modal-content">
 			<button class="modal-close-btn-x" onclick="closeSettings()">X</button>
 			<h3 class="modal-title">Einstellungen</h3>
-			
 			<div class="switch-container">
 				<span class="switch-label">Letzten Sender merken</span>
 				<label class="switch">
@@ -124,7 +123,6 @@
 					<span class="slider"></span>
 				</label>
 			</div>
-
 			<div class="switch-container">
 				<span class="switch-label">iTunes Album Cover laden</span>
 				<label class="switch">
@@ -132,10 +130,7 @@
 					<span class="slider"></span>
 				</label>
 			</div>
-
-			<button onclick="clearCache()" class="clear-cache-btn">
-				<i class="fa-solid fa-trash-can"></i> Cache leeren & Reload
-			</button>
+			<button onclick="clearCache()" class="clear-cache-btn"><i class="fa-solid fa-trash-can"></i> Cache leeren & Reload</button>
 		</div>
 	</div>
 
@@ -143,21 +138,17 @@
 		<div class="modal-content">
 			<button class="modal-close-btn-x" onclick="closeManager()">X</button>
 			<h3 class="modal-title">Sender verwalten</h3>
-			
 			<div id="settings-list" class="manager-list"></div>
-			
 			<div class="add-station-box">
 				<h4>Sender hinzufügen</h4>
 				<div class="tabs">
 					<button class="tab-btn active" onclick="switchTab('search')">Suche</button>
 					<button class="tab-btn" onclick="switchTab('manual')">Manuell</button>
 				</div>
-
 				<div id="tab-search" class="tab-content active">
 					<input type="text" id="search-query" placeholder="Sender suchen..." oninput="debounceSearch()">
 					<div id="search-results"></div>
 				</div>
-
 				<div id="tab-manual" class="tab-content">
 					<input type="text" id="new-name" placeholder="Name (Liste)">
 					<input type="text" id="new-displayname" placeholder="Name (Player)">
@@ -176,20 +167,15 @@
 	<canvas id="color-canvas" style="display:none;"></canvas>
 
 	<script>
-		// --- Service Worker ---
-		if ('serviceWorker' in navigator) {
-			navigator.serviceWorker.register('sw.js').then(() => console.log('SW Registered'));
-		}
-
-		// --- State ---
+		// --- App State ---
 		const defaultStations = [
 			{ isDefault: true, name: "Eldoradio 🇱🇺", displayName: "E L D O", apiId: "eldoradio", url: "https://sc.bce.lu/eldo", logo: "https://heyfordy.de/radio/assets/eldo.lu.png" },
 			{ isDefault: true, name: "RADIO BOB! • National🤘", displayName: "RADIO BOB!", apiId: "radio-bob", url: "https://streams.radiobob.de/bob-national/mp3-320/mediaplayer", logo: "https://heyfordy.de/radio/assets/radio-bob.png" },
 			{ isDefault: true, name: "RTL Luxemburg 🇱🇺", displayName: "RTL.lu", apiId: "rtl.lu", url: "https://sc.bce.lu/rtl", logo: "https://heyfordy.de/radio/assets/rtl.lu.png" },
 			{ isDefault: true, name: "Rockland Radio • Trier", displayName: "ROCKLAND", apiId: "rockland", url: "https://streams.rockland.de/trier/mp3-192/direkt/", logo: "https://heyfordy.de/radio/assets/rockland.png" },
-			{ isDefault: true, name: "Sunshine LIVE☀️", displayName: "SUNSHINE LIVE", apiId: "sunsl-sslsimulcast-mp3-192-4434053", url: "https://sunsl.streamabc.net/sunsl-sslsimulcast-mp3-192-4434053", logo: "https://heyfordy.de/radio/assets/sunshine.png" },
-			{ isDefault: true, name: "Sunshine Eurodance🪩", displayName: "SUNSHINE EURODANCE", apiId: "sunsl-eurodance-mp3-192-9832422", url: "https://sunsl.streamabc.net/sunsl-eurodance-mp3-192-9832422", logo: "https://heyfordy.de/radio/assets/sunshine-eurodance.png" },
-			{ isDefault: true, name: "RADIO ENERGY ⚡️", displayName: "RADIO NRJ", apiId: "energy-digital", url: "https://edge24.streamonkey.net/energy-digital?aggregator=energy-digital", logo: "https://heyfordy.de/radio/assets/nrj.png" }
+			{ isDefault: true, name: "Sunshine LIVE☀️", displayName: "SUNSHINE LIVE", apiId: "sunshine", url: "https://sunsl.streamabc.net/sunsl-sslsimulcast-mp3-192-4434053", logo: "https://heyfordy.de/radio/assets/sunshine.png" },
+			{ isDefault: true, name: "Sunshine Eurodance🪩", displayName: "SUNSHINE EURODANCE", apiId: "sunshine-eurodance", url: "https://sunsl.streamabc.net/sunsl-eurodance-mp3-192-9832422", logo: "https://heyfordy.de/radio/assets/sunshine-eurodance.png" },
+			{ isDefault: true, name: "RADIO ENERGY ⚡️", displayName: "RADIO NRJ", apiId: "nrj", url: "https://edge24.streamonkey.net/energy-digital?aggregator=energy-digital", logo: "https://heyfordy.de/radio/assets/nrj.png" }
 		];
 
 		let stations = JSON.parse(localStorage.getItem('radio_stations')) || defaultStations;
@@ -202,8 +188,6 @@
 		let searchTimeout = null;
 		let lastTrackRaw = ""; 
 		let footerOpen = false;
-		let currentCoverUrl = './assets/app.png';
-
 		const audio = document.getElementById('audio-el');
 
 		// --- Initialization ---
@@ -214,31 +198,27 @@
 		handleStartup();
 
 		// --- Audio Events ---
-		audio.addEventListener('playing', () => {
-			updateStatus("playing");
-			updatePlayBtn(true);
-		});
-		audio.addEventListener('pause', () => {
-			updateStatus("ready");
-			updatePlayBtn(false);
-			resetToStationView();
-		});
-		audio.addEventListener('error', () => {
-			updateStatus("error");
-			updatePlayBtn(false);
+		audio.addEventListener('playing', () => { updateStatus("playing"); updatePlayBtn(true); });
+		audio.addEventListener('pause', () => { updatePlayBtn(false); if(!audio.src || audio.src === window.location.href) updateStatus("stopped"); });
+		audio.addEventListener('error', () => { 
+			// Ignore error when manually stopped (src is empty or same as current page)
+			if(!audio.src || audio.src === window.location.href) return;
+			updateStatus("error"); updatePlayBtn(false); 
 		});
 
-		// --- App Logic ---
+		// --- Core Functions ---
 		function handleStartup() {
 			const urlParams = new URLSearchParams(window.location.search);
 			const playParam = urlParams.get('play');
-
 			if (playParam) {
 				let idx = stations.findIndex(s => s.apiId === playParam);
 				if (idx !== -1) playStation(idx);
 			} else if (rememberLastStation && lastPlayedIndex >= 0 && lastPlayedIndex < stations.length) {
 				currentStationIndex = lastPlayedIndex;
-				resetToStationView();
+				const s = stations[currentStationIndex];
+				document.getElementById('player-title').innerText = s.name;
+				document.getElementById('player-artist').innerText = "🔹 LETZTER SENDER";
+				changeCover(s.logo || './assets/app.png');
 				updateStatus("ready");
 			}
 		}
@@ -247,34 +227,26 @@
 			currentStationIndex = index;
 			localStorage.setItem('radio_last_index', index);
 			const s = stations[index];
-			
 			toggleFooter(false);
 			updateStatus("loading");
 			updatePlayBtn(true);
-
 			hideOverlayLogo();
 			lastTrackRaw = ""; 
-			currentCoverUrl = s.logo || './assets/app.png';
-			resetBackgroundToDefault();
-			changeCover(currentCoverUrl);
-
+			changeCover(s.logo || './assets/app.png');
 			document.querySelectorAll('.station-item').forEach((el, i) => el.classList.toggle('active', i === index));
-
 			audio.src = s.url;
-			audio.play().then(() => startMetaFetcher(s)).catch(() => {
-				updatePlayBtn(false);
-				updateStatus("ready"); 
-			});
+			audio.play().then(() => startMetaFetcher(s)).catch(() => { updatePlayBtn(false); updateStatus("ready"); });
 		}
 
 		function togglePlay() {
 			if (currentStationIndex === -1) return;
-			if (audio.paused || !audio.src) {
+			if (audio.paused || !audio.src || audio.src === window.location.href) {
 				playStation(currentStationIndex);
 			} else {
 				audio.pause();
-				audio.src = ""; // Force disconnect to stop data transfer
-				updateStatus("ready");
+				audio.src = ""; 
+				audio.load(); // Clean state
+				updateStatus("stopped");
 				updatePlayBtn(false);
 				resetToStationView();
 			}
@@ -306,6 +278,7 @@
 				"ready": "◽️ BEREIT",
 				"loading": "🔸 STREAM WIRD GELADEN…",
 				"playing": "▶️ WIEDERGABE LÄUFT",
+				"stopped": "⭕️ WIEDERGABE ANGEHALTEN",
 				"error": "⚠️ FEHLER"
 			};
 			el.innerText = map[state] || map["ready"];
@@ -319,30 +292,30 @@
 		function startMetaFetcher(station) {
 			if (metaInterval) clearInterval(metaInterval);
 			const fetchInfo = () => {
-				if (audio.paused || !audio.src) return;
-				
-				if (station.apiId) {
-					fetch('https://api.heyfordy.de/radio').then(r=>r.json()).then(d => {
-						const sd = d.find(i => i.id === station.apiId);
-						handleStationData(station, sd?.playing, sd?.art || station.liveArt, sd?.logo || station.logo);
-					}).catch(() => handleStationData(station, null, station.liveArt, station.logo));
-				} else {
-					handleStationData(station, null, station.liveArt, station.logo);
-				}
+				if (audio.paused || !audio.src || audio.src === window.location.href) return;
+				fetch('https://api.heyfordy.de/radio').then(r=>r.json()).then(d => {
+					const sd = d.find(i => i.id === station.apiId);
+					handleStationData(station, sd?.playing, sd?.art || station.liveArt, sd?.logo || station.logo);
+				}).catch(() => handleStationData(station, null, station.liveArt, station.logo));
 			};
 			fetchInfo();
 			metaInterval = setInterval(fetchInfo, 10000);
 		}
 
 		function handleStationData(station, rawTitle, apiArt, fallbackLogo) {
-			if (audio.paused || !audio.src) return;
+			if (audio.paused || !audio.src || audio.src === window.location.href) return;
+			
+			// Handle cases like "Info unavailable" as "no title"
+			const hasRealTitle = rawTitle && !rawTitle.toLowerCase().includes("info unavailable");
+			
 			if (rawTitle === lastTrackRaw) return;
 			lastTrackRaw = rawTitle;
 
-			if (!rawTitle) {
+			if (!hasRealTitle) {
 				document.getElementById('player-title').innerText = station.name;
 				document.getElementById('player-artist').innerText = "";
-				updateCoverAndSession(fallbackLogo, station.name, station.displayName + " | 𝓕𝓸𝓻𝓭𝔂•𝗥𝗮𝗱𝗶ο", false);
+				// Still use apiArt for cases like Rockland where title is missing but art is there
+				updateCoverAndSession(apiArt || fallbackLogo, station.name, "🗿» 𝓕𝓸𝓻𝓭𝔂•𝗥𝗮𝗱𝗶ο", !!apiArt, station.logo);
 			} else {
 				document.getElementById('player-title').innerText = rawTitle;
 				document.getElementById('player-artist').innerText = station.displayName;
@@ -351,8 +324,7 @@
 					updateCoverAndSession(apiArt, rawTitle, station.displayName + " | 𝓕𝓸𝓻𝓭𝔂•𝗥𝗮𝗱iο", true, station.logo);
 				} else if (itunesEnabled) {
 					fetchItunesCover(rawTitle, fallbackLogo).then(cUrl => {
-						const isItunes = cUrl !== fallbackLogo;
-						updateCoverAndSession(cUrl, rawTitle, station.displayName + " | 𝓕𝓸𝓻𝓭𝔂•𝗥𝗮𝗱iο", isItunes, station.logo);
+						updateCoverAndSession(cUrl, rawTitle, station.displayName + " | 𝓕𝓸𝓻𝓭𝔂•𝗥𝗮𝗱iο", cUrl !== fallbackLogo, station.logo);
 					});
 				} else {
 					updateCoverAndSession(fallbackLogo, rawTitle, station.displayName + " | 𝓕𝓸𝓻𝓭𝔂•𝗥𝗮𝗱iο", false);
@@ -362,28 +334,26 @@
 
 		function updateCoverAndSession(coverUrl, title, sessionArtist, showOverlay, overlayLogoUrl) {
 			const finalCover = coverUrl || './assets/app.png';
-			currentCoverUrl = finalCover;
 			changeCover(finalCover);
-			
 			const overlayEl = document.getElementById('player-overlay-logo');
+			// Show overlay only if we have a real cover that is different from the station logo
 			if (showOverlay && overlayLogoUrl && coverUrl !== overlayLogoUrl) {
 				overlayEl.src = overlayLogoUrl;
 				overlayEl.style.display = 'block';
 			} else {
 				hideOverlayLogo();
 			}
-			
-			setTimeout(extractAndApplyColor, 1000);
+			setTimeout(extractAndApplyColor, 800);
 			updateMediaSession(title, sessionArtist, finalCover);
 		}
 
 		function changeCover(newSrc) {
 			const img = document.getElementById('player-img');
 			img.style.opacity = 0;
-			setTimeout(() => {
-				img.src = newSrc;
-				img.onload = () => { img.style.opacity = 1; };
-			}, 400); 
+			const temp = new Image();
+			temp.src = newSrc;
+			temp.onload = () => { img.src = newSrc; img.style.opacity = 1; };
+			temp.onerror = () => { img.src = './assets/app.png'; img.style.opacity = 1; };
 		}
 
 		function hideOverlayLogo() { document.getElementById('player-overlay-logo').style.display = 'none'; }
@@ -430,24 +400,15 @@
 
 		function openSettings() { document.getElementById('settings-modal').style.display = 'flex'; }
 		function closeSettings() { document.getElementById('settings-modal').style.display = 'none'; }
-		
-		function openManager() { 
-			renderManagerList();
-			document.getElementById('manager-modal').style.display = 'flex'; 
-		}
+		function openManager() { renderManagerList(); document.getElementById('manager-modal').style.display = 'flex'; }
 		function closeManager() { document.getElementById('manager-modal').style.display = 'none'; }
 
 		function renderStations() {
 			const list = document.getElementById('footer-list');
 			list.innerHTML = '';
 			stations.forEach((s, i) => {
-				list.innerHTML += `
-					<div class="station-item ${i === currentStationIndex ? 'active' : ''}" onclick="playStation(${i})">
-						<img src="${s.logo || './assets/app.png'}" class="station-logo" onerror="this.src='./assets/app.png'">
-						<div class="station-info"><span>${s.name}</span></div>
-						<i class="fa-solid fa-play" style="opacity:0.3;"></i>
-					</div>
-				`;
+				list.innerHTML += `<div class="station-item ${i === currentStationIndex ? 'active' : ''}" onclick="playStation(${i})">
+					<img src="${s.logo || './assets/app.png'}" class="station-logo" onerror="this.src='./assets/app.png'"><div class="station-info"><span>${s.name}</span></div><i class="fa-solid fa-play" style="opacity:0.3;"></i></div>`;
 			});
 		}
 
@@ -455,16 +416,9 @@
 			const list = document.getElementById('settings-list');
 			list.innerHTML = '';
 			stations.forEach((s, i) => {
-				list.innerHTML += `
-					<div class="settings-item">
-						<div style="flex:1;"><strong>${s.name}</strong></div>
-						<div class="manager-ctrls">
-							<i class="fa-solid fa-arrow-up action-icon" onclick="moveStation(${i},-1)"></i>
-							<i class="fa-solid fa-arrow-down action-icon" onclick="moveStation(${i},1)"></i>
-							${!s.isDefault ? `<i class="fa-solid fa-trash action-icon delete-icon" onclick="removeStation(${i})"></i>` : '<i class="fa-solid fa-lock" style="opacity:0.2"></i>'}
-						</div>
-					</div>
-				`;
+				list.innerHTML += `<div class="settings-item"><div style="flex:1;"><strong>${s.name}</strong></div><div class="manager-ctrls">
+					<i class="fa-solid fa-arrow-up action-icon" onclick="moveStation(${i},-1)"></i><i class="fa-solid fa-arrow-down action-icon" onclick="moveStation(${i},1)"></i>
+					${!s.isDefault ? `<i class="fa-solid fa-trash action-icon delete-icon" onclick="removeStation(${i})"></i>` : '<i class="fa-solid fa-lock" style="opacity:0.2"></i>'}</div></div>`;
 			});
 		}
 
@@ -475,66 +429,35 @@
 			saveAndRefresh();
 		}
 
-		function removeStation(idx) {
-			if(confirm("Sender wirklich löschen?")) { stations.splice(idx, 1); saveAndRefresh(); }
-		}
+		function removeStation(idx) { if(confirm("Sender wirklich löschen?")) { stations.splice(idx, 1); saveAndRefresh(); } }
 
 		function addStationManual() {
 			const n = document.getElementById('new-name').value;
 			const u = document.getElementById('new-url').value;
 			if(n && u) {
-				stations.push({
-					name: n, 
-					displayName: document.getElementById('new-displayname').value || n,
-					url: u,
-					logo: document.getElementById('new-logo').value,
-					liveArt: document.getElementById('new-art').value,
-					infoUrl: document.getElementById('new-info').value
-				});
-				saveAndRefresh();
-				alert("Hinzugefügt!");
+				stations.push({ name: n, displayName: document.getElementById('new-displayname').value || n, url: u, logo: document.getElementById('new-logo').value, liveArt: document.getElementById('new-art').value, infoUrl: document.getElementById('new-info').value });
+				saveAndRefresh(); alert("Hinzugefügt!");
 			}
 		}
 
-		function saveAndRefresh() {
-			localStorage.setItem('radio_stations', JSON.stringify(stations));
-			renderStations();
-			renderManagerList();
-		}
-
-		function saveSettings() {
-			localStorage.setItem('radio_remember', document.getElementById('autoplay-toggle').checked);
-			localStorage.setItem('radio_itunes_enabled', document.getElementById('itunes-toggle').checked);
-		}
-
-		function clearCache() {
-			if(confirm("Cache leeren und App neu laden?")) {
-				localStorage.clear();
-				if('serviceWorker' in navigator) navigator.serviceWorker.getRegistrations().then(regs => regs.forEach(r => r.unregister()));
-				window.location.reload(true);
-			}
-		}
-
+		function saveAndRefresh() { localStorage.setItem('radio_stations', JSON.stringify(stations)); renderStations(); renderManagerList(); }
+		function saveSettings() { localStorage.setItem('radio_remember', document.getElementById('autoplay-toggle').checked); localStorage.setItem('radio_itunes_enabled', document.getElementById('itunes-toggle').checked); }
+		function clearCache() { if(confirm("Cache leeren?")) { localStorage.clear(); window.location.reload(true); } }
 		function switchTab(t) {
 			document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
 			document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
 			if(t==='search') { document.querySelectorAll('.tab-btn')[0].classList.add('active'); document.getElementById('tab-search').classList.add('active'); }
 			else { document.querySelectorAll('.tab-btn')[1].classList.add('active'); document.getElementById('tab-manual').classList.add('active'); }
 		}
-
 		function debounceSearch() { clearTimeout(searchTimeout); searchTimeout = setTimeout(searchStations, 500); }
 		function searchStations() {
 			const q = document.getElementById('search-query').value; if(q.length < 3) return;
-			fetch(`https://de1.api.radio-browser.info/json/stations/byname/${encodeURIComponent(q)}?limit=10`)
-			.then(r => r.json()).then(d => {
+			fetch(`https://de1.api.radio-browser.info/json/stations/byname/${encodeURIComponent(q)}?limit=10`).then(r => r.json()).then(d => {
 				const res = document.getElementById('search-results'); res.innerHTML = '';
-				d.forEach(s => {
-					res.innerHTML += `<div class="search-result-item" onclick="addFromSearch('${s.name.replace(/'/g,"")}', '${s.url_resolved}', '${s.favicon}')"><img src="${s.favicon || './assets/app.png'}" class="search-result-img"><span>${s.name}</span></div>`;
-				});
+				d.forEach(s => { res.innerHTML += `<div class="search-result-item" onclick="addFromSearch('${s.name.replace(/'/g,"")}', '${s.url_resolved}', '${s.favicon}')"><img src="${s.favicon || './assets/app.png'}" class="search-result-img"><span>${s.name}</span></div>`; });
 			});
 		}
 		function addFromSearch(n,u,l) { stations.push({name:n, displayName:n, url:u, logo:l}); saveAndRefresh(); alert("Hinzugefügt!"); }
-
 		window.onclick = (e) => { if (e.target.className === 'modal') { closeSettings(); closeManager(); } }
 	</script>
 </body>
