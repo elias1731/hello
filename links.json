@@ -44,9 +44,8 @@
     "items": [
       {
         "name": "Web Radio",
-        "url": "radio/index.html",
-        "icon": "fa-solid fa-radio",
-        "target": "_self"
+        "url": "https://heyfordy.de/radio/",
+        "icon": "fa-solid fa-radio"
       },
       {
         "name": "FritzBox JSTools",
