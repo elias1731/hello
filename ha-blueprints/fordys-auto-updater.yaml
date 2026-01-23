@@ -1,0 +1,231 @@
+blueprint:
+  name: "🗿• Fordy's Auto-Updater 🧰"
+  description: >
+    # 🗿 Fordy's Auto-Updater
+    
+    Automated update process with native mobile app notifications.
+    
+    **Features:**
+    1. Sequential updates (Items -> Core).
+    2. Status notifications with progress bar logic (updates previous message).
+    3. Smart Restart handling.
+    
+    **Helper Info:**
+    The 'Process State Helper' is optional but recommended. Create a simple "Toggle" (input_boolean) helper in HA settings.
+    It allows the automation to send the "Core Update installed" confirmation after the necessary reboot.
+  domain: automation
+  author: "Bitte ein Git!"
+  input:
+    schedule_entity:
+      name: Schedule Entity
+      description: The schedule helper defining the update window.
+      selector:
+        entity:
+          domain: schedule
+    notify_entity:
+      name: Mobile App Notify Entity
+      description: Your mobile app entity (e.g., notify.mobile_app_iphone).
+      selector:
+        entity:
+          domain: notify
+    helper_toggle:
+      name: Process State Helper (Optional)
+      description: A toggle helper (input_boolean) to track state across restarts.
+      default: []
+      selector:
+        entity:
+          domain: input_boolean
+    day_min:
+      name: Earliest Day for Core Update
+      description: Core updates will only run on or after this day of the month.
+      default: 15
+      selector:
+        number:
+          min: 1
+          max: 31
+    exclude_entities:
+      name: Exclusions
+      description: Entities to ignore during update check.
+      default: []
+      selector:
+        entity:
+          domain: update
+          multiple: true
+
+mode: restart
+max_exceeded: warning
+
+variables:
+  notify_entity: !input notify_entity
+  exclude_list: !input exclude_entities
+  helper_toggle: !input helper_toggle
+  day_min: !input day_min
+  
+  # Filter available updates excluding ignored ones
+  all_updates: >
+    {{ states.update | selectattr('state', 'eq', 'on') 
+       | rejectattr('entity_id', 'in', exclude_list) 
+       | map(attribute='entity_id') | list }}
+  
+  # Identify Core update entity
+  core_entity: >
+    {% set cores = states.update | selectattr('state', 'eq', 'on') 
+       | selectattr('attributes.device_class', 'defined')
+       | selectattr('attributes.device_class', 'eq', 'firmware')
+       | selectattr('entity_id', 'search', 'home_assistant_core_update')
+       | map(attribute='entity_id') | list %}
+    {{ cores[0] if cores | length > 0 else none }}
+
+  # List of standard updates (everything except Core)
+  std_updates: >
+    {{ all_updates | reject('eq', core_entity) | list }}
+  
+  total_std: "{{ std_updates | length }}"
+  
+  # Check if Core update is scheduled based on date
+  core_allowed: >
+    {{ core_entity != none and now().day >= day_min }}
+
+trigger:
+  - platform: state
+    entity_id: !input schedule_entity
+    to: "on"
+  - platform: homeassistant
+    event: start
+
+action:
+  # Logic to resume after Core restart if helper is defined
+  - if:
+      - condition: trigger
+        id: "homeassistant_start"
+      - "{{ helper_toggle != [] }}"
+      - condition: template
+        value_template: "{{ is_state(helper_toggle, 'on') }}"
+    then:
+      # Send success notification for Core
+      - service: !input notify_entity
+        data:
+          title: "🧰  Auto-Updater » ✅ done!"
+          message: "›› Core Update installed."
+          data:
+            tag: "fordy_au_core"
+            push:
+              sound: "default"
+      # Reset helper
+      - service: input_boolean.turn_off
+        target:
+          entity_id: !input helper_toggle
+      - stop: "Resume complete."
+
+  # Stop if it was a manual restart or no updates available
+  - if:
+      - condition: or
+        conditions:
+          - condition: trigger
+            id: "homeassistant_start"
+          - "{{ all_updates | length == 0 }}"
+    then:
+      - stop: "No action required."
+
+  # Activate helper to track process
+  - if: "{{ helper_toggle != [] }}"
+    then:
+      - service: input_boolean.turn_on
+        target:
+          entity_id: !input helper_toggle
+
+  # Persistent notification for HA UI
+  - service: notify.persistent_notification
+    data:
+      title: "🧰 Auto-Updater Started"
+      message: "Updates: {{ all_updates | join(', ') }}"
+
+  # Loop through standard updates
+  - if: "{{ total_std > 0 }}"
+    then:
+      - repeat:
+          for_each: "{{ std_updates }}"
+          sequence:
+            - variables:
+                idx: "{{ repeat.index }}"
+                is_first: "{{ repeat.index == 1 }}"
+            
+            # Notify progress (silent update for items 2+)
+            - service: !input notify_entity
+              data:
+                title: "🧰 Auto-Updater » ⚙️ running…"
+                message: "›› Installing update {{ idx }} of {{ total_std }} ⏳"
+                data:
+                  tag: "fordy_au_status"
+                  push:
+                    sound: "{{ 'default' if is_first else 'none' }}"
+
+            # Execute update
+            - service: update.install
+              target:
+                entity_id: "{{ repeat.item }}"
+              
+            # Wait for completion or timeout
+            - wait_template: "{{ is_state(repeat.item, 'off') }}"
+              timeout: "00:20:00"
+              continue_on_timeout: true
+
+      # Notify completion of standard updates
+      - service: !input notify_entity
+        data:
+          title: "🧰 Auto-Updater • ✅ done!"
+          message: "» {{ total_std }} Updates installed."
+          data:
+            tag: "fordy_au_status"
+            push:
+              sound: "default"
+
+  # Core Update Logic
+  - if: "{{ core_allowed }}"
+    then:
+      # Persistent notification for Core
+      - service: notify.persistent_notification
+        data:
+          title: "🧰 Core Update"
+          message: "Core update initiated."
+
+      # Notify Core start (separate tag)
+      - service: !input notify_entity
+        data:
+          title: "🧰 Auto-Updater » ⚙️ running…"
+          message: "›› Updating Core… 💠"
+          data:
+            tag: "fordy_au_core"
+            push:
+              sound: "default"
+      
+      # Install Core (triggers reboot)
+      - service: update.install
+        target:
+          entity_id: "{{ core_entity }}"
+      
+      - delay: "00:00:15"
+
+  # System Reboot (only if Core didn't already trigger it)
+  - if: "{{ not core_allowed }}"
+    then:
+      # Notify reboot
+      - service: !input notify_entity
+        data:
+          title: "🧰 Auto-Updater • 🔄 reboot…"
+          message: "» Restarting HA Core in 15 sec. 🌀"
+          data:
+            tag: "fordy_au_status"
+            push:
+              sound: "default"
+      
+      - delay: "00:00:15"
+      
+      - service: homeassistant.restart
+
+  # Turn off helper if we reached here (no Core update happened)
+  - if: "{{ helper_toggle != [] }}"
+    then:
+      - service: input_boolean.turn_off
+        target:
+          entity_id: !input helper_toggle
