@@ -2,7 +2,7 @@
 
 :root {
     /* Restore legacy gradient colors */
-    --bg-gradient: linear-gradient(-45deg, #39ff0069, #ff4100, #ffc800, #dd4700, #0049ff69);
+    --bg-gradient: linear-gradient(-45deg, #39ff0069, #ff4100, #ffa600, #dd4700, #0049ff69);
     --box-bg: rgba(30, 30, 30, 0.9);
     --text-main: #ffffff;
     --text-muted: #cccccc;
