@@ -1,6 +1,6 @@
 [
   {
-    "category": "🔗 Social Media",
+    "category": "🔗 | Quick Links",
     "items": [
       {
         "name": "YouTube",
@@ -13,44 +13,54 @@
         "icon": "fa-brands fa-twitch"
       },
       {
+        "name": "Discord",
+        "url": "https://discordapp.com/users/238632321773731840/",
+        "icon": "fa-brands fa-discord"
+      },
+      {
         "name": "Instagram",
         "url": "https://instagram.com/elias_1731",
         "icon": "fa-brands fa-instagram"
       },
-      {
-        "name": "Discord",
-        "url": "https://discordapp.com/users/238632321773731840/",
-        "icon": "fa-brands fa-discord"
-      }
-    ]
-  },
-  {
-    "category": "🎮 Gaming",
-    "items": [
       {
         "name": "Xbox Profile",
         "url": "https://heyfordy.de/xbox/",
         "icon": "fa-brands fa-xbox"
       },
       {
-        "name": "Retro Rewind App",
-        "url": "https://rr.heyfordy.de",
-        "icon": "fa-solid fa-car-burst"
+        "name": "Web Radio",
+        "url": "https://heyfordy.de/radio/",
+        "icon": "fa-solid fa-radio"
       }
     ]
   },
   {
-    "category": "🚀 Meine Projekte",
+    "category": "🌍 | Meine Web-Apps",
     "items": [
       {
-        "name": "Web Radio",
-        "url": "https://heyfordy.de/radio/",
-        "icon": "fa-solid fa-radio"
+        "name": "Retro Rewind Rooms",
+        "url": "https://rr.heyfordy.de",
+        "icon": "fa-solid fa-car-burst"
       },
       {
-        "name": "FritzBox JSTools",
-        "url": "FritzBox-JSTool.html",
-        "icon": "fa-solid fa-server"
+        "name": "MKW Deluxe Rooms",
+        "url": "https://dx.heyfordy.de",
+        "icon": "fa-solid fa-users-viewfinder"
+      }
+    ]
+  },
+  {
+    "category": "🚀 | Weitere Projekte",
+    "items": [
+      {
+        "name": "Powerful commands",
+        "url": "https://github.com/Bitte-ein-Git/run",
+        "icon": "fa-solid fa-terminal"
+      },
+      {
+        "name": "GitHub Directory Downloader",
+        "url": "https://gitdl.heyfordy.de",
+        "icon": "fa-regular fa-file-zipper"
       },
       {
         "name": "SideStore Repo",
@@ -58,9 +68,9 @@
         "icon": "fa-brands fa-app-store-ios"
       },
       {
-        "name": "Powerful commands",
-        "url": "https://github.com/Bitte-ein-Git/run",
-        "icon": "fa-solid fa-terminal"
+        "name": "FritzBox JSTools",
+        "url": "FritzBox-JSTool.html",
+        "icon": "fa-solid fa-server"
       }
     ]
   }
