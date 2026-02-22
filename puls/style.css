@@ -1,0 +1,47 @@
+/* Global settings */
+html { background-color: #24252d; min-height: 100vh; }
+* { font-family: sans-serif; margin: 0; padding: 0; box-sizing: border-box; }
+
+/* General body styling */
+body { width: 100%; color: #fff; display: flex; flex-direction: column; min-height: 100vh; text-align: center; font-size: 1rem; margin: 0; background: linear-gradient(-45deg, #1e1f25, #1e1f25, #1e1f25, #1e1f25, #854700) 200% 200%; animation: Gradient 4s ease infinite; }
+@keyframes Gradient { 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
+
+/* Rainbow text animation */
+.rainbow-text { animation: rainbow 8s infinite; }
+@keyframes rainbow {
+    0% { color: #00aeff; }
+    25% { color: #ff3c3c; }
+    50% { color: #3cff3c; }
+    75% { color: #c83cff; }
+    100% { color: #00aeff; }
+}
+
+/* Sticky header */
+header { 
+    display: flex; justify-content: space-between; align-items: center; 
+    padding: 0.6rem 1rem;
+    padding-top: calc(0.6rem + env(safe-area-inset-top)); 
+    background: #111215a0;
+    backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+    position: sticky; top: 0; z-index: 10; flex-wrap: wrap; gap: 5px; 
+}
+header h1 { font-size: 1.8em; display: flex; align-items: center; margin: 0; flex-grow: 1; justify-content: left; text-align: left; }
+
+/* Main layout */
+main { flex: 1; display: flex; justify-content: center; align-items: center; padding: 1rem; }
+
+/* Pulse UI */
+.container { text-align: center; transition: all 0.3s ease; }
+#heart { font-size: 120px; transition: color 0.5s ease; margin-bottom: 20px; display: inline-block; }
+#status { font-size: 24px; font-weight: bold; letter-spacing: 1px; text-shadow: 1px 1px 5px rgba(0,0,0,0.5); }
+
+/* Pulse animation triggered by JS class */
+.connected #heart { animation: pulse var(--pulse-speed) infinite cubic-bezier(0.215, 0.61, 0.355, 1); }
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    15% { transform: scale(1.15); }
+    30% { transform: scale(1); }
+    45% { transform: scale(1.1); }
+    60% { transform: scale(1); }
+}

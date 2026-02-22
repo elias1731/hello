@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>OBS Live Puls</title>
+    <style>
+        body { 
+            font-family: sans-serif; 
+            background: transparent; 
+            color: white; 
+            margin: 0; 
+            display: flex; 
+            align-items: center; 
+            height: 100vh; 
+            overflow: hidden; 
+            font-weight: bold; 
+            font-size: 48px; 
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8); 
+        }
+        #hr-container { display: none; align-items: center; gap: 10px; }
+        .blink { animation: blinker 1s linear infinite; }
+        @keyframes blinker { 50% { opacity: 0; } }
+    </style>
+</head>
+<body>
+    <div id="hr-container">
+        <span class="blink">🧡</span>
+        <span id="hr-val"></span>
+    </div>
+
+    <script>
+        async function update() {
+            try {
+                // Fetch live API (adjust URL to full domain if needed)
+                const res = await fetch('https://api.heyfordy.de/puls-elias/live');
+                const data = await res.json();
+                
+                const container = document.getElementById('hr-container');
+                const val = document.getElementById('hr-val');
+                
+                if (data.connected) {
+                    val.innerText = data.heartRate;
+                    container.style.display = 'flex';
+                } else {
+                    container.style.display = 'none';
+                }
+            } catch(e) {
+                console.error(e);
+            }
+        }
+        setInterval(update, 5000);
+        update();
+    </script>
+</body>
+</html>
