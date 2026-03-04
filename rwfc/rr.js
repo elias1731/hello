@@ -2,11 +2,11 @@
 const el = (id) => document.getElementById(id);
 
 // --- Constants ---
-const API_BASE_URL = "https://api.heyfordy.de/rr_app/player";
-const DISCORD_API_URL = "https://api.heyfordy.de/rr_app/discord";
-const RWFC_API_URL = "https://api.heyfordy.de/rwfc";
-const MII_API_URL = "https://api.heyfordy.de/rr_app/mii";
-const MII_BATCH_API_URL = "https://api.heyfordy.de/rr_app/mii_batch"; // Batch API
+const API_BASE_URL = "https://api.heyfordy.dev/rr_app/player";
+const DISCORD_API_URL = "https://api.heyfordy.dev/rr_app/discord";
+const RWFC_API_URL = "https://api.heyfordy.dev/rwfc";
+const MII_API_URL = "https://api.heyfordy.dev/rr_app/mii";
+const MII_BATCH_API_URL = "https://api.heyfordy.dev/rr_app/mii_batch"; // Batch API
 const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1434643639476420889/HLW7ffk1B0-4UeGzl-8UsaLvqLjpaC7qtHz1dI8-HWWwW5b5HCgsA96_vJkExkm5Yu5A"; // Report webhook
 const MAX_MIIS_PER_REQUEST = 24;
 const MII_EXPIRE_TIME = 1000 * 60 * 60 * 24 * 7; // 7 days
@@ -855,7 +855,7 @@ async function fetch_miis_by_fc(fcs){
 }
 
 // --- Footer Version Fetching ---
-async function fetch_versions() { try { const r=await fetch("https://api.heyfordy.de/rr_app/version-rr"); if(r.ok) el("info-rr-version").textContent=` v${(await r.json()).version}`; } catch(e){} try { const w=await fetch("https://api.heyfordy.de/rr_app/version-ww"); if(w.ok) el("info-ww-version").textContent=` v${(await w.json()).version}`; } catch(e){} }
+async function fetch_versions() { try { const r=await fetch("https://api.heyfordy.dev/rr_app/version-rr"); if(r.ok) el("info-rr-version").textContent=` v${(await r.json()).version}`; } catch(e){} try { const w=await fetch("https://api.heyfordy.dev/rr_app/version-ww"); if(w.ok) el("info-ww-version").textContent=` v${(await w.json()).version}`; } catch(e){} }
 
 // --- Initialization ---
 async function on_load(){

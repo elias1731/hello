@@ -24,12 +24,12 @@
       },
       {
         "name": "Xbox Profile",
-        "url": "https://heyfordy.de/xbox/",
+        "url": "https://heyfordy.dev/xbox/",
         "icon": "fa-brands fa-xbox"
       },
       {
         "name": "Web Radio",
-        "url": "https://heyfordy.de/radio/",
+        "url": "https://heyfordy.dev/radio/",
         "icon": "fa-solid fa-radio"
       }
     ]
@@ -39,12 +39,12 @@
     "items": [
       {
         "name": "Retro Rewind Rooms",
-        "url": "https://rr.heyfordy.de",
+        "url": "https://rr.heyfordy.dev",
         "icon": "fa-solid fa-car-burst"
       },
       {
         "name": "MKW Deluxe Rooms",
-        "url": "https://dx.heyfordy.de",
+        "url": "https://dx.heyfordy.dev",
         "icon": "fa-solid fa-users-viewfinder"
       }
     ]
@@ -59,12 +59,12 @@
       },
       {
         "name": "GitHub Directory Downloader",
-        "url": "https://gitdl.heyfordy.de",
+        "url": "https://gitdl.heyfordy.dev",
         "icon": "fa-regular fa-file-zipper"
       },
       {
         "name": "SideStore Repo",
-        "url": "https://repo.heyfordy.de/",
+        "url": "https://repo.heyfordy.dev/",
         "icon": "fa-brands fa-app-store-ios"
       },
       {

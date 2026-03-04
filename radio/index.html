@@ -183,13 +183,13 @@
 	<script>
 		/* --- State --- */
 		const defaultStations = [
-			{ isDefault: true, name: "Eldoradio 🇱🇺", displayName: "E L D O", apiId: "eldoradio", url: "https://sc.bce.lu/eldo", logo: "https://heyfordy.de/radio/assets/eldo.lu.png" },
-			{ isDefault: true, name: "RADIO BOB! • National🤘", displayName: "RADIO BOB!", apiId: "radio-bob", url: "https://streams.radiobob.de/bob-national/mp3-320/mediaplayer", logo: "https://heyfordy.de/radio/assets/radio-bob.png" },
-			{ isDefault: true, name: "RTL Luxemburg 🇱🇺", displayName: "RTL.lu", apiId: "rtl.lu", url: "https://sc.bce.lu/rtl", logo: "https://heyfordy.de/radio/assets/rtl.lu.png" },
-			{ isDefault: true, name: "Rockland Radio • Trier", displayName: "ROCKLAND", apiId: "rockland", url: "https://streams.rockland.de/trier/mp3-192/direkt/", logo: "https://heyfordy.de/radio/assets/rockland.png" },
-			{ isDefault: true, name: "Sunshine LIVE☀️", displayName: "SUNSHINE LIVE", apiId: "sunshine", url: "https://sunsl.streamabc.net/sunsl-sslsimulcast-mp3-192-4434053", logo: "https://heyfordy.de/radio/assets/sunshine.png" },
-			{ isDefault: true, name: "Sunshine Eurodance🪩", displayName: "SUNSHINE EURODANCE", apiId: "sunshine-eurodance", url: "https://sunsl.streamabc.net/sunsl-eurodance-mp3-192-9832422", logo: "https://heyfordy.de/radio/assets/sunshine-eurodance.png" },
-			{ isDefault: true, name: "RADIO ENERGY ⚡️", displayName: "RADIO NRJ", apiId: "nrj", url: "https://edge24.streamonkey.net/energy-digital?aggregator=energy-digital", logo: "https://heyfordy.de/radio/assets/nrj.png" }
+			{ isDefault: true, name: "Eldoradio 🇱🇺", displayName: "E L D O", apiId: "eldoradio", url: "https://sc.bce.lu/eldo", logo: "https://heyfordy.dev/radio/assets/eldo.lu.png" },
+			{ isDefault: true, name: "RADIO BOB! • National🤘", displayName: "RADIO BOB!", apiId: "radio-bob", url: "https://streams.radiobob.de/bob-national/mp3-320/mediaplayer", logo: "https://heyfordy.dev/radio/assets/radio-bob.png" },
+			{ isDefault: true, name: "RTL Luxemburg 🇱🇺", displayName: "RTL.lu", apiId: "rtl.lu", url: "https://sc.bce.lu/rtl", logo: "https://heyfordy.dev/radio/assets/rtl.lu.png" },
+			{ isDefault: true, name: "Rockland Radio • Trier", displayName: "ROCKLAND", apiId: "rockland", url: "https://streams.rockland.de/trier/mp3-192/direkt/", logo: "https://heyfordy.dev/radio/assets/rockland.png" },
+			{ isDefault: true, name: "Sunshine LIVE☀️", displayName: "SUNSHINE LIVE", apiId: "sunshine", url: "https://sunsl.streamabc.net/sunsl-sslsimulcast-mp3-192-4434053", logo: "https://heyfordy.dev/radio/assets/sunshine.png" },
+			{ isDefault: true, name: "Sunshine Eurodance🪩", displayName: "SUNSHINE EURODANCE", apiId: "sunshine-eurodance", url: "https://sunsl.streamabc.net/sunsl-eurodance-mp3-192-9832422", logo: "https://heyfordy.dev/radio/assets/sunshine-eurodance.png" },
+			{ isDefault: true, name: "RADIO ENERGY ⚡️", displayName: "RADIO NRJ", apiId: "nrj", url: "https://edge24.streamonkey.net/energy-digital?aggregator=energy-digital", logo: "https://heyfordy.dev/radio/assets/nrj.png" }
 		];
 
 		let stations = JSON.parse(localStorage.getItem('radio_stations')) || defaultStations;
@@ -311,7 +311,7 @@
 			if (metaInterval) clearInterval(metaInterval);
 			const fetchInfo = () => {
 				if (audio.paused || !audio.src || audio.src === window.location.href) return;
-				fetch('https://api.heyfordy.de/radio').then(r=>r.json()).then(d => {
+				fetch('https://api.heyfordy.dev/radio').then(r=>r.json()).then(d => {
 					const sd = d.find(i => i.id === station.apiId);
 					handleStationData(station, sd?.playing, sd?.art || station.liveArt, sd?.logo || station.logo);
 				}).catch(() => handleStationData(station, null, station.liveArt, station.logo));

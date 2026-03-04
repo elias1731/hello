@@ -7,7 +7,7 @@
 
 A simple web app that displays the current online rooms for **Retro Rewind**, a Custom Track-Distribution for Mario Kart Wii.
 
-**App available at: [https://rr.heyfordy.de](https://rr.heyfordy.de)**
+**App available at: [https://rr.heyfordy.dev](https://rr.heyfordy.dev)**
 
 ## 🚀 Features
 
@@ -40,6 +40,6 @@ A simple web app that displays the current online rooms for **Retro Rewind**, a 
 
 This project is licensed under the [MIT](./LICENSE) License.
 
-Copyright © 2025 [rr.heyfordy.de](https://rr.heyfordy.de)
+Copyright © 2025 [rr.heyfordy.dev](https://rr.heyfordy.dev)
 
 If you use or adapt this code for your own projects, please provide attribution by linking back to the original repository or website.

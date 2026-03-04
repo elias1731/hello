@@ -35,7 +35,7 @@
      <key>Precomposed</key>
      <false/>
      <key>URL</key>
-     <string>https://api.heyfordy.de/puls-elias</string>
+     <string>https://api.heyfordy.dev/puls-elias</string>
    </dict>
  </array>
  <key>PayloadDescription</key>
