@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trash-TV Streamer</title>
+    <style>
+        /* basic dark mode layout */
+        body { background: #121212; color: #e0e0e0; font-family: monospace; padding: 20px; }
+        h1 { color: #bb86fc; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; margin-top: 20px; }
+        .card { background: #1e1e1e; padding: 15px; border-radius: 5px; cursor: pointer; text-align: center; border: 1px solid #333; }
+        .card:hover { background: #333; border-color: #bb86fc; }
+        #status { margin-top: 20px; color: #ffeb3b; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <h1>Trash-TV Auto-Streamer</h1>
+    <div id="status">Initializing...</div>
+    <div id="content" class="grid"></div>
+
+    <script>
+        // Constants for target and proxy
+        const PROXY = "https://corsproxy.io/?";
+        const BASE_URL = "https://s.to";
+        const SERIES_URL = "/serie/trashtvwaskeinersehenwl/";
+        
+        const contentDiv = document.getElementById("content");
+        const statusDiv = document.getElementById("status");
+
+        // Fetch HTML content via CORS proxy
+        async function fetchHtml(path) {
+            statusDiv.innerText = "Fetching: " + path;
+            const url = path.startsWith("http") ? path : BASE_URL + path;
+            const res = await fetch(PROXY + encodeURIComponent(url));
+            const text = await res.text();
+            const parser = new DOMParser();
+            return parser.parseFromString(text, "text/html");
+        }
+
+        // Init app and load available seasons
+        async function init() {
+            try {
+                const doc = await fetchHtml(SERIES_URL);
+                const seasonLinks = Array.from(doc.querySelectorAll('a[href*="/staffel-"]'));
+                
+                contentDiv.innerHTML = "";
+                const seen = new Set();
+                
+                seasonLinks.forEach(link => {
+                    const href = link.getAttribute("href");
+                    if (seen.has(href)) return;
+                    seen.add(href);
+                    
+                    const el = document.createElement("div");
+                    el.className = "card";
+                    el.innerText = link.innerText.trim() || "Staffel " + href.split("-").pop();
+                    el.onclick = () => loadEpisodes(href);
+                    contentDiv.appendChild(el);
+                });
+                statusDiv.innerText = "Wähle eine Staffel";
+            } catch (e) {
+                statusDiv.innerText = "Fehler. Evtl. Proxy down oder Serie offline.";
+            }
+        }
+
+        // Load episodes for selected season
+        async function loadEpisodes(seasonPath) {
+            try {
+                const doc = await fetchHtml(seasonPath);
+                const epLinks = Array.from(doc.querySelectorAll('a[href*="/episode-"]'));
+                
+                contentDiv.innerHTML = "";
+                const seen = new Set();
+                
+                epLinks.forEach(link => {
+                    const href = link.getAttribute("href");
+                    if (seen.has(href)) return;
+                    seen.add(href);
+                    
+                    const el = document.createElement("div");
+                    el.className = "card";
+                    el.innerText = "Episode " + href.split("-").pop();
+                    el.onclick = () => playEpisode(href);
+                    contentDiv.appendChild(el);
+                });
+                statusDiv.innerText = "Wähle eine Episode";
+            } catch (e) {
+                statusDiv.innerText = "Fehler beim Laden der Episoden.";
+            }
+        }
+
+        // Fetch hosters, pick highest quality German stream and redirect
+        async function playEpisode(epPath) {
+            try {
+                const doc = await fetchHtml(epPath);
+                const buttons = Array.from(doc.querySelectorAll('button.link-box'));
+                
+                let bestUrl = null;
+                
+                buttons.forEach(btn => {
+                    const playUrl = btn.getAttribute("data-play-url");
+                    const lang = btn.getAttribute("data-language-id");
+                    
+                    // Prioritize German language (ID 1)
+                    if (playUrl && lang === "1" && !bestUrl) {
+                        bestUrl = playUrl;
+                    }
+                });
+                
+                // Fallback if no German stream is found
+                if (!bestUrl && buttons.length > 0) {
+                    bestUrl = buttons[0].getAttribute("data-play-url");
+                }
+                
+                if (bestUrl) {
+                    statusDiv.innerText = "Stream gefunden. Leite weiter...";
+                    window.location.href = BASE_URL + bestUrl; 
+                } else {
+                    statusDiv.innerText = "Keine Streams für diese Episode verfügbar.";
+                }
+            } catch (e) {
+                statusDiv.innerText = "Fehler beim Auflösen des Streams.";
+            }
+        }
+
+        init();
+    </script>
+</body>
+</html>
