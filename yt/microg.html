@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MicroG Downloader</title>
+</head>
+<body>
+    <p>Downloading latest GmsCore...</p>
+    <script>
+        // Fetch latest release from GitHub API
+        fetch('https://api.github.com/repos/ReVanced/GmsCore/releases/latest')
+            .then(res => res.json())
+            .then(data => {
+                // Filter for standard signed apk, exclude hw-signed
+                const targetAsset = data.assets.find(asset => 
+                    asset.name.endsWith('-signed.apk') && !asset.name.includes('hw-signed')
+                );
+                
+                if (targetAsset) {
+                    // Trigger download via redirect
+                    window.location.href = targetAsset.browser_download_url;
+                } else {
+                    document.body.innerHTML = 'Error: Target APK not found in latest release.';
+                }
+            })
+            .catch(err => {
+                // Handle API or network errors
+                document.body.innerHTML = 'Error: Failed to fetch from GitHub API. Rate limited?';
+                console.error(err);
+            });
+    </script>
+</body>
+</html>

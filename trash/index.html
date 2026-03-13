@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trash-TV Streamer</title>
+    <style>
+        body { background: #121212; color: #e0e0e0; font-family: monospace; padding: 20px; }
+        h1 { color: #bb86fc; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; margin-top: 20px; }
+        .card { background: #1e1e1e; padding: 15px; border-radius: 5px; cursor: pointer; text-align: center; border: 1px solid #333; }
+        .card:hover { background: #333; border-color: #bb86fc; }
+        #status { margin-top: 20px; color: #ffeb3b; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <h1>Trash-TV Auto-Streamer</h1>
+    <div id="status">Initializing...</div>
+    <div id="content" class="grid"></div>
+
+    <script>
+        const PROXY = "https://corsproxy.io/?";
+        const BASE_URL = "https://s.to";
+        const SERIES_URL = "/serie/trashtvwaskeinersehenwl";
+        
+        const contentDiv = document.getElementById("content");
+        const statusDiv = document.getElementById("status");
+
+        async function fetchHtml(path) {
+            statusDiv.innerText = "Fetching: " + path;
+            const url = path.startsWith("http") ? path : BASE_URL + path;
+            const res = await fetch(PROXY + encodeURIComponent(url));
+            const text = await res.text();
+            const parser = new DOMParser();
+            return parser.parseFromString(text, "text/html");
+        }
+
+        async function init() {
+            try {
+                const doc = await fetchHtml(SERIES_URL);
+                const allLinks = Array.from(doc.querySelectorAll('a'));
+                
+                // MATCH EXACTLY LIKE PYTHON REGEX: strictly ends with /staffel-X
+                const seasonLinks = allLinks.filter(a => {
+                    const href = a.getAttribute("href");
+                    return href && /\/staffel-\d+$/.test(href);
+                });
+                
+                contentDiv.innerHTML = "";
+                const seen = new Set();
+                
+                seasonLinks.forEach(link => {
+                    const href = link.getAttribute("href");
+                    if (seen.has(href)) return;
+                    seen.add(href);
+                    
+                    const el = document.createElement("div");
+                    el.className = "card";
+                    
+                    // EXTRACT EXACT SEASON NUMBER FOR DISPLAY
+                    const sNum = href.match(/\/staffel-(\d+)$/)[1];
+                    el.innerText = "Staffel " + sNum;
+                    
+                    el.onclick = () => loadEpisodes(href);
+                    contentDiv.appendChild(el);
+                });
+                
+                if(seen.size === 0) throw new Error("Keine Staffeln gefunden. (Cloudflare Block?)");
+                statusDiv.innerText = "Wähle eine Staffel";
+            } catch (e) {
+                statusDiv.innerText = e.message || "Fehler. Evtl. Proxy down oder Serie offline.";
+            }
+        }
+
+        async function loadEpisodes(seasonPath) {
+            try {
+                const doc = await fetchHtml(seasonPath);
+                const allLinks = Array.from(doc.querySelectorAll('a'));
+                
+                // MATCH EXACTLY LIKE PYTHON REGEX: strictly ends with /episode-X
+                const epLinks = allLinks.filter(a => {
+                    const href = a.getAttribute("href");
+                    return href && /\/episode-\d+$/.test(href);
+                });
+                
+                contentDiv.innerHTML = "";
+                const seen = new Set();
+                
+                epLinks.forEach(link => {
+                    const href = link.getAttribute("href");
+                    if (seen.has(href)) return;
+                    seen.add(href);
+                    
+                    const el = document.createElement("div");
+                    el.className = "card";
+                    
+                    // EXTRACT EXACT EPISODE NUMBER FOR DISPLAY
+                    const epNum = href.match(/\/episode-(\d+)$/)[1];
+                    el.innerText = "Episode " + epNum;
+                    
+                    el.onclick = () => playEpisode(href);
+                    contentDiv.appendChild(el);
+                });
+                
+                if(seen.size === 0) throw new Error("Keine Episoden gefunden.");
+                statusDiv.innerText = "Wähle eine Episode";
+            } catch (e) {
+                statusDiv.innerText = e.message || "Fehler beim Laden der Episoden.";
+            }
+        }
+
+        async function playEpisode(epPath) {
+            try {
+                const doc = await fetchHtml(epPath);
+                const buttons = Array.from(doc.querySelectorAll('button.link-box'));
+                
+                let bestUrl = null;
+                
+                buttons.forEach(btn => {
+                    const playUrl = btn.getAttribute("data-play-url");
+                    const lang = btn.getAttribute("data-language-id");
+                    
+                    if (playUrl && lang === "1" && !bestUrl) {
+                        bestUrl = playUrl;
+                    }
+                });
+                
+                if (!bestUrl && buttons.length > 0) {
+                    bestUrl = buttons[0].getAttribute("data-play-url");
+                }
+                
+                if (bestUrl) {
+                    statusDiv.innerText = "Stream gefunden. Leite weiter...";
+                    window.location.href = BASE_URL + bestUrl; 
+                } else {
+                    statusDiv.innerText = "Keine Streams für diese Episode verfügbar.";
+                }
+            } catch (e) {
+                statusDiv.innerText = "Fehler beim Auflösen des Streams.";
+            }
+        }
+
+        init();
+    </script>
+</body>
+</html>

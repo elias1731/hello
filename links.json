@@ -68,6 +68,15 @@
         "icon": "fa-brands fa-app-store-ios"
       },
       {
+        "name": "AppLink Extension",
+        "url": "https://github.com/Bitte-ein-Git/applink-extension",
+        "icon": "fa-solid fa-puzzle-piece"
+      },
+      {
+        "name": "Android DL-URLs",
+        "url": "https://heyfordy.dev/tvurls",
+        "icon": "fa-brands fa-android"
+      },      {
         "name": "FritzBox JSTools",
         "url": "FritzBox-JSTool.html",
         "icon": "fa-solid fa-server"
