@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Trash-TV Streamer</title>
     <style>
-        /* basic dark mode layout */
         body { background: #121212; color: #e0e0e0; font-family: monospace; padding: 20px; }
         h1 { color: #bb86fc; }
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; margin-top: 20px; }
@@ -21,15 +20,13 @@
     <div id="content" class="grid"></div>
 
     <script>
-        // Constants for target and proxy
         const PROXY = "https://corsproxy.io/?";
         const BASE_URL = "https://s.to";
-        const SERIES_URL = "/serie/trashtvwaskeinersehenwl/";
+        const SERIES_URL = "/serie/trashtvwaskeinersehenwl";
         
         const contentDiv = document.getElementById("content");
         const statusDiv = document.getElementById("status");
 
-        // Fetch HTML content via CORS proxy
         async function fetchHtml(path) {
             statusDiv.innerText = "Fetching: " + path;
             const url = path.startsWith("http") ? path : BASE_URL + path;
@@ -39,11 +36,16 @@
             return parser.parseFromString(text, "text/html");
         }
 
-        // Init app and load available seasons
         async function init() {
             try {
                 const doc = await fetchHtml(SERIES_URL);
-                const seasonLinks = Array.from(doc.querySelectorAll('a[href*="/staffel-"]'));
+                const allLinks = Array.from(doc.querySelectorAll('a'));
+                
+                // MATCH EXACTLY LIKE PYTHON REGEX: strictly ends with /staffel-X
+                const seasonLinks = allLinks.filter(a => {
+                    const href = a.getAttribute("href");
+                    return href && /\/staffel-\d+$/.test(href);
+                });
                 
                 contentDiv.innerHTML = "";
                 const seen = new Set();
@@ -55,21 +57,32 @@
                     
                     const el = document.createElement("div");
                     el.className = "card";
-                    el.innerText = link.innerText.trim() || "Staffel " + href.split("-").pop();
+                    
+                    // EXTRACT EXACT SEASON NUMBER FOR DISPLAY
+                    const sNum = href.match(/\/staffel-(\d+)$/)[1];
+                    el.innerText = "Staffel " + sNum;
+                    
                     el.onclick = () => loadEpisodes(href);
                     contentDiv.appendChild(el);
                 });
+                
+                if(seen.size === 0) throw new Error("Keine Staffeln gefunden. (Cloudflare Block?)");
                 statusDiv.innerText = "Wähle eine Staffel";
             } catch (e) {
-                statusDiv.innerText = "Fehler. Evtl. Proxy down oder Serie offline.";
+                statusDiv.innerText = e.message || "Fehler. Evtl. Proxy down oder Serie offline.";
             }
         }
 
-        // Load episodes for selected season
         async function loadEpisodes(seasonPath) {
             try {
                 const doc = await fetchHtml(seasonPath);
-                const epLinks = Array.from(doc.querySelectorAll('a[href*="/episode-"]'));
+                const allLinks = Array.from(doc.querySelectorAll('a'));
+                
+                // MATCH EXACTLY LIKE PYTHON REGEX: strictly ends with /episode-X
+                const epLinks = allLinks.filter(a => {
+                    const href = a.getAttribute("href");
+                    return href && /\/episode-\d+$/.test(href);
+                });
                 
                 contentDiv.innerHTML = "";
                 const seen = new Set();
@@ -81,17 +94,22 @@
                     
                     const el = document.createElement("div");
                     el.className = "card";
-                    el.innerText = "Episode " + href.split("-").pop();
+                    
+                    // EXTRACT EXACT EPISODE NUMBER FOR DISPLAY
+                    const epNum = href.match(/\/episode-(\d+)$/)[1];
+                    el.innerText = "Episode " + epNum;
+                    
                     el.onclick = () => playEpisode(href);
                     contentDiv.appendChild(el);
                 });
+                
+                if(seen.size === 0) throw new Error("Keine Episoden gefunden.");
                 statusDiv.innerText = "Wähle eine Episode";
             } catch (e) {
-                statusDiv.innerText = "Fehler beim Laden der Episoden.";
+                statusDiv.innerText = e.message || "Fehler beim Laden der Episoden.";
             }
         }
 
-        // Fetch hosters, pick highest quality German stream and redirect
         async function playEpisode(epPath) {
             try {
                 const doc = await fetchHtml(epPath);
@@ -103,13 +121,11 @@
                     const playUrl = btn.getAttribute("data-play-url");
                     const lang = btn.getAttribute("data-language-id");
                     
-                    // Prioritize German language (ID 1)
                     if (playUrl && lang === "1" && !bestUrl) {
                         bestUrl = playUrl;
                     }
                 });
                 
-                // Fallback if no German stream is found
                 if (!bestUrl && buttons.length > 0) {
                     bestUrl = buttons[0].getAttribute("data-play-url");
                 }
