@@ -71,9 +71,6 @@
 			<i class="fa-solid fa-radio" style="margin-right: 12px; color: var(--accent);"></i>
 			<span class="rainbow-text">» 𝓱𝓮𝔂𝓕𝓸𝓻𝓭𝔂.dev 𝗥𝗮𝗱𝗶ο</span>
 		</div>
-		<div class="header-actions">
-			<button onclick="openSettings()" class="round-btn"><i class="fa-solid fa-gear"></i></button>
-		</div>
 	</header>
 
 	<div class="layout-wrapper">
@@ -84,7 +81,7 @@
 					<img id="player-overlay-logo" class="station-logo-overlay" src="" alt="Station Overlay">
 				</div>
 				
-				<div id="player-title">𝓕𝓸𝓻𝓭𝔂•Radio</div>
+				<div id="player-title">𝓕𝓸𝓻𝓭𝔂•𝗥𝗮𝗱𝗶ο</div>
 				<div id="player-artist"></div>
 				
 				<div id="player-status">◽️ BEREIT</div>
@@ -126,54 +123,24 @@
 		</div>
 	</footer>
 
-	<div id="settings-modal" class="modal">
-		<div class="modal-content">
-			<button class="modal-close-btn-x" onclick="closeSettings()"><i class="fa-solid fa-xmark"></i></button>
-			<h3 class="modal-title">Einstellungen</h3>
-			<div class="switch-container">
-				<span class="switch-label">Letzten Sender merken</span>
-				<label class="switch">
-					<input type="checkbox" id="autoplay-toggle" onchange="saveSettings()">
-					<span class="slider"></span>
-				</label>
-			</div>
-			<div class="switch-container">
-				<span class="switch-label">iTunes Album Cover laden</span>
-				<label class="switch">
-					<input type="checkbox" id="itunes-toggle" onchange="saveSettings()">
-					<span class="slider"></span>
-				</label>
-			</div>
-			<button onclick="clearCache()" class="manage-btn" style="color: #ff4444; border-color: rgba(255,0,0,0.2); margin-top: 20px;">
-				<i class="fa-solid fa-trash-can" style="margin-right: 8px;"></i> Cache leeren & Reload
-			</button>
-		</div>
-	</div>
-
 	<div id="manager-modal" class="modal">
 		<div class="modal-content">
 			<button class="modal-close-btn-x" onclick="closeManager()"><i class="fa-solid fa-xmark"></i></button>
 			<h3 class="modal-title">Sender verwalten</h3>
 			<div id="settings-list" style="margin-bottom: 25px;"></div>
+			
 			<div style="background: rgba(255,255,255,0.03); padding: 20px; border-radius: 20px;">
-				<h4 style="margin-bottom: 15px;">Sender hinzufügen</h4>
-				<div class="tabs">
-					<button id="tab-btn-search" class="tab-btn active" onclick="switchTab('search')">Suche</button>
-					<button id="tab-btn-manual" class="tab-btn" onclick="switchTab('manual')">Manuell</button>
-				</div>
-				<div id="tab-search" class="tab-content active">
-					<input type="text" id="search-query" placeholder="Sender suchen..." oninput="debounceSearch()">
-					<div id="search-results" style="max-height: 200px; overflow-y: auto;"></div>
-				</div>
-				<div id="tab-manual" class="tab-content" style="display:none;">
-					<input type="text" id="new-name" placeholder="Name (Liste)">
-					<input type="text" id="new-displayname" placeholder="Name (Player)">
+				<h4 style="margin-bottom: 15px;">Sender manuell hinzufügen</h4>
+				<div class="tab-content active" style="display:block;">
+					<input type="text" id="new-name" placeholder="Name">
 					<input type="text" id="new-url" placeholder="Stream URL">
 					<input type="text" id="new-logo" placeholder="Logo URL (optional)">
-					<input type="text" id="new-art" placeholder="Live Artwork URL (optional)">
 					<button onclick="addStationManual()" class="modal-btn save">Speichern</button>
 				</div>
 			</div>
+			<button onclick="clearCache()" class="manage-btn" style="color: #ff4444; border-color: rgba(255,0,0,0.2); margin-top: 20px;">
+				<i class="fa-solid fa-trash-can" style="margin-right: 8px;"></i> Cache leeren & Reload
+			</button>
 		</div>
 	</div>
 
@@ -185,26 +152,23 @@
 			{ isDefault: true, name: "AirPlay (Lokal)", displayName: "AirPlay", apiId: "airplay", url: "http://10.69.254.100:8090/stream", logo: "https://raw.githubusercontent.com/Bitte-ein-Git/ha_repo/refs/heads/development/airplay_web/icon.png", metaUrl: "http://10.69.254.100:8090/meta", coverUrl: "http://10.69.254.100:8090/cover" },
 			{ isDefault: true, name: "Eldoradio Lëtzebuerg", displayName: "E L D O", apiId: "eldoradio", url: "https://sc.bce.lu/eldo", logo: "https://heyfordy.dev/radio/assets/eldo.lu.png" },
 			{ isDefault: true, name: "RADiO BOB! (National)", displayName: "RADiO BOB!", apiId: "radio-bob", url: "https://streams.radiobob.de/bob-national/mp3-320/mediaplayer", logo: "https://heyfordy.dev/radio/assets/radio-bob.png" },
-			{ isDefault: true, name: "RTL Lëtzebuerg", displayName: "RTL.lu", apiId: "rtl.lu", url: "https://sc.bce.lu/rtl", logo: "https://heyfordy.dev/radio/assets/rtl.lu.png" },
+			{ isDefault: true, name: "RTL Lëtzebuerg", displayName: "RTL.lu", apiId: "rtl-lux", url: "https://sc.bce.lu/rtl", logo: "https://heyfordy.dev/radio/assets/rtl.lu.png" },
 			{ isDefault: true, name: "Rockland Radio Trier", displayName: "Rockland", apiId: "rockland", url: "https://streams.rockland.de/trier/mp3-192/direkt/", logo: "https://heyfordy.dev/radio/assets/rockland.png" },
-			{ isDefault: true, name: "Sunshine LIVE", displayName: "SUNSHINE LIVE", apiId: "sunshine", url: "https://sunsl.streamabc.net/sunsl-sslsimulcast-mp3-192-4434053", logo: "https://heyfordy.dev/radio/assets/sunshine.png" },
+			{ isDefault: true, name: "Sunshine LIVE", displayName: "SUNSHINE LIVE", apiId: "sunshine-live", url: "https://sunsl.streamabc.net/sunsl-sslsimulcast-mp3-192-4434053", logo: "https://heyfordy.dev/radio/assets/sunshine.png" },
+			{ isDefault: true, name: "Sunshine LIVE • 90s", displayName: "SUNSHINE 90s", apiId: "sunshine-90s", url: "https://sunsl.streamabc.net/sunsl-90er-mp3-192-9697679", logo: "https://heyfordy.dev/radio/assets/sunshine-90s.png" },
 			{ isDefault: true, name: "Sunshine Eurodance", displayName: "SUNSHINE E.DANCE", apiId: "sunshine-eurodance", url: "https://sunsl.streamabc.net/sunsl-eurodance-mp3-192-9832422", logo: "https://heyfordy.dev/radio/assets/sunshine-eurodance.png" },
 			{ isDefault: true, name: "RADIO ENERGY", displayName: "RADIO NRJ", apiId: "nrj", url: "https://edge24.streamonkey.net/energy-digital?aggregator=energy-digital", logo: "https://heyfordy.dev/radio/assets/nrj.png" }
 		];
 
 		let stations = JSON.parse(localStorage.getItem('radio_stations'));
-		if (!stations || !stations.find(s => s.apiId === 'airplay')) {
+		if (!stations || !stations.find(s => s.apiId === 'airplay') || !stations.find(s => s.apiId === 'sunshine-90s')) {
 			stations = defaultStations;
 			localStorage.setItem('radio_stations', JSON.stringify(stations));
 		}
 		
-		let rememberLastStation = JSON.parse(localStorage.getItem('radio_remember')) || false;
-		let itunesEnabled = JSON.parse(localStorage.getItem('radio_itunes_enabled')) !== false; 
 		let lastPlayedIndex = parseInt(localStorage.getItem('radio_last_index')) || 0;
-		
 		let currentStationIndex = -1;
 		let metaInterval = null;
-		let searchTimeout = null;
 		let lastTrackRaw = ""; 
 		let footerOpen = false;
 		let mediaRotationInterval = null; 
@@ -216,12 +180,10 @@
 
 		const dummyAudioSrc = "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA";
 		let airplayLastTitle = "";
-		let airplayCoverUrl = "";
+		let currentCoverUrl = ""; // track to prevent unnecessary fade animations
 
 		/* --- Init --- */
 		renderStations();
-		document.getElementById('autoplay-toggle').checked = rememberLastStation;
-		document.getElementById('itunes-toggle').checked = itunesEnabled;
 		handleStartup();
 
 		if (typeof Windows !== 'undefined') {
@@ -264,7 +226,7 @@
 			if (playParam) {
 				let idx = stations.findIndex(s => s.apiId === playParam);
 				if (idx !== -1) playStation(idx);
-			} else if (rememberLastStation && lastPlayedIndex >= 0 && lastPlayedIndex < stations.length) {
+			} else if (lastPlayedIndex >= 0 && lastPlayedIndex < stations.length) {
 				currentStationIndex = lastPlayedIndex;
 				resetToStationView();
 				updateStatus("ready");
@@ -279,8 +241,11 @@
 			updateStatus("loading");
 			updatePlayBtn(true);
 			hideOverlayLogo();
+			
+			// reset local states to enforce animation on station change
 			lastTrackRaw = ""; 
 			airplayLastTitle = "";
+			currentCoverUrl = "";
 			
 			document.getElementById('player-title').innerText = s.displayName;
 			document.getElementById('player-artist').innerText = "𝓕𝓸𝓻𝓭𝔂•𝗥𝗮𝗱𝗶𝗼";
@@ -382,12 +347,10 @@
 				} else {
 					if (!audio.src || audio.src === window.location.href || audio.src.startsWith('data:')) return;
 					fetch('https://api.heyfordy.dev/radio').then(r=>r.json()).then(d => {
-						const sd = d.find(i => i.id === station.apiId);
-						const isPlaying = sd ? sd.playing : null;
-						const finalArt = (sd && sd.art) ? sd.art : station.liveArt;
-						const finalLogo = (sd && sd.logo) ? sd.logo : station.logo;
-						handleStationData(station, isPlaying, finalArt, finalLogo);
-					}).catch(() => handleStationData(station, null, station.liveArt, station.logo));
+						// fix: api liefert jetzt ein objekt!
+						const sd = d[station.apiId];
+						handleStationData(station, sd);
+					}).catch(() => handleStationData(station, null));
 				}
 			};
 			fetchInfo();
@@ -408,12 +371,13 @@
 				document.getElementById('player-title').innerText = trackTitle;
 				document.getElementById('player-artist').innerText = trackArtist;
 
+				let newCover = currentCoverUrl;
 				if (trackTitle !== airplayLastTitle) {
-					airplayCoverUrl = station.coverUrl + "?t=" + new Date().getTime();
+					newCover = station.coverUrl + "?t=" + new Date().getTime();
 					airplayLastTitle = trackTitle;
 				}
 
-				updateCoverAndSession(airplayCoverUrl, trackTitle, trackArtist, false, station.logo, station);
+				updateCoverAndSession(newCover, trackTitle, trackArtist, false, station.logo, station);
 			} else {
 				if (!audio.src.startsWith('data:')) {
 					audio.loop = true;
@@ -428,57 +392,72 @@
 			}
 		}
 
-		async function handleStationData(station, rawTitle, apiArt, fallbackLogo) {
+		async function handleStationData(station, sd) {
 			if (audio.paused || !audio.src || !audio.src.includes('://')) return;
+			
+			// extrahiere daten nach dem neuen format
+			let rawTitle = sd ? (sd.track || "").trim() : "";
+			let rawArtist = sd ? (sd.artist || "").trim() : "";
+			let apiArt = sd ? (sd.cover || null) : null;
 			
 			if (station.apiId === 'rockland') {
 				if (apiArt && apiArt.includes('lqv1b91s.png')) apiArt = null; 
-				if (rawTitle) {
-					rawTitle = rawTitle.replace('Rockland Radio - Werbung', 'Werbung');
-					rawTitle = rawTitle.replace('Rockland Radio - Nachrichten', 'Nachrichten');
+				if (rawTitle) rawTitle = rawTitle.replace('Rockland Radio - Werbung', 'Werbung').replace('Rockland Radio - Nachrichten', 'Nachrichten');
+				if (rawArtist) rawArtist = rawArtist.replace('Rockland Radio - Werbung', 'Werbung').replace('Rockland Radio - Nachrichten', 'Nachrichten');
+			}
+
+			const isUnavailable = (rawTitle.toLowerCase().includes("info unavailable") || rawArtist.toLowerCase().includes("info unavailable"));
+
+			if (isUnavailable || (!rawTitle && !rawArtist)) {
+				resetToStationView();
+				lastTrackRaw = "";
+				return;
+			}
+
+			let trackTitle = "";
+			let trackArtist = "";
+
+			if (rawTitle && rawArtist) {
+				trackTitle = rawTitle;
+				trackArtist = rawArtist;
+			} else if (rawTitle && !rawArtist) {
+				trackTitle = rawTitle;
+				trackArtist = station.displayName;
+			} else if (!rawTitle && rawArtist) {
+				trackTitle = rawArtist;
+				trackArtist = station.displayName;
+			}
+
+			const currentCombo = trackTitle + "|||" + trackArtist;
+			if (currentCombo === lastTrackRaw) return;
+			lastTrackRaw = currentCombo;
+
+			document.getElementById('player-title').innerText = trackTitle;
+			document.getElementById('player-artist').innerText = trackArtist;
+			
+			let finalArt = apiArt;
+			let showOverlay = !!apiArt;
+
+			// Suche nach CoverArt nur wenn kein cover vorhanden und daten vorliegen
+			if (!finalArt && trackTitle && trackArtist) {
+				const lowerTitle = trackTitle.toLowerCase();
+				const lowerStation = station.name.toLowerCase();
+				const lowerDisplay = station.displayName.toLowerCase();
+				
+				if (!lowerTitle.includes(lowerStation) && !lowerTitle.includes(lowerDisplay)) {
+					const searchTerm = `${trackArtist} ${trackTitle}`.trim();
+					const itunesArt = await fetchItunesCover(searchTerm);
+					if (itunesArt) {
+						finalArt = itunesArt;
+						showOverlay = true;
+					}
 				}
 			}
 
-			const hasRealTitle = rawTitle && !rawTitle.toLowerCase().includes("info unavailable");
-			if (rawTitle === lastTrackRaw && hasRealTitle) return;
-			lastTrackRaw = rawTitle;
-
-			if (!hasRealTitle) {
-				resetToStationView();
+			if (finalArt) {
+				updateCoverAndSession(finalArt, trackTitle, trackArtist, showOverlay, station.logo, station);
 			} else {
-				let trackArtist = station.displayName;
-				let trackTitle = rawTitle;
-				if (rawTitle.includes(" - ")) {
-					const parts = rawTitle.split(" - ");
-					trackArtist = parts.shift().trim();
-					trackTitle = parts.join(" - ").trim();
-				}
-
-				document.getElementById('player-title').innerText = trackTitle;
-				document.getElementById('player-artist').innerText = trackArtist;
-				
-				let finalArt = apiArt;
-				let showOverlay = !!apiArt;
-
-				if (!finalArt && itunesEnabled) {
-					const lowerTitle = rawTitle.toLowerCase();
-					const lowerStation = station.name.toLowerCase();
-					const lowerDisplay = station.displayName.toLowerCase();
-					
-					if (!lowerTitle.includes(lowerStation) && !lowerTitle.includes(lowerDisplay)) {
-						const itunesArt = await fetchItunesCover(rawTitle);
-						if (itunesArt) {
-							finalArt = itunesArt;
-							showOverlay = true;
-						}
-					}
-				}
-
-				if (finalArt) {
-					updateCoverAndSession(finalArt, trackTitle, trackArtist, showOverlay, station.logo, station);
-				} else {
-					updateCoverAndSession(fallbackLogo, trackTitle, trackArtist, false, null, station);
-				}
+				updateCoverAndSession(station.logo, trackTitle, trackArtist, false, null, station);
 			}
 		}
 
@@ -497,6 +476,9 @@
 		}
 
 		function changeCover(newSrc) {
+			if (currentCoverUrl === newSrc) return; // skip anim if cover is same
+			currentCoverUrl = newSrc;
+			
 			const img = document.getElementById('player-img');
 			img.style.opacity = 0;
 			setTimeout(() => {
@@ -566,7 +548,6 @@
 			}
 			
 			if (typeof Windows !== 'undefined') {
-				// async wrapper to manually download and cache http covers for SMTC
 				(async () => {
 					try {
 						const smtc = Windows.Media.SystemMediaTransportControls.getForCurrentView();
@@ -578,7 +559,6 @@
 						
 						if (i) {
 							const absUrl = new URL(i, document.baseURI).href;
-							// intercept local/http urls and feed as local storage file to bypass OS blocks
 							if (absUrl.startsWith('http://')) {
 								const folder = Windows.Storage.ApplicationData.current.localCacheFolder;
 								const file = await folder.createFileAsync("smtc_cover.jpg", Windows.Storage.CreationCollisionOption.replaceExisting);
@@ -606,8 +586,6 @@
 			document.getElementById('footer-arrow').innerText = footerOpen ? '▼' : '▲';
 		}
 
-		function openSettings() { document.getElementById('settings-modal').style.display = 'flex'; }
-		function closeSettings() { document.getElementById('settings-modal').style.display = 'none'; }
 		function openManager() { renderManagerList(); document.getElementById('manager-modal').style.display = 'flex'; }
 		function closeManager() { document.getElementById('manager-modal').style.display = 'none'; }
 
@@ -658,41 +636,21 @@
 			if(n && u) {
 				stations.push({ 
 					name: n, 
-					displayName: document.getElementById('new-displayname').value || n, 
+					displayName: n, 
 					url: u, 
-					logo: document.getElementById('new-logo').value, 
-					liveArt: document.getElementById('new-art').value 
+					logo: document.getElementById('new-logo').value
 				});
 				saveAndRefresh();
-				switchTab('search');
+				document.getElementById('new-name').value = '';
+				document.getElementById('new-url').value = '';
+				document.getElementById('new-logo').value = '';
 			}
 		}
 
 		function saveAndRefresh() { localStorage.setItem('radio_stations', JSON.stringify(stations)); renderStations(); renderManagerList(); }
-		function saveSettings() { 
-			localStorage.setItem('radio_remember', document.getElementById('autoplay-toggle').checked); 
-			localStorage.setItem('radio_itunes_enabled', document.getElementById('itunes-toggle').checked); 
-			itunesEnabled = document.getElementById('itunes-toggle').checked;
-		}
 		function clearCache() { localStorage.clear(); window.location.reload(true); }
 
-		function switchTab(t) {
-			document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-			document.getElementById('tab-search').style.display = t === 'search' ? 'block' : 'none';
-			document.getElementById('tab-manual').style.display = t === 'manual' ? 'block' : 'none';
-			document.getElementById('tab-btn-' + t).classList.add('active');
-		}
-
-		function debounceSearch() { clearTimeout(searchTimeout); searchTimeout = setTimeout(searchStations, 500); }
-		function searchStations() {
-			const q = document.getElementById('search-query').value; if(q.length < 3) return;
-			fetch(`https://de1.api.radio-browser.info/json/stations/byname/${encodeURIComponent(q)}?limit=10`).then(r => r.json()).then(d => {
-				const res = document.getElementById('search-results'); res.innerHTML = '';
-				d.forEach(s => { res.innerHTML += `<div class="station-item" onclick="addFromSearch('${s.name.replace(/'/g,"")}', '${s.url_resolved}', '${s.favicon}')"><img src="${s.favicon || './assets/app.png'}" class="search-result-img"><span>${s.name}</span></div>`; });
-			});
-		}
-		function addFromSearch(n,u,l) { stations.push({name:n, displayName:n, url:u, logo:l}); saveAndRefresh(); }
-		window.onclick = (e) => { if (e.target.className === 'modal') { closeSettings(); closeManager(); } }
+		window.onclick = (e) => { if (e.target.className === 'modal') { closeManager(); } }
 	</script>
 </body>
 </html>
