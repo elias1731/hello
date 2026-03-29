@@ -1,0 +1,40 @@
+# GitHub Action for UWP MSIX packaging
+name: Build UWP App (dev)
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    # Locate Windows SDK tools dynamically
+    - name: Setup Build Variables
+      run: |
+        $sdkPath = (Get-ChildItem "C:\Program Files (x86)\Windows Kits\10\bin\*\x64\makeappx.exe" | Select-Object -First 1).DirectoryName
+        echo "SDK_PATH=$sdkPath" >> $env:GITHUB_ENV
+
+    # Create MSIX package from src directory
+    - name: Pack MSIX
+      run: |
+        & "${{ env.SDK_PATH }}\makeappx.exe" pack /d radio/uwp /p FordyRadio.msix
+
+    # Generate self-signed cert matching publisher CN=Fordy
+    - name: Generate Certificate
+      run: |
+        $cert = New-SelfSignedCertificate -Type Custom -Subject "CN=Fordy" -KeyUsage DigitalSignature -FriendlyName "FordyRadio" -CertStoreLocation "Cert:\CurrentUser\My" -TextExtension @("2.5.29.37={text}1.3.6.1.5.5.7.3.3", "2.5.29.19={text}")
+        $pwd = ConvertTo-SecureString -String "fordy123" -Force -AsPlainText
+        Export-PfxCertificate -cert $cert -FilePath "key.pfx" -Password $pwd
+
+    # Sign the generated package
+    - name: Sign Appx
+      run: |
+        & "${{ env.SDK_PATH }}\signtool.exe" sign /fd SHA256 /a /f key.pfx /p fordy123 FordyRadio.msix
+
+    # Upload final package as artifact
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: FordyRadio-Xbox-Windows
+        path: FordyRadio.msix
