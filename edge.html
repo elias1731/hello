@@ -1,24 +1,6 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Edge Redirect</title>
-    <script>
-        // Parse the query parameters from the current URL
-        const urlParams = new URLSearchParams(window.location.search);
-
-        // Retrieve the value of the url parameter
-        const targetPath = urlParams.get('url');
-
-        // Redirect to the internal edge protocol if a path is provided
-        if (targetPath) {
-            window.location.href = 'edge://' + targetPath;
-        }
-    </script>
-</head>
-<body>
-    <!-- Fallback message if the redirect is blocked or takes time -->
-    <p>Redirecting to Edge internal page...</p>
-</body>
+<html>
+  <head>
+    <meta http-equiv="Refresh" content="0; url=edge://extensions/?id=npjnioaeoicmjokbdpfiecnbildopjad" />
+  </head>
 </html>
