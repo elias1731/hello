@@ -81,7 +81,8 @@
 					<img id="player-overlay-logo" class="station-logo-overlay" src="" alt="Station Overlay">
 				</div>
 				
-				<div id="player-title">𝓕𝓸𝓻𝓭𝔂•𝗥𝗮𝗱𝗶ο</div>
+				<div id="player-station-name" style="font-size: 0.75rem; opacity: 0.6; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; display: none;"></div>
+				<div id="player-title">𝓕𝓸𝓻𝓭𝔂•𝗥𝗮𝗱𝗶𝗼</div>
 				<div id="player-artist"></div>
 				
 				<div id="player-status">◽️ BEREIT</div>
@@ -147,9 +148,8 @@
 	<canvas id="color-canvas" style="display:none;"></canvas>
 
 	<script>
-		/* --- State --- */
 		const defaultStations = [
-			{ isDefault: true, name: "AirPlay (Lokal)", displayName: "AirPlay", apiId: "airplay", url: "http://10.69.254.100:8090/stream", logo: "https://raw.githubusercontent.com/Bitte-ein-Git/ha_repo/refs/heads/development/airplay_web/icon.png", metaUrl: "http://10.69.254.100:8090/meta", coverUrl: "http://10.69.254.100:8090/cover" },
+			{ isDefault: false, name: "AirPlay (Lokal)", displayName: "AirPlay", apiId: "airplay", url: "http://10.69.254.100:8090/stream", logo: "https://raw.githubusercontent.com/Bitte-ein-Git/ha_repo/refs/heads/development/airplay_web/icon.png", metaUrl: "http://10.69.254.100:8090/meta", coverUrl: "http://10.69.254.100:8090/cover" },
 			{ isDefault: true, name: "Eldoradio Lëtzebuerg", displayName: "E L D O", apiId: "eldoradio", url: "https://sc.bce.lu/eldo", logo: "https://heyfordy.dev/radio/assets/eldo.lu.png" },
 			{ isDefault: true, name: "RADiO BOB! (National)", displayName: "RADiO BOB!", apiId: "radio-bob", url: "https://streams.radiobob.de/bob-national/mp3-320/mediaplayer", logo: "https://heyfordy.dev/radio/assets/radio-bob.png" },
 			{ isDefault: true, name: "RTL Lëtzebuerg", displayName: "RTL.lu", apiId: "rtl-lux", url: "https://sc.bce.lu/rtl", logo: "https://heyfordy.dev/radio/assets/rtl.lu.png" },
@@ -180,11 +180,22 @@
 
 		const dummyAudioSrc = "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA";
 		let airplayLastTitle = "";
-		let currentCoverUrl = ""; // track to prevent unnecessary fade animations
+		let currentCoverUrl = ""; 
 
-		/* --- Init --- */
 		renderStations();
 		handleStartup();
+
+		// initial bindings, overriding explicitly
+		if ('mediaSession' in navigator) {
+			navigator.mediaSession.setActionHandler('play', () => { if (audio.paused) togglePlay(); });
+			navigator.mediaSession.setActionHandler('pause', () => { if (!audio.paused) togglePlay(); });
+			navigator.mediaSession.setActionHandler('previoustrack', () => skipPrev());
+			navigator.mediaSession.setActionHandler('nexttrack', () => skipNext());
+			try {
+				navigator.mediaSession.setActionHandler('seekbackward', null);
+				navigator.mediaSession.setActionHandler('seekforward', null);
+			} catch(e) {}
+		}
 
 		if (typeof Windows !== 'undefined') {
 			try {
@@ -194,11 +205,11 @@
 					const btn = Windows.Media.SystemMediaTransportControlsButton;
 					if (e.button === btn.play || e.button === btn.pause) togglePlay();
 					if (e.button === btn.next) skipNext();
+					if (e.button === btn.previous) skipPrev();
 				});
 			} catch(e) {}
 		}
 
-		/* --- Audio Control --- */
 		audio.addEventListener('playing', () => { updateStatus("playing"); updatePlayBtn(true); });
 		audio.addEventListener('pause', () => { 
 			updatePlayBtn(false); 
@@ -219,7 +230,6 @@
 			updateStatus("error"); updatePlayBtn(false); 
 		});
 
-		/* --- App Flow --- */
 		function handleStartup() {
 			const urlParams = new URLSearchParams(window.location.search);
 			const playParam = urlParams.get('play');
@@ -242,13 +252,15 @@
 			updatePlayBtn(true);
 			hideOverlayLogo();
 			
-			// reset local states to enforce animation on station change
 			lastTrackRaw = ""; 
 			airplayLastTitle = "";
 			currentCoverUrl = "";
 			
-			document.getElementById('player-title').innerText = s.displayName;
+			// Update UI
+			document.getElementById('player-title').innerText = s.name;
 			document.getElementById('player-artist').innerText = "𝓕𝓸𝓻𝓭𝔂•𝗥𝗮𝗱𝗶𝗼";
+			document.getElementById('player-station-name').style.display = 'none';
+			
 			changeCover(s.logo || './assets/app.png');
 			startMediaSessionRotation(s, null, null, null);
 			
@@ -286,8 +298,15 @@
 		}
 
 		function skipNext() {
+			if (currentStationIndex === -1) return;
 			let next = (currentStationIndex + 1) % stations.length;
 			playStation(next);
+		}
+
+		function skipPrev() {
+			if (currentStationIndex === -1) return;
+			let prev = (currentStationIndex - 1 + stations.length) % stations.length;
+			playStation(prev);
 		}
 
 		function toggleMute() {
@@ -298,8 +317,11 @@
 		function resetToStationView() {
 			if (currentStationIndex === -1) return;
 			const s = stations[currentStationIndex];
-			document.getElementById('player-title').innerText = s.displayName;
+			// Update UI
+			document.getElementById('player-title').innerText = s.name;
 			document.getElementById('player-artist').innerText = "𝓕𝓸𝓻𝓭𝔂•𝗥𝗮𝗱𝗶𝗼";
+			document.getElementById('player-station-name').style.display = 'none';
+			
 			changeCover(s.logo || './assets/app.png');
 			hideOverlayLogo();
 			startMediaSessionRotation(s, null, null, null);
@@ -321,7 +343,6 @@
 			document.getElementById('play-icon').className = isPlaying ? 'fa-solid fa-stop' : 'fa-solid fa-play';
 		}
 
-		/* --- Metadata Management --- */
 		function startMetaFetcher(station) {
 			if (metaInterval) clearInterval(metaInterval);
 			const fetchInfo = async () => {
@@ -347,7 +368,6 @@
 				} else {
 					if (!audio.src || audio.src === window.location.href || audio.src.startsWith('data:')) return;
 					fetch('https://api.heyfordy.dev/radio').then(r=>r.json()).then(d => {
-						// fix: api liefert jetzt ein objekt!
 						const sd = d[station.apiId];
 						handleStationData(station, sd);
 					}).catch(() => handleStationData(station, null));
@@ -370,6 +390,10 @@
 
 				document.getElementById('player-title').innerText = trackTitle;
 				document.getElementById('player-artist').innerText = trackArtist;
+				
+				// Show station label
+				document.getElementById('player-station-name').innerText = station.name;
+				document.getElementById('player-station-name').style.display = 'block';
 
 				let newCover = currentCoverUrl;
 				if (trackTitle !== airplayLastTitle) {
@@ -387,6 +411,9 @@
 
 				document.getElementById('player-title').innerText = "AirPlay bereit";
 				document.getElementById('player-artist').innerText = "Warte auf Stream...";
+				// Hide UI
+				document.getElementById('player-station-name').style.display = 'none';
+				
 				updateCoverAndSession(station.logo, "AirPlay bereit", "Warte auf Stream...", false, null, station);
 				airplayLastTitle = "";
 			}
@@ -395,7 +422,6 @@
 		async function handleStationData(station, sd) {
 			if (audio.paused || !audio.src || !audio.src.includes('://')) return;
 			
-			// extrahiere daten nach dem neuen format
 			let rawTitle = sd ? (sd.track || "").trim() : "";
 			let rawArtist = sd ? (sd.artist || "").trim() : "";
 			let apiArt = sd ? (sd.cover || null) : null;
@@ -435,10 +461,13 @@
 			document.getElementById('player-title').innerText = trackTitle;
 			document.getElementById('player-artist').innerText = trackArtist;
 			
+			// Show station label
+			document.getElementById('player-station-name').innerText = station.name;
+			document.getElementById('player-station-name').style.display = 'block';
+			
 			let finalArt = apiArt;
 			let showOverlay = !!apiArt;
 
-			// Suche nach CoverArt nur wenn kein cover vorhanden und daten vorliegen
 			if (!finalArt && trackTitle && trackArtist) {
 				const lowerTitle = trackTitle.toLowerCase();
 				const lowerStation = station.name.toLowerCase();
@@ -476,7 +505,7 @@
 		}
 
 		function changeCover(newSrc) {
-			if (currentCoverUrl === newSrc) return; // skip anim if cover is same
+			if (currentCoverUrl === newSrc) return; 
 			currentCoverUrl = newSrc;
 			
 			const img = document.getElementById('player-img');
@@ -491,7 +520,6 @@
 
 		function hideOverlayLogo() { document.getElementById('player-overlay-logo').style.display = 'none'; }
 
-		/* --- Graphics --- */
 		function extractAndApplyColor() {
 			const img = document.getElementById('player-img');
 			const canvas = document.getElementById('color-canvas');
@@ -534,7 +562,7 @@
 			};
 			
 			toggleSession();
-			mediaRotationInterval = setInterval(toggleSession, 10000);
+			mediaRotationInterval = setInterval(toggleSession, 4400);
 		}
 
 		function updateMediaSession(t, a, i) {
@@ -542,20 +570,34 @@
 				navigator.mediaSession.metadata = new MediaMetadata({ 
 					title: t, 
 					artist: a, 
+					album: "heyFordy.dev Radio",
+					duration: Infinity, // force iOS stream workaround
+					startTime: 0,
 					artwork: [{ src: i || './assets/app.png', sizes: '512x512', type: 'image/png' }] 
 				});
 				navigator.mediaSession.playbackState = "playing";
+				
+				// Re-bind to prevent iOS from dropping handlers on src change
+				navigator.mediaSession.setActionHandler('previoustrack', () => skipPrev());
+				navigator.mediaSession.setActionHandler('nexttrack', () => skipNext());
+				
+				// Kill seek handlers explicitly
+				try {
+					navigator.mediaSession.setActionHandler('seekbackward', null);
+					navigator.mediaSession.setActionHandler('seekforward', null);
+				} catch(e) {}
 			}
 			
 			if (typeof Windows !== 'undefined') {
 				(async () => {
 					try {
 						const smtc = Windows.Media.SystemMediaTransportControls.getForCurrentView();
-						smtc.isPlayEnabled = true; smtc.isPauseEnabled = true; smtc.isNextEnabled = true;
+						smtc.isPlayEnabled = true; smtc.isPauseEnabled = true; smtc.isNextEnabled = true; smtc.isPreviousEnabled = true;
 						const updater = smtc.displayUpdater;
 						updater.type = Windows.Media.MediaPlaybackType.music;
 						updater.musicProperties.title = t;
 						updater.musicProperties.artist = a;
+						updater.musicProperties.albumTitle = "heyFordy.dev Radio";
 						
 						if (i) {
 							const absUrl = new URL(i, document.baseURI).href;
@@ -578,7 +620,6 @@
 			}
 		}
 
-		/* --- UI --- */
 		function toggleFooter(force) {
 			footerOpen = (force !== undefined) ? force : !footerOpen;
 			const footer = document.getElementById('main-footer');
