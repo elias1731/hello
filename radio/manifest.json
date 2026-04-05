@@ -1,13 +1,15 @@
 {
     "name": "🗿 » heyFordy Radio",
-    "description": "heyFordy.dev Webradio",
+    "description": "heyFordy.dev Radio",
     "short_name": "𝓕𝓸𝓻𝓭𝔂•𝗥𝗮𝗱𝗶𝗼",
-    "url": "https://heyfordy.dev/radio",
-    "start_url": "https://heyfordy.dev/radio",
-    "id": "dev.heyfordy.radio",
+    "url": "https://heyfordy.dev/radio/",
+    "start_url": "https://heyfordy.dev/radio/",
+    "scope": "https://heyfordy.dev/radio/",
+    "id": "heyfordy.dev/radio",
+    "orientation": "any",
     "display": "standalone",
     "launch_handler": {
-        "client_mode": ["some-new-future-value", "focus-existing", "auto"] 
+        "client_mode": ["focus-existing", "auto"] 
     },
     "background_color": "#121212",
     "theme_color": "#ff9966",
@@ -23,4 +25,4 @@
         "type": "image/png"
       }
     ]
-  }  
+}
