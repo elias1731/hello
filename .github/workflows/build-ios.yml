@@ -12,22 +12,21 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
 
-      # install dependencies
       - run: npm install
 
-      # fix capacitor execution permissions
       - run: chmod +x node_modules/.bin/cap
 
-      # add and sync ios project
+      - run: rm -rf ios
+      
       - run: npx cap add ios
       - run: npx cap sync ios
 
-      # build unsigned archive
+      # use .xcodeproj instead of .xcworkspace for newer capacitor versions
       - name: Build Xcode Archive
         run: |
-          xcodebuild -workspace ios/App/App.xcworkspace \
+          xcodebuild -project ios/App/App.xcodeproj \
             -scheme App \
             -configuration Release \
             -sdk iphoneos \
@@ -37,14 +36,12 @@ jobs:
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGNING_ALLOWED=NO
 
-      # package into ipa
       - name: Package IPA
         run: |
           mkdir -p Payload
           cp -r build/App.xcarchive/Products/Applications/App.app Payload/
           zip -r Radio.ipa Payload
 
-      # upload ipa artifact
       - uses: actions/upload-artifact@v4
         with:
           name: Radio-IPA
