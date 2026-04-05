@@ -3,7 +3,7 @@
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-	<title>🗿» 𝓕𝓸𝓻𝓭𝔂•Radio</title>
+	<title>🗿 WILLKOMMEN</title>
 	
 	<link rel="manifest" href="manifest.json">
 	<meta name="theme-color" content="#0a0a0a">
@@ -28,14 +28,19 @@
 			<i class="fa-solid fa-radio" style="margin-right: 12px; color: var(--accent);"></i>
 			<span class="rainbow-text">» 𝓱𝓮𝔂𝓕𝓸𝓻𝓭𝔂.dev 𝗥𝗮𝗱𝗶ο</span>
 		</div>
+		<button id="bt-toggle-btn" class="round-btn" onclick="toggleBluetooth()">
+			<i class="fa-brands fa-bluetooth-b"></i>
+		</button>
 	</header>
 
 	<div class="layout-wrapper">
 		<main>
 			<div class="player-container">
 				<div class="cover-art-wrapper">
-					<img id="player-img" src="./assets/app.png" alt="Station Logo">
-					<img id="player-overlay-logo" class="station-logo-overlay" src="" alt="Station Overlay">
+					<div class="cover-inner">
+						<img id="player-img" src="./assets/app.png" alt="Station Logo">
+						<img id="player-overlay-logo" class="station-logo-overlay" src="" alt="Station Overlay">
+					</div>
 				</div>
 				
 				<div id="player-station-name" style="font-size: 0.75rem; opacity: 0.6; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; display: none;"></div>
@@ -130,6 +135,12 @@
 		let footerOpen = false;
 		let mediaRotationInterval = null; 
 		const audio = document.getElementById('audio-el');
+		
+		let isBtActive = localStorage.getItem('radio_bt_mode') === 'true';
+		let activeTrackTitle = "";
+		let activeTrackArtist = "";
+		let activeCoverUrl = "";
+		let isTrackInfoPhase = true;
 
 		if ('msAudioCategory' in audio) {
 			audio.msAudioCategory = 'BackgroundCapableMedia';
@@ -188,14 +199,51 @@
 
 		function handleStartup() {
 			const urlParams = new URLSearchParams(window.location.search);
-			const playParam = urlParams.get('play');
-			if (playParam) {
-				let idx = stations.findIndex(s => s.apiId === playParam);
-				if (idx !== -1 && !stations[idx].isDisabled) playStation(idx);
-			} else if (lastPlayedIndex >= 0 && lastPlayedIndex < stations.length && !stations[lastPlayedIndex].isDisabled) {
-				currentStationIndex = lastPlayedIndex;
-				resetToStationView();
+			let playTarget = urlParams.get('play');
+			let btTarget = urlParams.get('bt');
+			let action = urlParams.get('action');
+
+			if (action && action.startsWith('web+fordyradio://')) {
+				let parts = action.replace('web+fordyradio://', '').split(/[/?]+/);
+				if (parts[0] === 'play') playTarget = parts[1];
+				if (parts[0] === 'bt') btTarget = parts[1];
+			}
+
+			if (btTarget) {
+				isBtActive = (btTarget === 'on');
+				localStorage.setItem('radio_bt_mode', isBtActive);
+			}
+			updateBtBtnState();
+
+			let targetIdx = -1;
+			if (playTarget) {
+				targetIdx = stations.findIndex(s => s.apiId === playTarget);
+			} else if (lastPlayedIndex >= 0 && lastPlayedIndex < stations.length) {
+				targetIdx = lastPlayedIndex;
+			}
+
+			if (targetIdx !== -1 && !stations[targetIdx].isDisabled) {
+				playStation(targetIdx);
+			} else {
 				updateStatus("ready");
+			}
+		}
+
+		function toggleBluetooth() {
+			isBtActive = !isBtActive;
+			localStorage.setItem('radio_bt_mode', isBtActive);
+			updateBtBtnState();
+			if (currentStationIndex !== -1) renderMediaSessionState();
+		}
+
+		function updateBtBtnState() {
+			const btn = document.getElementById('bt-toggle-btn');
+			if (isBtActive) {
+				btn.style.color = '#007aff';
+				btn.style.textShadow = '0 0 10px rgba(0, 122, 255, 0.8)';
+			} else {
+				btn.style.color = 'var(--text-color)';
+				btn.style.textShadow = 'none';
 			}
 		}
 
@@ -252,7 +300,6 @@
 			}
 		}
 
-		// jump over disabled items
 		function skipNext() {
 			if (currentStationIndex === -1) return;
 			let next = currentStationIndex;
@@ -264,7 +311,6 @@
 			playStation(next);
 		}
 
-		// jump over disabled items
 		function skipPrev() {
 			if (currentStationIndex === -1) return;
 			let prev = currentStationIndex;
@@ -279,6 +325,7 @@
 		function toggleMute() {
 			audio.muted = !audio.muted;
 			document.getElementById('mute-icon').className = audio.muted ? 'fa-solid fa-volume-xmark' : 'fa-solid fa-volume-high';
+			if (currentStationIndex !== -1) renderMediaSessionState();
 		}
 
 		function resetToStationView() {
@@ -296,13 +343,17 @@
 		function updateStatus(state) {
 			const el = document.getElementById('player-status');
 			const map = {
-				"ready": "◽️ BEREIT",
-				"loading": "🔸 STREAM WIRD GELADEN…",
-				"playing": "▶️ WIEDERGABE LÄUFT",
-				"stopped": "⭕️ WIEDERGABE ANGEHALTEN",
-				"error": "⚠️ FEHLER"
+				"ready": "BEREIT",
+				"loading": "STREAM WIRD GELADEN…",
+				"playing": "WIEDERGABE LÄUFT",
+				"stopped": "WIEDERGABE ANGEHALTEN",
+				"error": "FEHLER"
 			};
-			el.innerText = map[state] || map["ready"];
+			const emojiMap = { "ready": "◽️", "loading": "🔸", "playing": "▶️", "stopped": "⭕️", "error": "⚠️" };
+			
+			const text = `${emojiMap[state] || emojiMap.ready} ${map[state] || map.ready}`;
+			el.innerText = text;
+			document.title = text;
 		}
 
 		function updatePlayBtn(isPlaying) {
@@ -357,7 +408,6 @@
 				document.getElementById('player-title').innerText = trackTitle;
 				document.getElementById('player-artist').innerText = trackArtist;
 				
-				// hide if redundant fallback
 				const hideStationName = (trackArtist === station.name || trackArtist === station.displayName);
 				document.getElementById('player-station-name').innerText = station.name;
 				document.getElementById('player-station-name').style.display = hideStationName ? 'none' : 'block';
@@ -380,7 +430,7 @@
 				document.getElementById('player-artist').innerText = "Warte auf Stream...";
 				document.getElementById('player-station-name').style.display = 'none';
 				
-				updateCoverAndSession(station.logo, "AirPlay bereit", "Warte auf Stream...", false, null, station);
+				updateCoverAndSession(station.logo, null, null, false, null, station);
 				airplayLastTitle = "";
 			}
 		}
@@ -427,7 +477,6 @@
 			document.getElementById('player-title').innerText = trackTitle;
 			document.getElementById('player-artist').innerText = trackArtist;
 			
-			// hide if redundant fallback
 			const hideStationName = (trackArtist === station.name || trackArtist === station.displayName);
 			document.getElementById('player-station-name').innerText = station.name;
 			document.getElementById('player-station-name').style.display = hideStationName ? 'none' : 'block';
@@ -510,34 +559,65 @@
 			return null;
 		}
 
+		// build correct metadata based on requested truth table
 		function startMediaSessionRotation(station, trackTitle, trackArtist, coverUrl) {
-			if (mediaRotationInterval) clearInterval(mediaRotationInterval);
-			
-			if (!trackTitle) {
-				updateMediaSession(station.displayName, "Fordy-FM", station.logo);
-				return;
-			}
+			activeTrackTitle = trackTitle || "";
+			activeTrackArtist = trackArtist || "";
+			activeCoverUrl = coverUrl || station.logo || './assets/app.png';
 
-			let isTrackInfo = true;
-			const toggleSession = () => {
-				if (isTrackInfo) {
-					updateMediaSession(trackTitle, trackArtist, coverUrl);
-				} else {
-					updateMediaSession(station.displayName, "Fordy-FM", station.logo);
-				}
-				isTrackInfo = !isTrackInfo;
-			};
+			if (mediaRotationInterval) clearInterval(mediaRotationInterval);
+			isTrackInfoPhase = true;
 			
-			toggleSession();
-			mediaRotationInterval = setInterval(toggleSession, 4400);
+			renderMediaSessionState();
+			// 5s interval 
+			mediaRotationInterval = setInterval(() => {
+				isTrackInfoPhase = !isTrackInfoPhase;
+				renderMediaSessionState();
+			}, 5000);
 		}
 
-		function updateMediaSession(t, a, i) {
+		function renderMediaSessionState() {
+			if (currentStationIndex === -1) return;
+			const station = stations[currentStationIndex];
+			let t = "", a = "", al = "", c = "";
+
+			const dispTitle = activeTrackTitle ? activeTrackTitle : station.displayName;
+			const dispArtist = activeTrackTitle ? activeTrackArtist : "Fordy-FM";
+			const dispCover = activeCoverUrl; 
+			const logoCover = station.logo || './assets/app.png';
+
+			if (audio.muted) {
+				t = "Stummgeschaltet";
+				a = station.displayName;
+				c = logoCover;
+				al = "heyFordy.dev Radio";
+			} else if (isBtActive) {
+				t = dispTitle;
+				a = dispArtist;
+				c = isTrackInfoPhase ? dispCover : logoCover;
+				al = isTrackInfoPhase ? "heyFordy.dev Radio" : station.displayName;
+			} else {
+				if (isTrackInfoPhase) {
+					t = dispTitle;
+					a = dispArtist;
+					c = dispCover;
+				} else {
+					t = station.displayName;
+					a = "Fordy-FM";
+					c = logoCover;
+				}
+				al = "heyFordy.dev Radio";
+			}
+			
+			updateMediaSessionNative(t, a, al, c);
+		}
+
+		function updateMediaSessionNative(t, a, al, i) {
 			if('mediaSession' in navigator) {
 				navigator.mediaSession.metadata = new MediaMetadata({ 
 					title: t, 
 					artist: a, 
-					album: "heyFordy.dev Radio",
+					album: al,
 					duration: Infinity, 
 					startTime: 0,
 					artwork: [{ src: i || './assets/app.png', sizes: '512x512', type: 'image/png' }] 
@@ -562,7 +642,7 @@
 						updater.type = Windows.Media.MediaPlaybackType.music;
 						updater.musicProperties.title = t;
 						updater.musicProperties.artist = a;
-						updater.musicProperties.albumTitle = "heyFordy.dev Radio";
+						updater.musicProperties.albumTitle = al;
 						
 						if (i) {
 							const absUrl = new URL(i, document.baseURI).href;
@@ -628,7 +708,6 @@
 			});
 		}
 
-		// toggle visibility for default stations
 		function toggleStation(idx) {
 			stations[idx].isDisabled = !stations[idx].isDisabled;
 			saveAndRefresh();
