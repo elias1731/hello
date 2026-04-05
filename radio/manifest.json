@@ -1,8 +1,14 @@
 {
     "name": "🗿 » heyFordy Radio",
+    "description": "heyFordy.dev Webradio",
     "short_name": "𝓕𝓸𝓻𝓭𝔂•𝗥𝗮𝗱𝗶𝗼",
+    "url": "https://heyfordy.dev/radio",
     "start_url": "https://heyfordy.dev/radio",
+    "id": "dev.heyfordy.radio",
     "display": "standalone",
+    "launch_handler": {
+        "client_mode": ["some-new-future-value", "focus-existing", "auto"] 
+    },
     "background_color": "#121212",
     "theme_color": "#ff9966",
     "icons": [
