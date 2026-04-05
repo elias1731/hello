@@ -1,0 +1,51 @@
+name: Build iOS IPA
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      # install dependencies
+      - run: npm install
+
+      # fix capacitor execution permissions
+      - run: chmod +x node_modules/.bin/cap
+
+      # add and sync ios project
+      - run: npx cap add ios
+      - run: npx cap sync ios
+
+      # build unsigned archive
+      - name: Build Xcode Archive
+        run: |
+          xcodebuild -workspace ios/App/App.xcworkspace \
+            -scheme App \
+            -configuration Release \
+            -sdk iphoneos \
+            clean archive \
+            -archivePath $PWD/build/App.xcarchive \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO
+
+      # package into ipa
+      - name: Package IPA
+        run: |
+          mkdir -p Payload
+          cp -r build/App.xcarchive/Products/Applications/App.app Payload/
+          zip -r Radio.ipa Payload
+
+      # upload ipa artifact
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Radio-IPA
+          path: Radio.ipa

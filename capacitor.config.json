@@ -1,0 +1,6 @@
+{
+    "appId": "dev.heyfordy.radio",
+    "appName": "Fordy-FM",
+    "webDir": "radio",
+    "bundledWebRuntime": false
+  }
