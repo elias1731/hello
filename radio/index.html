@@ -290,6 +290,8 @@
 			if (currentStationIndex === -1) return;
 			if (audio.paused || !audio.src || audio.src === window.location.href) {
 				playStation(currentStationIndex);
+				// explicit state assignment
+				if('mediaSession' in navigator) navigator.mediaSession.playbackState = 'playing';
 			} else {
 				audio.pause();
 				audio.src = ""; 
@@ -298,6 +300,8 @@
 				updatePlayBtn(false);
 				resetToStationView();
 				if(metaInterval) clearInterval(metaInterval);
+				// explicit state assignment
+				if('mediaSession' in navigator) navigator.mediaSession.playbackState = 'paused';
 			}
 		}
 
@@ -514,6 +518,8 @@
 			if (showOverlay && overlayLogoUrl && coverUrl !== overlayLogoUrl) {
 				overlayEl.src = overlayLogoUrl;
 				overlayEl.style.display = 'block';
+				// scale overlay up by 50%
+				overlayEl.style.transform = 'scale(1.5)';
 			} else {
 				hideOverlayLogo();
 			}
@@ -535,7 +541,11 @@
 			}, 300);
 		}
 
-		function hideOverlayLogo() { document.getElementById('player-overlay-logo').style.display = 'none'; }
+		function hideOverlayLogo() { 
+			const el = document.getElementById('player-overlay-logo');
+			el.style.display = 'none'; 
+			el.style.transform = 'scale(1)'; 
+		}
 
 		function extractAndApplyColor() {
 			const img = document.getElementById('player-img');
