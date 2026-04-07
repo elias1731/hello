@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - 'fordyradio.zip'
+      - 'fordyradio.yml'
   workflow_dispatch:
 
 jobs:
@@ -13,7 +14,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Extract the uploaded zip file containing the source
       - name: Unzip package
         run: unzip fordyradio.zip
 
@@ -22,34 +22,32 @@ jobs:
         with:
           xcode-version: latest-stable
 
-      # Install dependencies and force repo update to fetch missing specs like Firebase
       - name: Install CocoaPods
         run: |
           cd src
           pod install --repo-update
 
-      # Build the unsigned app via xcodebuild using the workspace
       - name: Build App Project
         run: |
+          # FIXED: Replaced CONFIGURATION_BUILD_DIR with derivedDataPath to avoid breaking CocoaPods module paths
           xcodebuild clean build \
             -workspace "src/FordyRadio.xcworkspace" \
             -scheme "FordyRadio" \
             -sdk iphoneos \
             -configuration Release \
+            -derivedDataPath "build" \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGNING_IDENTITY="" \
-            PRODUCT_BUNDLE_IDENTIFIER="dev.heyfordy.radio" \
-            CONFIGURATION_BUILD_DIR="../build"
+            PRODUCT_BUNDLE_IDENTIFIER="dev.heyfordy.radio"
 
-      # Package the built .app into an .ipa file for sideloading
       - name: Create IPA Package
         run: |
           mkdir -p Payload
-          cp -r build/FordyRadio.app Payload/
+          # FIXED: Updated path to match the Xcode derivedDataPath output structure
+          cp -r build/Build/Products/Release-iphoneos/FordyRadio.app Payload/
           zip -r fordyradio.ipa Payload
           
-      # Publish the resulting IPA as a prerelease
       - name: Create Pre-Release
         uses: softprops/action-gh-release@v1
         with:
