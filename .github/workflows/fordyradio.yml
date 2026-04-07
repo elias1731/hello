@@ -22,13 +22,13 @@ jobs:
         with:
           xcode-version: latest-stable
 
-      # Install dependencies via CocoaPods
+      # Install dependencies and force repo update to fetch missing specs like Firebase
       - name: Install CocoaPods
         run: |
           cd src
-          pod install
+          pod install --repo-update
 
-      # Build the unsigned app via xcodebuild
+      # Build the unsigned app via xcodebuild using the workspace
       - name: Build App Project
         run: |
           xcodebuild clean build \
