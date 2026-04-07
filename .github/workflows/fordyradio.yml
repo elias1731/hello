@@ -1,0 +1,60 @@
+name: Build Sideloadable IPA from ZIP
+
+on:
+  push:
+    paths:
+      - 'fordyradio.zip'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Extract the uploaded zip file containing the source
+      - name: Unzip package
+        run: unzip fordyradio.zip
+
+      - name: Setup Xcode version
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
+      # Install dependencies via CocoaPods
+      - name: Install CocoaPods
+        run: |
+          cd src
+          pod install
+
+      # Build the unsigned app via xcodebuild
+      - name: Build App Project
+        run: |
+          xcodebuild clean build \
+            -workspace "src/FordyRadio.xcworkspace" \
+            -scheme "FordyRadio" \
+            -sdk iphoneos \
+            -configuration Release \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_IDENTITY="" \
+            PRODUCT_BUNDLE_IDENTIFIER="dev.heyfordy.radio" \
+            CONFIGURATION_BUILD_DIR="../build"
+
+      # Package the built .app into an .ipa file for sideloading
+      - name: Create IPA Package
+        run: |
+          mkdir -p Payload
+          cp -r build/FordyRadio.app Payload/
+          zip -r fordyradio.ipa Payload
+          
+      # Publish the resulting IPA as a prerelease
+      - name: Create Pre-Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: fordyradio.ipa
+          tag_name: fordyradio
+          prerelease: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
