@@ -5,7 +5,7 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 	<title>🗿 WILLKOMMEN</title>
 	
-	<link rel="manifest" href="manifest.json">
+	<link rel="manifest" href="./manifest.json">
 	<meta name="theme-color" content="#0a0a0a">
 	<meta name="apple-mobile-web-app-capable" content="yes">
 	<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -50,6 +50,7 @@
 				<div id="player-status">◽️ BEREIT</div>
 				
 				<audio id="audio-el" preload="none" msAudioCategory="BackgroundCapableMedia"></audio>
+				<audio id="dummy-audio" preload="none"></audio>
 
 				<div class="controls">
 					<button onclick="toggleMute()" class="round-btn secondary-ctrl"><i id="mute-icon" class="fa-solid fa-volume-high"></i></button>
@@ -111,15 +112,16 @@
 
 	<script>
 		const defaultStations = [
-			{ isDefault: true, name: "Sunshine LIVE", displayName: "SUNSHINE LiVE", apiId: "sunshine-live", url: "https://sunsl.streamabc.net/sunsl-sslsimulcast-mp3-192-4434053", logo: "https://heyfordy.dev/radio/assets/sunshine.png" },
-			{ isDefault: true, name: "Sunshine LIVE • 90s", displayName: "SUNSHINE 90s", apiId: "sunshine-90s", url: "https://sunsl.streamabc.net/sunsl-90er-mp3-192-9697679", logo: "https://heyfordy.dev/radio/assets/sunshine-90s.png" },
-			{ isDefault: true, name: "RADiO BOB! (National)", displayName: "RADiO BOB!", apiId: "radio-bob", url: "https://streams.radiobob.de/bob-national/mp3-320/mediaplayer", logo: "https://heyfordy.dev/radio/assets/radio-bob.png" },
-			{ isDefault: true, name: "Rockland Radio Trier", displayName: "Rockland", apiId: "rockland", url: "https://streams.rockland.de/trier/mp3-192/direkt/", logo: "https://heyfordy.dev/radio/assets/rockland.png" },
-			{ isDefault: true, name: "Eldoradio Lëtzebuerg", displayName: "E L D O", apiId: "eldoradio", url: "https://sc.bce.lu/eldo", logo: "https://heyfordy.dev/radio/assets/eldo.lu.png" },
-			{ isDefault: true, name: "FFH SOUNDTRACK", displayName: "FFH SOUNDTRACK", apiId: "ffh-soundtrack", url: "https://mp3.ffh.de/ffhchannels/hqsoundtrack.aac", logo: "https://heyfordy.dev/radio/assets/ffh-soundtrack.png" },
-			{ isDefault: true, name: "RTL Lëtzebuerg", displayName: "RTL.lu", apiId: "rtl-lux", url: "https://sc.bce.lu/rtl", logo: "https://heyfordy.dev/radio/assets/rtl.lu.png" },
-			{ isDefault: true, name: "RADIO ENERGY", displayName: "RADIO NRJ", apiId: "nrj", url: "https://edge24.streamonkey.net/energy-digital?aggregator=energy-digital", logo: "https://heyfordy.dev/radio/assets/nrj.png" },
-			{ isDefault: true, name: "Sunshine Eurodance", displayName: "SUNSHINE E.DANCE", apiId: "sunshine-eurodance", url: "https://sunsl.streamabc.net/sunsl-eurodance-mp3-192-9832422", logo: "https://heyfordy.dev/radio/assets/sunshine-eurodance.png" },
+			{ isDefault: true, name: "Sunshine LIVE", displayName: "SUNSHINE LiVE", apiId: "sunshine-live", url: "https://sunsl.streamabc.net/sunsl-sslsimulcast-mp3-192-4434053", logo: "./assets/sunshine.png" },
+			{ isDefault: true, name: "Sunshine LIVE • 90s", displayName: "SUNSHINE 90s", apiId: "sunshine-90s", url: "https://sunsl.streamabc.net/sunsl-90er-mp3-192-9697679", logo: "./assets/sunshine-90s.png" },
+			{ isDefault: true, name: "RADiO BOB! (National)", displayName: "RADiO BOB!", apiId: "radio-bob", url: "https://streams.radiobob.de/bob-national/mp3-320/mediaplayer", logo: "./assets/radio-bob.png" },
+			{ isDefault: true, name: "Rockland Radio • Trier", displayName: "Rockland Trier", apiId: "rockland", url: "https://streams.rockland.de/trier/mp3-192/direkt/", logo: "./assets/rockland.png" },
+			{ isDefault: true, name: "ROCK ANTENNE", displayName: "ROCK ANTENNE", apiId: "rockantenne", url: "https://s6-webradio.rockantenne.de/rockantenne/stream/aacp", logo: "./assets/rockantenne.png" },
+			{ isDefault: true, name: "Eldoradio Lëtzebuerg", displayName: "E L D O", apiId: "eldoradio", url: "https://sc.bce.lu/eldo", logo: "./assets/eldo.lu.png" },
+			{ isDefault: true, name: "FFH SOUNDTRACK", displayName: "FFH SOUNDTRACK", apiId: "ffh-soundtrack", url: "https://mp3.ffh.de/ffhchannels/hqsoundtrack.aac", logo: "./assets/ffh-soundtrack.png" },
+			{ isDefault: true, name: "RTL Lëtzebuerg", displayName: "RTL.lu", apiId: "rtl-lux", url: "https://sc.bce.lu/rtl", logo: "./assets/rtl.lu.png" },
+			{ isDefault: true, name: "RADIO ENERGY", displayName: "RADIO NRJ", apiId: "nrj", url: "https://frontend.streamonkey.net/energy-digital", logo: "./assets/nrj.png" },
+			{ isDefault: true, name: "Sunshine Eurodance", displayName: "SUNSHINE E.DANCE", apiId: "sunshine-eurodance", url: "https://sunsl.streamabc.net/sunsl-eurodance-mp3-192-9832422", logo: "./assets/sunshine-eurodance.png" },
 			{ isDefault: true, name: "AirPlay (Lokal)", displayName: "AirPlay", apiId: "airplay", url: "http://10.69.254.100:8090/stream", logo: "https://raw.githubusercontent.com/Bitte-ein-Git/ha_repo/refs/heads/development/airplay_web/icon.png", metaUrl: "http://10.69.254.100:8090/meta", coverUrl: "http://10.69.254.100:8090/cover" }
 		];
 
@@ -135,6 +137,8 @@
 		let lastTrackRaw = ""; 
 		let footerOpen = false;
 		let mediaRotationInterval = null; 
+		let userPaused = false;
+		
 		const audio = document.getElementById('audio-el');
 		
 		let isBtActive = localStorage.getItem('radio_bt_mode') === 'true';
@@ -179,13 +183,15 @@
 		}
 
 		audio.addEventListener('playing', () => { updateStatus("playing"); updatePlayBtn(true); });
+		
 		audio.addEventListener('pause', () => { 
 			updatePlayBtn(false); 
-			if(!audio.src || audio.src === window.location.href) updateStatus("stopped"); 
+			updateStatus("stopped"); 
 			
 			if (typeof Windows !== 'undefined') {
 				try { Windows.Media.SystemMediaTransportControls.getForCurrentView().playbackStatus = Windows.Media.MediaPlaybackStatus.paused; } catch(e) {}
 			}
+			renderMediaSessionState();
 		});
 		
 		audio.addEventListener('error', () => { 
@@ -250,12 +256,22 @@
 
 		function playStation(index) {
 			currentStationIndex = index;
+			userPaused = false;
 			localStorage.setItem('radio_last_index', index);
 			const s = stations[index];
 			toggleFooter(false);
 			updateStatus("loading");
 			updatePlayBtn(true);
 			hideOverlayLogo();
+			
+			// disable mute on station switch
+			if (audio.muted) {
+				audio.muted = false;
+				document.getElementById('mute-icon').className = 'fa-solid fa-volume-high';
+				const dummyStream = document.getElementById('dummy-audio');
+				dummyStream.pause();
+				dummyStream.src = "";
+			}
 			
 			lastTrackRaw = ""; 
 			airplayLastTitle = "";
@@ -288,20 +304,25 @@
 
 		function togglePlay() {
 			if (currentStationIndex === -1) return;
+			const s = stations[currentStationIndex];
+			
 			if (audio.paused || !audio.src || audio.src === window.location.href) {
-				playStation(currentStationIndex);
-				// explicit state assignment
+				userPaused = false;
+				// reload stream to catch up to live edge
+				audio.src = (s.apiId === 'airplay') ? dummyAudioSrc : s.url;
+				audio.play().then(() => startMetaFetcher(s)).catch(()=>{ updatePlayBtn(false); updateStatus("ready"); });
+				
 				if('mediaSession' in navigator) navigator.mediaSession.playbackState = 'playing';
 			} else {
+				userPaused = true;
+				// pause instead of clearing src to keep media session alive
 				audio.pause();
-				audio.src = ""; 
-				audio.load();
 				updateStatus("stopped");
 				updatePlayBtn(false);
 				resetToStationView();
-				if(metaInterval) clearInterval(metaInterval);
-				// explicit state assignment
+				
 				if('mediaSession' in navigator) navigator.mediaSession.playbackState = 'paused';
+				renderMediaSessionState();
 			}
 		}
 
@@ -330,6 +351,18 @@
 		function toggleMute() {
 			audio.muted = !audio.muted;
 			document.getElementById('mute-icon').className = audio.muted ? 'fa-solid fa-volume-xmark' : 'fa-solid fa-volume-high';
+			
+			// play parallel dummy stream when muted
+			const dummyStream = document.getElementById('dummy-audio');
+			if (audio.muted) {
+				dummyStream.src = dummyAudioSrc;
+				dummyStream.loop = true;
+				dummyStream.play().catch(()=>{});
+			} else {
+				dummyStream.pause();
+				dummyStream.src = "";
+			}
+			
 			if (currentStationIndex !== -1) renderMediaSessionState();
 		}
 
@@ -401,6 +434,9 @@
 
 		async function handleAirplayData(station, data) {
 			if (data.isPlaying) {
+				// block auto resume if user paused manually
+				if (userPaused) return;
+				
 				if (audio.src.startsWith('data:') || audio.src === window.location.href || audio.paused) {
 					audio.loop = false;
 					audio.src = station.url;
@@ -518,7 +554,6 @@
 			if (showOverlay && overlayLogoUrl && coverUrl !== overlayLogoUrl) {
 				overlayEl.src = overlayLogoUrl;
 				overlayEl.style.display = 'block';
-				// scale overlay up by 50%
 				overlayEl.style.transform = 'scale(1.5)';
 			} else {
 				hideOverlayLogo();
@@ -561,16 +596,6 @@
 			}
 		}
 
-		async function fetchItunesCover(term) {
-			try {
-				const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(term)}&entity=song&limit=1`);
-				const data = await res.json();
-				if(data.resultCount>0) return data.results[0].artworkUrl100.replace('100x100bb','600x600bb');
-			} catch(e){}
-			return null;
-		}
-
-		// build correct metadata based on requested truth table
 		function startMediaSessionRotation(station, trackTitle, trackArtist, coverUrl) {
 			activeTrackTitle = trackTitle || "";
 			activeTrackArtist = trackArtist || "";
@@ -580,7 +605,6 @@
 			isTrackInfoPhase = true;
 			
 			renderMediaSessionState();
-			// 5s interval 
 			mediaRotationInterval = setInterval(() => {
 				isTrackInfoPhase = !isTrackInfoPhase;
 				renderMediaSessionState();
@@ -597,7 +621,12 @@
 			const dispCover = activeCoverUrl; 
 			const logoCover = station.logo || './assets/app.png';
 
-			if (audio.muted) {
+			if (audio.paused) {
+				t = station.displayName;
+				a = "Fordy-FM";
+				c = logoCover;
+				al = "heyFordy.dev Radio";
+			} else if (audio.muted) {
 				t = "Stummgeschaltet";
 				a = station.displayName;
 				c = logoCover;
@@ -633,7 +662,7 @@
 					startTime: 0,
 					artwork: [{ src: i || './assets/app.png', sizes: '512x512', type: 'image/png' }] 
 				});
-				navigator.mediaSession.playbackState = "playing";
+				navigator.mediaSession.playbackState = audio.paused ? "paused" : "playing";
 				
 				navigator.mediaSession.setActionHandler('previoustrack', () => skipPrev());
 				navigator.mediaSession.setActionHandler('nexttrack', () => skipNext());
@@ -670,7 +699,7 @@
 						}
 						
 						updater.update();
-						smtc.playbackStatus = Windows.Media.MediaPlaybackStatus.playing;
+						smtc.playbackStatus = audio.paused ? Windows.Media.MediaPlaybackStatus.paused : Windows.Media.MediaPlaybackStatus.playing;
 					} catch(e) {}
 				})();
 			}
