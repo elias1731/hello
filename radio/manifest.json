@@ -1,24 +1,26 @@
 {
-  "name": "𝓕𝓸𝓻𝓭𝔂•𝗥𝗮𝗱𝗶𝗼",
-  "description": "🗿 » heyFordy Radio",
+  "name": "heyFordy.dev Radio",
   "short_name": "𝓕𝓸𝓻𝓭𝔂•𝗥𝗮𝗱𝗶𝗼",
-  "url": "https://heyfordy.dev/radio/",
-  "start_url": "https://heyfordy.dev/radio/",
-  "scope": "https://heyfordy.dev/radio/",
-  "id": "fordyradio",
-  "orientation": "any",
+  "description": "» heyFordy Radio 🗿",
+  "id": "https://heyfordy.dev/radio",
+  "start_url": "https://heyfordy.dev/radio",
+  "scope": "https://heyfordy.dev/radio",
   "display": "standalone",
-  "launch_handler": {
-      "client_mode": ["focus-existing", "auto"] 
-  },
-  "protocol_handlers": [
-      {
-          "protocol": "web+fordyradio",
-          "url": "/radio/?action=%s"
-      }
-  ],
+  "orientation": "any",
   "background_color": "#121212",
   "theme_color": "#ff9966",
+  "launch_handler": {
+    "client_mode": [
+      "focus-existing",
+      "navigate-existing"
+    ]
+  },
+  "protocol_handlers": [
+    {
+      "protocol": "web+fordyradio",
+      "url": "/radio/?action=%s"
+    }
+  ],
   "icons": [
     {
       "src": "./assets/app.png",
@@ -29,6 +31,21 @@
       "src": "./assets/app.png",
       "sizes": "512x512",
       "type": "image/png"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "SUNSHINE LiVE • 90s",
+      "short_name": "SUNSHINE 90s",
+      "description": "'SUNSHINE 90s' - Stream starten",
+      "url": "./index.html?play=sunshine-90s",
+      "icons": [
+        {
+          "src": "./assets/sunshine-90s.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
     }
   ]
 }
