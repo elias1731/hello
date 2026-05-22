@@ -38,7 +38,7 @@
     <link rel="apple-touch-startup-image" media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="./splash_screens/iPhone_13_mini__iPhone_12_mini__iPhone_11_Pro__iPhone_XS__iPhone_X_portrait.png">
     <link rel="apple-touch-startup-image" media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="./splash_screens/iPhone_8__iPhone_7__iPhone_6s__iPhone_6__4.7__iPhone_SE_portrait.png">
     <link rel="apple-touch-startup-image" media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)" href="./splash_screens/4__iPhone_SE__iPod_touch_5th_generation_and_later_landscape.png">
-    <link rel="apple-touch-startup-image" media="screen and (device-width: 810px) and (device-height: 1080px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)" href="./splash_screens/10.2__iPad_landscape.png">
+    <link compliments-startup-image" media="screen and (device-width: 810px) and (device-height: 1080px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)" href="./splash_screens/10.2__iPad_landscape.png">
     <link rel="apple-touch-startup-image" media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)" href="./splash_screens/iPhone_8_Plus__iPhone_7_Plus__iPhone_6s_Plus__iPhone_6_Plus_landscape.png">
     <link rel="apple-touch-startup-image" media="screen and (device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)" href="./splash_screens/iPhone_16_Plus__iPhone_15_Pro_Max__iPhone_15_Plus__iPhone_14_Pro_Max_landscape.png">
     <link rel="apple-touch-startup-image" media="screen and (device-width: 440px) and (device-height: 956px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)" href="./splash_screens/iPhone_17_Pro_Max__iPhone_16_Pro_Max_landscape.png">
@@ -66,15 +66,42 @@
 
     <main>
         <div class="container" id="ui">
-            <div id="heart">🩶</div>
-            <div id="status">Waiting for data</div>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div id="heart">🩶</div>
+                    <div id="status">Waiting for data</div>
+                    <div class="label">Puls</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="value" id="speed">0.0</div>
+                    <div class="label">km/h</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="value" id="distance">0.00</div>
+                    <div class="label">km</div>
+                </div>
+            </div>
+
+            <div class="controls">
+                <button id="btn-start" onclick="startTracking()">Start</button>
+                <button id="btn-pause" onclick="pauseTracking()" disabled>Pause</button>
+                <button id="btn-stop" onclick="stopTracking()" disabled>Stop</button>
+            </div>
         </div>
     </main>
 
     <script>
+        let wakeLock = null;
+        let watchId = null;
+        let lastCoord = null;
+        let totalDistance = 0;
+        let trackingState = 'idle';
+
+        // Fetch live heart rate data from API
         async function update() {
             try {
-                // Fetch live API (adjust URL to full domain if needed)
                 const res = await fetch('https://api.heyfordy.dev/puls-elias/live'); 
                 const data = await res.json();
                 
@@ -97,6 +124,108 @@
                 console.error("Fetch failed", e);
             }
         }
+
+        // Request screen wake lock to keep display active
+        async function requestWakeLock() {
+            if ('wakeLock' in navigator) {
+                try {
+                    wakeLock = await navigator.wakeLock.request('screen');
+                } catch (err) {
+                    console.error("Wake lock failed", err);
+                }
+            }
+        }
+
+        // Release screen wake lock
+        function releaseWakeLock() {
+            if (wakeLock) {
+                wakeLock.release();
+                wakeLock = null;
+            }
+        }
+
+        // Re-acquire wake lock if application visibility changes
+        document.addEventListener('visibilitychange', async () => {
+            if (wakeLock !== null && document.visibilityState === 'visible') {
+                await requestWakeLock();
+            }
+        });
+
+        // Calculate distance using haversine formula
+        function getDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371000;
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            return R * c;
+        }
+
+        // Update disabled states of tracking interface buttons
+        function updateButtons() {
+            document.getElementById('btn-start').disabled = trackingState === 'running';
+            document.getElementById('btn-pause').disabled = trackingState !== 'running';
+            document.getElementById('btn-stop').disabled = trackingState === 'idle';
+        }
+
+        // Begin geolocation tracking and enable wake lock
+        async function startTracking() {
+            if (trackingState === 'idle') {
+                totalDistance = 0;
+                document.getElementById('distance').innerText = '0.00';
+            }
+            trackingState = 'running';
+            updateButtons();
+            await requestWakeLock();
+            lastCoord = null;
+
+            if (navigator.geolocation) {
+                watchId = navigator.geolocation.watchPosition(position => {
+                    if (trackingState !== 'running') return;
+                    
+                    const speedMps = position.coords.speed || 0;
+                    document.getElementById('speed').innerText = (speedMps * 3.6).toFixed(1);
+
+                    if (lastCoord) {
+                        const d = getDistance(lastCoord.latitude, lastCoord.longitude, position.coords.latitude, position.coords.longitude);
+                        if (position.coords.accuracy < 30) {
+                            totalDistance += d;
+                        }
+                    }
+                    lastCoord = { latitude: position.coords.latitude, longitude: position.coords.longitude };
+                    document.getElementById('distance').innerText = (totalDistance / 1000).toFixed(2);
+                }, err => console.error(err), { enableHighAccuracy: true });
+            }
+        }
+
+        // Pause current tracking operation
+        function pauseTracking() {
+            trackingState = 'paused';
+            updateButtons();
+            releaseWakeLock();
+            if (watchId) {
+                navigator.geolocation.clearWatch(watchId);
+                watchId = null;
+            }
+            lastCoord = null;
+            document.getElementById('speed').innerText = '0.0';
+        }
+
+        // Terminate tracking operation and reset state
+        function stopTracking() {
+            trackingState = 'idle';
+            updateButtons();
+            releaseWakeLock();
+            if (watchId) {
+                navigator.geolocation.clearWatch(watchId);
+                watchId = null;
+            }
+            lastCoord = null;
+            document.getElementById('speed').innerText = '0.0';
+        }
+
         setInterval(update, 5000);
         update();
     </script>
