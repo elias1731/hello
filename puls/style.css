@@ -30,10 +30,30 @@ header h1 { font-size: 1.8em; display: flex; align-items: center; margin: 0; fle
 /* Main layout */
 main { flex: 1; display: flex; justify-content: center; align-items: center; padding: 1rem; }
 
-/* Pulse UI */
-.container { text-align: center; transition: all 0.3s ease; }
-#heart { font-size: 120px; transition: color 0.5s ease; margin-bottom: 20px; display: inline-block; }
-#status { font-size: 24px; font-weight: bold; letter-spacing: 1px; text-shadow: 1px 1px 5px rgba(0,0,0,0.5); }
+/* Pulse UI Container */
+.container { text-align: center; transition: all 0.3s ease; width: 100%; max-width: 600px; display: flex; flex-direction: column; gap: 2rem; }
+#heart { font-size: 70px; transition: color 0.5s ease; margin-bottom: 10px; display: inline-block; }
+#status { font-size: 22px; font-weight: bold; letter-spacing: 1px; text-shadow: 1px 1px 5px rgba(0,0,0,0.5); }
+
+/* Stats arrangement grid */
+.stats-grid { display: grid; grid-template-columns: 1fr; gap: 1.2rem; width: 100%; }
+@media (min-width: 480px) { .stats-grid { grid-template-columns: repeat(3, 1fr); } }
+
+/* Grid panel card visualization */
+.stat-card { background: #11121560; backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); border: 1px solid #ffffff10; padding: 1.5rem; border-radius: 16px; display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 150px; }
+.stat-card .value { font-size: 3rem; font-weight: bold; color: #ff8800; text-shadow: 1px 1px 10px rgba(0,0,0,0.3); }
+.stat-card .label { font-size: 0.85rem; color: #aaa; text-transform: uppercase; letter-spacing: 1px; margin-top: 5px; }
+
+/* Interface layout control alignment */
+.controls { display: flex; gap: 10px; width: 100%; }
+
+/* Form trigger control components */
+button { flex: 1; padding: 1rem; font-size: 1.1rem; font-weight: bold; color: #fff; border: none; border-radius: 14px; cursor: pointer; transition: transform 0.1s, opacity 0.2s, background-color 0.2s; }
+button:active { transform: scale(0.97); }
+button:disabled { opacity: 0.3; cursor: not-allowed; transform: none; }
+#btn-start { background-color: #00b050; }
+#btn-pause { background-color: #ffaa00; }
+#btn-stop { background-color: #ff3c3c; }
 
 /* Pulse animation triggered by JS class */
 .connected #heart { animation: pulse var(--pulse-speed) infinite cubic-bezier(0.215, 0.61, 0.355, 1); }
