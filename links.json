@@ -76,7 +76,13 @@
         "name": "Android DL-URLs",
         "url": "https://heyfordy.dev/tvurls",
         "icon": "fa-brands fa-android"
-      },      {
+      },
+      {
+        "name": "HENfw DL",
+        "url": "https://heyfordy.dev/ps3hen",
+        "icon": "fa-brands fa-playstation"
+      },
+      {
         "name": "FritzBox JSTools",
         "url": "FritzBox-JSTool.html",
         "icon": "fa-solid fa-server"

@@ -1,0 +1,94 @@
+name: Update HENfw
+
+on:
+  schedule:
+    # Runs every 12 hours
+    - cron: '0 */12 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update-hen:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Process Updates and Build Page
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # 1. Fetch current HFW version from ps3xploit.me
+          VERSION=$(curl -sL https://ps3xploit.me/ | grep -oP 'PS3HEN: </font><font color="#[A-Fa-f0-9]+">\K[0-9]+\.[0-9]+(?= HFW)')
+          if [ -z "$VERSION" ]; then
+            echo "Error: Could not parse HFW version."
+            exit 1
+          fi
+          echo "Detected HFW Version: $VERSION"
+
+          # 2. Prepare directories and cleanup old version folders
+          mkdir -p ps3hen
+          find ps3hen -mindepth 1 -maxdepth 1 -type d ! -name "$VERSION" -exec rm -rf {} +
+          mkdir -p "ps3hen/$VERSION"
+
+          # 3. Handle PUP Download and GitHub Release
+          PUP_URL="https://ps3xploit.me/firmware/hfw/HFW_${VERSION}.1_PS3UPDAT.PUP"
+          CURRENT_REL=$(gh release view hen --json name -q .name 2>/dev/null || echo "")
+
+          if [ "$CURRENT_REL" != "HFW $VERSION" ]; then
+            if curl -sL -f -o PS3UPDAT.PUP "$PUP_URL"; then
+              if ! gh release view hen >/dev/null 2>&1; then
+                gh release create hen PS3UPDAT.PUP -p -t "HFW $VERSION" -n "Auto-generated HFW release"
+              else
+                gh release edit hen -t "HFW $VERSION"
+                gh release upload hen PS3UPDAT.PUP --clobber
+              fi
+            else
+              echo "Valid .PUP file for $VERSION not found. Skipping release update."
+            fi
+          fi
+
+          # 4. Fetch external dependencies (fails silently if repos are outdated)
+          curl -sL -f -o ps3hen/enable.html "https://raw.githubusercontent.com/ps3addict/alternate/main/alternate.html" || true
+          curl -sL -f -o "ps3hen/$VERSION/HEN.pkg" "https://raw.githubusercontent.com/ps3addict/alternate/main/$VERSION/HEN.pkg" || true
+
+          # 5. Generate index.html dynamically
+          cat <<EOF > ps3hen/index.html
+          <!DOCTYPE html>
+          <html lang="en">
+          <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>HENfw</title>
+            <style>
+              body { font-family: Arial, sans-serif; background: #1a1a1a; color: #fff; display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0; padding-top: 10%; box-sizing: border-box; }
+              h1 { margin-bottom: 40px; font-size: 3rem; }
+              .btn-container { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; }
+              .btn { background: #0078D7; color: white; padding: 15px 30px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 1.2rem; transition: background 0.3s; border: none; cursor: pointer; }
+              .btn:hover { background: #005A9E; }
+              .footer { margin-top: auto; padding: 20px; }
+              .footer-btn { background: #333; font-size: 1rem; padding: 10px 20px; }
+              .footer-btn:hover { background: #555; }
+            </style>
+          </head>
+          <body>
+            <h1>HENfw</h1>
+            <div class="btn-container">
+              <a href="https://github.com/${GITHUB_REPOSITORY}/releases/download/hen/PS3UPDAT.PUP" class="btn">Download HFW ${VERSION}</a>
+              <a href="./enable.html" class="btn">Enable HEN</a>
+            </div>
+            <div class="footer">
+              <a href="https://ps3xploit.me" target="_blank" class="btn footer-btn">Visit ps3xploit.me</a>
+            </div>
+          </body>
+          </html>
+          EOF
+
+          # 6. Commit and Push
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add ps3hen/
+          git commit -m "Auto-update HENfw to $VERSION" || echo "No changes to commit"
+          git push
