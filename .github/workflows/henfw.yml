@@ -1,0 +1,111 @@
+name: Update HENfw
+
+on:
+  push:
+    paths:
+      - '.github/workflows/henfw.yml'
+  schedule:
+    - cron: '0 */12 * * *'
+  workflow_dispatch:
+    inputs:
+      clean:
+        description: 'Force clean directory and regenerate page'
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+jobs:
+  update-hen:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Process Updates and Build Page
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CLEAN_MODE: ${{ inputs.clean }}
+        run: |
+          # Fetch HFW version using robust grep pipeline
+          VERSION=$(curl -sL -A "Mozilla/5.0" https://ps3xploit.me/index.html | grep -io 'PS3HEN:.*HFW' | grep -oE '[0-9]+\.[0-9]+' | head -n 1 || true)
+
+          # Fallback to alternate repository
+          if [ -z "$VERSION" ]; then
+            echo "Warning: Could not fetch version from ps3xploit.me, trying fallback..."
+            VERSION=$(gh api repos/ps3addict/alternate/contents -q '.[].name' | grep -E '^[0-9]+\.[0-9]+$' | sort -V | tail -n 1 || true)
+          fi
+
+          if [ -z "$VERSION" ]; then
+            echo "Error: Version could not be determined from any source."
+            exit 1
+          fi
+
+          echo "Target Version determined: $VERSION"
+
+          # Optional Clean Switch: Wipe directory if enabled
+          if [ "$CLEAN_MODE" = "true" ]; then
+            echo "Clean mode active. Completely removing old ps3hen folder..."
+            rm -rf ps3hen
+          fi
+
+          # Check if this version is already deployed
+          if [ ! -d "ps3hen/$VERSION" ] || [ "$CLEAN_MODE" = "true" ]; then
+            echo "New version detected or clean mode forced. Proceeding with update..."
+
+            # Clean old version folders and create new one
+            mkdir -p ps3hen
+            find ps3hen -mindepth 1 -maxdepth 1 -type d ! -name "$VERSION" -exec rm -rf {} +
+            mkdir -p "ps3hen/$VERSION"
+
+            # Define direct download URL to embed in the HTML button
+            PUP_URL="https://ps3xploit.me/firmware/hfw/HFW_${VERSION}.1_PS3UPDAT.PUP"
+            echo "Direct PUP URL to be embedded: $PUP_URL"
+
+            # Fetch external dependencies
+            curl -sL -f -o ps3hen/enable.html "https://raw.githubusercontent.com/ps3addict/alternate/main/alternate.html" || true
+            curl -sL -f -o "ps3hen/$VERSION/HEN.pkg" "https://raw.githubusercontent.com/ps3addict/alternate/main/$VERSION/HEN.pkg" || true
+
+            # Generate index.html dynamically with the direct source link
+            cat <<EOF > ps3hen/index.html
+            <!DOCTYPE html>
+            <html lang="en">
+            <head>
+              <meta charset="UTF-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1.0">
+              <title>HENfw</title>
+              <style>
+                body { font-family: Arial, sans-serif; background: #1a1a1a; color: #fff; display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0; padding-top: 10%; box-sizing: border-box; }
+                h1 { margin-bottom: 40px; font-size: 3rem; }
+                .btn-container { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; }
+                .btn { background: #0078D7; color: white; padding: 15px 30px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 1.2rem; transition: background 0.3s; border: none; cursor: pointer; }
+                .btn:hover { background: #005A9E; }
+                .footer { margin-top: auto; padding: 20px; }
+                .footer-btn { background: #333; font-size: 1rem; padding: 10px 20px; text-decoration: none; color: white; border-radius: 5px; }
+                .footer-btn:hover { background: #555; }
+              </style>
+            </head>
+            <body>
+              <h1>HENfw</h1>
+              <div class="btn-container">
+                <a href="${PUP_URL}" class="btn">Download HFW ${VERSION}</a>
+                <a href="./enable.html" class="btn">Enable HEN</a>
+              </div>
+              <div class="footer">
+                <a href="https://ps3xploit.me" target="_blank" class="footer-btn">Visit ps3xploit.me</a>
+              </div>
+            </body>
+            </html>
+            EOF
+
+            # Commit and Push changes
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add ps3hen/
+            git commit -m "Auto-update HENfw to $VERSION (Clean Mode: $CLEAN_MODE)" || true
+            git push
+          else
+            echo "Version $VERSION is already up-to-date in the repository. Skipping regeneration."
+          fi
