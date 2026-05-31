@@ -1,9 +1,18 @@
 name: Update HENfw
 
 on:
+  push:
+    paths:
+      - '.github/workflows/update-hen.yml'
   schedule:
     - cron: '0 */12 * * *'
   workflow_dispatch:
+    inputs:
+      clean:
+        description: 'Force clean directory and recreate release'
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -18,17 +27,28 @@ jobs:
       - name: Process Updates and Build Page
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CLEAN_MODE: ${{ inputs.clean }}
         run: |
           # Fetch HFW version using robust grep pipeline
           VERSION=$(curl -sL -A "Mozilla/5.0" https://ps3xploit.me/ | grep -io 'PS3HEN:.*HFW' | grep -oE '[0-9]+\.[0-9]+' | head -n 1 || true)
 
           # Fallback to alternate repository
           if [ -z "$VERSION" ]; then
+            echo "Warning: Could not fetch version from ps3xploit.me, trying fallback..."
             VERSION=$(gh api repos/ps3addict/alternate/contents -q '.[].name' | grep -E '^[0-9]+\.[0-9]+$' | sort -V | tail -n 1 || true)
           fi
 
           if [ -z "$VERSION" ]; then
+            echo "Error: Version could not be determined from any source."
             exit 1
+          fi
+
+          echo "Target Version determined: $VERSION"
+
+          # Optional Clean Switch: Wipe directory if enabled
+          if [ "$CLEAN_MODE" = "true" ]; then
+            echo "Clean mode active. Completely removing old ps3hen folder..."
+            rm -rf ps3hen
           fi
 
           # Clean old version folders and create new one
@@ -36,31 +56,46 @@ jobs:
           find ps3hen -mindepth 1 -maxdepth 1 -type d ! -name "$VERSION" -exec rm -rf {} +
           mkdir -p "ps3hen/$VERSION"
 
-          # Download PUP and handle GitHub Pre-Release
-          PUP_URL="https://ps3xploit.me/firmware/hfw/HFW_${VERSION}.1_PS3UPDAT.PUP"
+          # Check current release
           CURRENT_REL=$(gh release view hen --json name -q .name 2>/dev/null || echo "")
+          echo "Current Release in Repo: '$CURRENT_REL'"
+          echo "Expected Release Title: 'HFW $VERSION'"
 
-          if [ "$CURRENT_REL" != "HFW $VERSION" ]; then
-            if curl -sL -f -A "Mozilla/5.0" -o PS3UPDAT.PUP "$PUP_URL"; then
-
-              echo "New HFW version detected: $VERSION"
-
-              # Delete existing release
-              if gh release view hen >/dev/null 2>&1; then
-                gh release delete hen --yes
-              fi
-
-              # Delete tag locally and remotely (if it exists)
-              git tag -d hen 2>/dev/null || true
-              git push origin :refs/tags/hen 2>/dev/null || true
-
-              # Create new pre-release
-              gh release create hen PS3UPDAT.PUP \
-                --prerelease \
-                --title "HFW $VERSION" \
-                --notes "HFW $VERSION"
-
+          # Trigger update if versions mismatch OR if clean mode is explicitly forced
+          if [ "$CURRENT_REL" != "HFW $VERSION" ] || [ "$CLEAN_MODE" = "true" ]; then
+            if [ "$CLEAN_MODE" = "true" ]; then
+              echo "Force recreate active via clean switch. Bypassing version check."
             fi
+
+            PUP_URL="https://ps3xploit.me/firmware/hfw/HFW_${VERSION}.1_PS3UPDAT.PUP"
+            echo "Attempting to download PUP from: $PUP_URL"
+            
+            # Download file explicitly. If this fails, the workflow will stop here and show the error.
+            if ! curl -sL -f -A "Mozilla/5.0" -o PS3UPDAT.PUP "$PUP_URL"; then
+              echo "ERROR: Failed to download PUP file. The site might be down, protecting against bots (Cloudflare), or the URL format has changed."
+              exit 1
+            fi
+
+            echo "PUP downloaded successfully."
+
+            # Delete existing release
+            if gh release view hen >/dev/null 2>&1; then
+              echo "Deleting old release..."
+              gh release delete hen --yes
+            fi
+
+            # Delete tag locally and remotely (if it exists)
+            git tag -d hen 2>/dev/null || true
+            git push origin :refs/tags/hen 2>/dev/null || true
+
+            # Create new pre-release
+            echo "Creating new GitHub Release..."
+            gh release create hen PS3UPDAT.PUP \
+              --prerelease \
+              --title "HFW $VERSION" \
+              --notes "HFW $VERSION"
+          else
+            echo "Release is already up-to-date ($CURRENT_REL). Skipping release creation."
           fi
 
           # Fetch external dependencies
@@ -103,5 +138,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add ps3hen/
-          git commit -m "Auto-update HENfw to $VERSION" || true
+          git commit -m "Auto-update HENfw to $VERSION (Clean Mode: $CLEAN_MODE)" || true
           git push
