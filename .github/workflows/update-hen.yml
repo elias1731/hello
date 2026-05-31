@@ -2,7 +2,6 @@ name: Update HENfw
 
 on:
   schedule:
-    # Runs every 12 hours
     - cron: '0 */12 * * *'
   workflow_dispatch:
 
@@ -18,43 +17,31 @@ jobs:
 
       - name: Process Updates and Build Page
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # 1. Fetch current HFW version from ps3xploit.me
-          VERSION=$(curl -sL https://ps3xploit.me/ | grep -oP 'PS3HEN: </font><font color="#[A-Fa-f0-9]+">\K[0-9]+\.[0-9]+(?= HFW)')
+          # Fetch HFW version using robust grep pipeline
+          VERSION=$(curl -sL -A "Mozilla/5.0" https://ps3xploit.me/ | grep -io 'PS3HEN:.*HFW' | grep -oE '[0-9]+\.[0-9]+' | head -n 1 || true)
+
+          # Fallback to alternate repository
           if [ -z "$VERSION" ]; then
-            echo "Error: Could not parse HFW version."
+            VERSION=$(gh api repos/ps3addict/alternate/contents -q '.[].name' | grep -E '^[0-9]+\.[0-9]+$' | sort -V | tail -n 1 || true)
+          fi
+
+          if [ -z "$VERSION" ]; then
+            echo "Version konnte nicht ermittelt werden."
             exit 1
           fi
-          echo "Detected HFW Version: $VERSION"
 
-          # 2. Prepare directories and cleanup old version folders
+          # Clean old version folders and create new one
           mkdir -p ps3hen
           find ps3hen -mindepth 1 -maxdepth 1 -type d ! -name "$VERSION" -exec rm -rf {} +
           mkdir -p "ps3hen/$VERSION"
 
-          # 3. Handle PUP Download and GitHub Release
-          PUP_URL="https://ps3xploit.me/firmware/hfw/HFW_${VERSION}.1_PS3UPDAT.PUP"
-          CURRENT_REL=$(gh release view hen --json name -q .name 2>/dev/null || echo "")
-
-          if [ "$CURRENT_REL" != "HFW $VERSION" ]; then
-            if curl -sL -f -o PS3UPDAT.PUP "$PUP_URL"; then
-              if ! gh release view hen >/dev/null 2>&1; then
-                gh release create hen PS3UPDAT.PUP -p -t "HFW $VERSION" -n "Auto-generated HFW release"
-              else
-                gh release edit hen -t "HFW $VERSION"
-                gh release upload hen PS3UPDAT.PUP --clobber
-              fi
-            else
-              echo "Valid .PUP file for $VERSION not found. Skipping release update."
-            fi
-          fi
-
-          # 4. Fetch external dependencies (fails silently if repos are outdated)
+          # Fetch external dependencies
           curl -sL -f -o ps3hen/enable.html "https://raw.githubusercontent.com/ps3addict/alternate/main/alternate.html" || true
           curl -sL -f -o "ps3hen/$VERSION/HEN.pkg" "https://raw.githubusercontent.com/ps3addict/alternate/main/$VERSION/HEN.pkg" || true
 
-          # 5. Generate index.html dynamically
+          # Generate index.html dynamically
           cat <<EOF > ps3hen/index.html
           <!DOCTYPE html>
           <html lang="en">
@@ -69,7 +56,7 @@ jobs:
               .btn { background: #0078D7; color: white; padding: 15px 30px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 1.2rem; transition: background 0.3s; border: none; cursor: pointer; }
               .btn:hover { background: #005A9E; }
               .footer { margin-top: auto; padding: 20px; }
-              .footer-btn { background: #333; font-size: 1rem; padding: 10px 20px; }
+              .footer-btn { background: #333; font-size: 1rem; padding: 10px 20px; text-decoration: none; color: white; border-radius: 5px; }
               .footer-btn:hover { background: #555; }
             </style>
           </head>
@@ -80,15 +67,34 @@ jobs:
               <a href="./enable.html" class="btn">Enable HEN</a>
             </div>
             <div class="footer">
-              <a href="https://ps3xploit.me" target="_blank" class="btn footer-btn">Visit ps3xploit.me</a>
+              <a href="https://ps3xploit.me" target="_blank" class="footer-btn">Visit ps3xploit.me</a>
             </div>
           </body>
           </html>
           EOF
 
-          # 6. Commit and Push
+          # Commit and Push (Fix für Detached HEAD)
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add ps3hen/
-          git commit -m "Auto-update HENfw to $VERSION" || echo "No changes to commit"
-          git push
+          
+          # Nur committen und pushen, wenn es echte Änderungen gab
+          if ! git diff --cached --quiet; then
+            git commit -m "Auto-update HENfw to $VERSION"
+            git push origin HEAD:${{ github.ref_name }}
+          fi
+
+          # Handle GitHub Pre-Release
+          CURRENT_REL=$(gh release view hen --repo "$GITHUB_REPOSITORY" --json name -q .name 2>/dev/null || echo "")
+
+          if [ "$CURRENT_REL" != "HFW $VERSION" ]; then
+            PUP_URL="https://ps3xploit.me/firmware/hfw/HFW_${VERSION}.1_PS3UPDAT.PUP"
+            if curl -sL -f -A "Mozilla/5.0" -o PS3UPDAT.PUP "$PUP_URL"; then
+              # Altes Release und Tag löschen, damit das neue sauber auf dem aktuellen Commit erstellt wird
+              gh release delete hen --yes --repo "$GITHUB_REPOSITORY" 2>/dev/null || true
+              git push origin :refs/tags/hen 2>/dev/null || true
+              
+              # Neues Prerelease erstellen
+              gh release create hen PS3UPDAT.PUP --prerelease --title "HFW $VERSION" --notes "HFW $VERSION" --repo "$GITHUB_REPOSITORY"
+            fi
+          fi
