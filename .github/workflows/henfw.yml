@@ -30,7 +30,7 @@ jobs:
           CLEAN_MODE: ${{ inputs.clean }}
         run: |
           # Fetch HFW version using robust grep pipeline
-          VERSION=$(curl -sL -A "Mozilla/5.0" https://ps3xploit.me/index.html | grep -io 'PS3HEN:.*HFW' | grep -oE '[0-9]+\.[0-9]+' | head -n 1 || true)
+          VERSION=$(curl -sL -A "Mozilla/5.0" https://ps3xploit.me/ | grep -io 'PS3HEN:.*HFW' | grep -oE '[0-9]+\.[0-9]+' | head -n 1 || true)
 
           # Fallback to alternate repository
           if [ -z "$VERSION" ]; then
@@ -70,35 +70,35 @@ jobs:
 
             # Generate index.html dynamically with the direct source link
             cat <<EOF > ps3hen/index.html
-            <!DOCTYPE html>
-            <html lang="en">
-            <head>
-              <meta charset="UTF-8">
-              <meta name="viewport" content="width=device-width, initial-scale=1.0">
-              <title>HENfw</title>
-              <style>
-                body { font-family: Arial, sans-serif; background: #1a1a1a; color: #fff; display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0; padding-top: 10%; box-sizing: border-box; }
-                h1 { margin-bottom: 40px; font-size: 3rem; }
-                .btn-container { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; }
-                .btn { background: #0078D7; color: white; padding: 15px 30px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 1.2rem; transition: background 0.3s; border: none; cursor: pointer; }
-                .btn:hover { background: #005A9E; }
-                .footer { margin-top: auto; padding: 20px; }
-                .footer-btn { background: #333; font-size: 1rem; padding: 10px 20px; text-decoration: none; color: white; border-radius: 5px; }
-                .footer-btn:hover { background: #555; }
-              </style>
-            </head>
-            <body>
-              <h1>HENfw</h1>
-              <div class="btn-container">
-                <a href="${PUP_URL}" class="btn">Download HFW ${VERSION}</a>
-                <a href="./enable.html" class="btn">Enable HEN</a>
-              </div>
-              <div class="footer">
-                <a href="https://ps3xploit.me" target="_blank" class="footer-btn">Visit ps3xploit.me</a>
-              </div>
-            </body>
-            </html>
-            EOF
+          <!DOCTYPE html>
+          <html lang="en">
+          <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>HENfw</title>
+            <style>
+              body { font-family: Arial, sans-serif; background: #1a1a1a; color: #fff; display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0; padding-top: 10%; box-sizing: border-box; }
+              h1 { margin-bottom: 40px; font-size: 3rem; }
+              .btn-container { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; }
+              .btn { background: #0078D7; color: white; padding: 15px 30px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 1.2rem; transition: background 0.3s; border: none; cursor: pointer; }
+              .btn:hover { background: #005A9E; }
+              .footer { margin-top: auto; padding: 20px; }
+              .footer-btn { background: #333; font-size: 1rem; padding: 10px 20px; text-decoration: none; color: white; border-radius: 5px; }
+              .footer-btn:hover { background: #555; }
+            </style>
+          </head>
+          <body>
+            <h1>HENfw</h1>
+            <div class="btn-container">
+              <a href="${PUP_URL}" class="btn">Download HFW ${VERSION}</a>
+              <a href="./enable.html" class="btn">Enable HEN</a>
+            </div>
+            <div class="footer">
+              <a href="https://ps3xploit.me" target="_blank" class="footer-btn">Visit ps3xploit.me</a>
+            </div>
+          </body>
+          </html>
+          EOF
 
             # Commit and Push changes
             git config user.name "github-actions[bot]"
