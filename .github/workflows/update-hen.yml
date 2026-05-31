@@ -71,7 +71,7 @@ jobs:
             echo "Attempting to download PUP from: $PUP_URL"
             
             # Download file explicitly. If this fails, the workflow will stop here and show the error.
-            if ! curl -sL -f -A "Mozilla/5.0" -o PS3UPDAT.PUP "$PUP_URL"; then
+            if ! curl -A "Mozilla/5.0" -o PS3UPDAT.PUP "$PUP_URL"; then
               echo "ERROR: Failed to download PUP file. The site might be down, protecting against bots (Cloudflare), or the URL format has changed."
               exit 1
             fi
