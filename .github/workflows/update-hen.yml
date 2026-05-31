@@ -17,7 +17,7 @@ jobs:
 
       - name: Process Updates and Build Page
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           # Fetch HFW version using robust grep pipeline
           VERSION=$(curl -sL -A "Mozilla/5.0" https://ps3xploit.me/ | grep -io 'PS3HEN:.*HFW' | grep -oE '[0-9]+\.[0-9]+' | head -n 1 || true)
@@ -28,7 +28,6 @@ jobs:
           fi
 
           if [ -z "$VERSION" ]; then
-            echo "Version konnte nicht ermittelt werden."
             exit 1
           fi
 
@@ -36,6 +35,33 @@ jobs:
           mkdir -p ps3hen
           find ps3hen -mindepth 1 -maxdepth 1 -type d ! -name "$VERSION" -exec rm -rf {} +
           mkdir -p "ps3hen/$VERSION"
+
+          # Download PUP and handle GitHub Pre-Release
+          PUP_URL="https://ps3xploit.me/firmware/hfw/HFW_${VERSION}.1_PS3UPDAT.PUP"
+          CURRENT_REL=$(gh release view hen --json name -q .name 2>/dev/null || echo "")
+
+          if [ "$CURRENT_REL" != "HFW $VERSION" ]; then
+            if curl -sL -f -A "Mozilla/5.0" -o PS3UPDAT.PUP "$PUP_URL"; then
+
+              echo "New HFW version detected: $VERSION"
+
+              # Delete existing release
+              if gh release view hen >/dev/null 2>&1; then
+                gh release delete hen --yes
+              fi
+
+              # Delete tag locally and remotely (if it exists)
+              git tag -d hen 2>/dev/null || true
+              git push origin :refs/tags/hen 2>/dev/null || true
+
+              # Create new pre-release
+              gh release create hen PS3UPDAT.PUP \
+                --prerelease \
+                --title "HFW $VERSION" \
+                --notes "HFW $VERSION"
+
+            fi
+          fi
 
           # Fetch external dependencies
           curl -sL -f -o ps3hen/enable.html "https://raw.githubusercontent.com/ps3addict/alternate/main/alternate.html" || true
@@ -73,28 +99,9 @@ jobs:
           </html>
           EOF
 
-          # Commit and Push (Fix für Detached HEAD)
+          # Commit and Push
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add ps3hen/
-          
-          # Nur committen und pushen, wenn es echte Änderungen gab
-          if ! git diff --cached --quiet; then
-            git commit -m "Auto-update HENfw to $VERSION"
-            git push origin HEAD:${{ github.ref_name }}
-          fi
-
-          # Handle GitHub Pre-Release
-          CURRENT_REL=$(gh release view hen --repo "$GITHUB_REPOSITORY" --json name -q .name 2>/dev/null || echo "")
-
-          if [ "$CURRENT_REL" != "HFW $VERSION" ]; then
-            PUP_URL="https://ps3xploit.me/firmware/hfw/HFW_${VERSION}.1_PS3UPDAT.PUP"
-            if curl -sL -f -A "Mozilla/5.0" -o PS3UPDAT.PUP "$PUP_URL"; then
-              # Altes Release und Tag löschen, damit das neue sauber auf dem aktuellen Commit erstellt wird
-              gh release delete hen --yes --repo "$GITHUB_REPOSITORY" 2>/dev/null || true
-              git push origin :refs/tags/hen 2>/dev/null || true
-              
-              # Neues Prerelease erstellen
-              gh release create hen PS3UPDAT.PUP --prerelease --title "HFW $VERSION" --notes "HFW $VERSION" --repo "$GITHUB_REPOSITORY"
-            fi
-          fi
+          git commit -m "Auto-update HENfw to $VERSION" || true
+          git push
