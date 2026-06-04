@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+	<title>META • 𝓕𝓸𝓻𝓭𝔂•𝗥𝗮𝗱𝗶𝓸</title>
+	
+	<link rel="manifest" href="./manifest.json">
+	<meta name="theme-color" content="#0a0a0a">
+	<meta name="apple-mobile-web-app-capable" content="yes">
+	<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+	<link rel="apple-touch-icon" href="./assets/app.png">
+	
+	<script>navigator.serviceWorker.register("./sw.js")</script> 
+	<script src="./assets/pwa.js"></script>
+
+	<link rel="icon" type="image/png" href="../assets/icon.png">
+	<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;700&display=swap" rel="stylesheet">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+	<link rel="stylesheet" href="assets/style.css">
+    
+	<style>
+		.info-main {
+			display: block;
+			width: 100%;
+			max-width: 800px;
+			margin: 0 auto;
+			padding-bottom: 40px;
+		}
+		.station-card {
+			display: flex;
+			align-items: center;
+			background: rgba(255,255,255,0.05);
+			border: 1px solid rgba(255,255,255,0.1);
+			border-radius: 16px;
+			padding: 15px;
+			margin-bottom: 15px;
+			transition: transform 0.2s;
+		}
+		.station-card:hover {
+			background: rgba(255,255,255,0.08);
+		}
+		.station-card-img {
+			width: 60px;
+			height: 60px;
+			border-radius: 12px;
+			object-fit: cover;
+			margin-right: 15px;
+			background: #111;
+			box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+		}
+		.station-card-details {
+			flex: 1;
+			min-width: 0;
+		}
+		.station-card-title {
+			font-size: 1.1rem;
+			font-weight: 700;
+			margin-bottom: 4px;
+			white-space: nowrap;
+			overflow: hidden;
+			text-overflow: ellipsis;
+		}
+		.station-card-artist {
+			font-size: 0.9rem;
+			color: rgba(255,255,255,0.6);
+			white-space: nowrap;
+			overflow: hidden;
+			text-overflow: ellipsis;
+		}
+		.station-card-name {
+			font-size: 0.75rem;
+			text-transform: uppercase;
+			letter-spacing: 1px;
+			color: var(--accent);
+			margin-bottom: 2px;
+			display: block;
+		}
+		.refresh-btn {
+			background: rgba(255,255,255,0.1);
+			border: none;
+			color: white;
+			padding: 10px 20px;
+			border-radius: 20px;
+			cursor: pointer;
+			font-weight: bold;
+			margin-bottom: 20px;
+			display: inline-flex;
+			align-items: center;
+			gap: 8px;
+			transition: background 0.2s;
+		}
+		.refresh-btn:hover {
+			background: rgba(255,255,255,0.2);
+		}
+		.loader {
+			text-align: center;
+			padding: 40px;
+			color: rgba(255,255,255,0.5);
+		}
+	</style>
+</head>
+<body id="app-body">
+
+	<div id="dynamic-bg"></div>
+
+	<header>
+		<div class="header-brand">
+			<i class="fa-solid fa-circle-info" style="margin-right: 12px; color:darksalmonu;"></i>
+			<span class="rainbow-text">API » 𝓱𝓮𝔂𝓕𝓸𝓻𝓭𝔂.dev 𝗥𝗮𝗱𝗶𝓸</span>
+		</div>
+		<button class="round-btn" onclick="window.location.href='index.html'">
+			<i class="fa-solid fa-arrow-left"></i>
+		</button>
+	</header>
+
+	<div class="layout-wrapper">
+		<main class="info-main">
+			<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+				<h2>Live Metadata</h2>
+				<button class="refresh-btn" onclick="fetchMetadata()">
+					<i class="fa-solid fa-rotate-right"></i> Aktualisieren
+				</button>
+			</div>
+			
+			<div id="stations-container">
+				<div class="loader"><i class="fa-solid fa-spinner fa-spin fa-2x"></i><br><br>Lade Daten...</div>
+			</div>
+		</main>
+	</div>
+
+	<script>
+		// Mapping für ansprechendere Darstellung der Sendernamen
+		const stationNames = {
+			"eldoradio": "E L D O",
+			"rtl-lux": "RTL.lu",
+			"rtl-today": "RTL TODAY",
+			"sunshine-live": "SUNSHINE LiVE",
+			"sunshine-90s": "SUNSHINE 90s",
+			"sunshine-eurodance": "SUNSHINE E.DANCE",
+			"radio-bob": "RADiO BOB!",
+			"rockland": "Rockland Trier",
+			"nrj": "RADIO NRJ",
+			"ffh-soundtrack": "FFH SOUNDTRACK",
+			"rockantenne": "ROCK ANTENNE"
+		};
+
+		async function fetchMetadata() {
+			const container = document.getElementById('stations-container');
+			container.innerHTML = '<div class="loader"><i class="fa-solid fa-spinner fa-spin fa-2x"></i><br><br>Lade Daten...</div>';
+			
+			try {
+				const res = await fetch('https://api.heyfordy.dev/radio?t=' + Date.now());
+				if (!res.ok) throw new Error('API request failed');
+				const data = await res.json();
+				
+				container.innerHTML = '';
+				
+				for (const [id, info] of Object.entries(data)) {
+					// Lokale AirPlay Streams oder andere überspringen, falls sie keinen API-Output generieren
+					if (!info.track && !info.artist && id === 'airplay') continue;
+
+					const name = stationNames[id] || id;
+					const track = info.track || 'Unbekannter Titel';
+					const artist = info.artist || 'Unbekannter Interpret';
+					const cover = info.cover || info.logo || './assets/app.png';
+					
+					const card = document.createElement('div');
+					card.className = 'station-card';
+					card.innerHTML = `
+						<img src="${cover}" class="station-card-img" alt="${name} Cover" onerror="this.src='./assets/app.png'">
+						<div class="station-card-details">
+							<span class="station-card-name">${name}</span>
+							<div class="station-card-title">${track}</div>
+							<div class="station-card-artist">${artist}</div>
+						</div>
+					`;
+					container.appendChild(card);
+				}
+			} catch (error) {
+				container.innerHTML = `<div class="loader" style="color: #ff4444;"><i class="fa-solid fa-circle-exclamation fa-2x"></i><br><br>Fehler beim Laden der Daten: ${error.message}</div>`;
+			}
+		}
+
+		// Initial laden
+		fetchMetadata();
+		
+		// Alle 15 Sekunden automatisch aktualisieren
+		setInterval(fetchMetadata, 15000);
+	</script>
+</body>
+</html>
