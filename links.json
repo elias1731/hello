@@ -28,6 +28,11 @@
         "icon": "fa-brands fa-xbox"
       },
       {
+        "name": "Epic Games",
+        "url": "https://heyfordy.dev/epic/",
+        "icon": "fa-solid fa-arrow-up-right-from-square"
+      },
+      {
         "name": "Web Radio",
         "url": "https://heyfordy.dev/radio/",
         "icon": "fa-solid fa-radio"
@@ -90,5 +95,3 @@
     ]
   }
 ]
-
-
