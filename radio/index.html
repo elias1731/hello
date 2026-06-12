@@ -154,6 +154,7 @@
 		let mediaRotationInterval = null; 
 		let userPaused = false;
 		let disableMeta = localStorage.getItem('radio_disable_meta') === 'true';
+		let focusedButtonIndex = -1; // Track which control button has focus
 		
 		const audio = document.getElementById('audio-el');
 		
@@ -771,13 +772,23 @@
 			
 			stations.forEach((s, i) => {
 				if (s.isDisabled) return;
-				const html = `<div class="station-item ${i === currentStationIndex ? 'active' : ''}" data-index="${i}" onclick="playStation(${i})">
+				const html = `<div class="station-item ${i === currentStationIndex ? 'active' : ''}" data-index="${i}" onclick="playStation(${i})" tabindex="0" role="button" aria-label="Station ${s.name}">
 					<img src="${s.logo || './assets/app.png'}" class="station-logo" onerror="this.src='./assets/app.png'">
 					<div class="station-info"><span>${s.name}</span></div>
 					<i class="fa-solid fa-play" style="opacity:0.2; font-size: 0.8rem;"></i>
 				</div>`;
 				list.innerHTML += html;
 				sideList.innerHTML += html;
+			});
+
+			// Add keyboard navigation for station items
+			document.querySelectorAll('.station-item').forEach((item) => {
+				item.addEventListener('keydown', (e) => {
+					if (e.key === 'Enter' || e.key === ' ') {
+						e.preventDefault();
+						playStation(parseInt(item.dataset.index));
+					}
+				});
 			});
 		}
 
@@ -789,9 +800,9 @@
 				list.innerHTML += `<div class="switch-container">
 					<div style="flex:1; opacity: ${s.isDisabled ? 0.4 : 1};"><strong>${s.name}</strong></div>
 					<div style="display:flex; gap: 12px; align-items:center;">
-						<i class="fa-solid fa-chevron-up" onclick="moveStation(${i},-1)" style="cursor:pointer; opacity:0.5;"></i>
-						<i class="fa-solid fa-chevron-down" onclick="moveStation(${i},1)" style="cursor:pointer; opacity:0.5;"></i>
-						${!s.isDefault ? `<i class="fa-solid fa-trash-can" onclick="removeStation(${i})" style="color:#ff4444; cursor:pointer;"></i>` : `<i class="fa-solid ${s.isDisabled ? 'fa-eye-slash' : 'fa-eye'}" onclick="toggleStation(${i})" style="cursor:pointer; opacity:0.5;"></i>`}
+						<i class="fa-solid fa-chevron-up" onclick="moveStation(${i},-1)" style="cursor:pointer; opacity:0.5;" tabindex="0" role="button" aria-label="Move ${s.name} up"></i>
+						<i class="fa-solid fa-chevron-down" onclick="moveStation(${i},1)" style="cursor:pointer; opacity:0.5;" tabindex="0" role="button" aria-label="Move ${s.name} down"></i>
+						${!s.isDefault ? `<i class="fa-solid fa-trash-can" onclick="removeStation(${i})" style="color:#ff4444; cursor:pointer; tabindex:0;" tabindex="0" role="button" aria-label="Delete ${s.name}"></i>` : `<i class="fa-solid ${s.isDisabled ? 'fa-eye-slash' : 'fa-eye'}" onclick="toggleStation(${i})" style="cursor:pointer; opacity:0.5;" tabindex="0" role="button" aria-label="Toggle ${s.name}"></i>`}
 					</div>
 				</div>`;
 			});
@@ -847,6 +858,55 @@
 		function clearCache() { localStorage.clear(); window.location.reload(true); }
 
 		window.onclick = (e) => { if (e.target.className === 'modal') { closeManager(); } }
+
+		// Dpad / Tastatur
+		document.addEventListener('keydown', (e) => {
+			if (!audio) return;
+
+			if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+				e.preventDefault();
+				if (e.key === 'ArrowLeft') skipPrev();
+				if (e.key === 'ArrowRight') skipNext();
+			}
+
+			// Play/Pause mit Space/Enter
+			if (e.key === ' ' || e.key === 'Enter') {
+				const activeEl = document.activeElement;
+				if (!activeEl.matches('input, button, [role="button"]')) {
+					e.preventDefault();
+					togglePlay();
+				}
+			}
+
+			// Lautstärke
+			if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+				const activeEl = document.activeElement;
+				if (!activeEl.matches('input')) {
+					e.preventDefault();
+					let currentVol = audio.volume;
+					if (e.key === 'ArrowUp') currentVol = Math.min(1, currentVol + 0.1);
+					if (e.key === 'ArrowDown') currentVol = Math.max(0, currentVol - 0.1);
+					audio.volume = currentVol;
+				}
+			}
+
+			// Tab-Navigation
+			if (e.key === 'Tab') {
+				const controlButtons = document.querySelectorAll('.round-btn, .play-btn');
+				if (controlButtons.length === 0) return;
+
+				let currentFocused = Array.from(controlButtons).findIndex(btn => btn === document.activeElement);
+				
+				if (e.shiftKey) {
+					currentFocused = (currentFocused - 1 + controlButtons.length) % controlButtons.length;
+				} else {
+					currentFocused = (currentFocused + 1) % controlButtons.length;
+				}
+
+				e.preventDefault();
+				controlButtons[currentFocused].focus();
+			}
+		});
 
 		// Retrieve covers from iTunes
 		async function fetchItunesCover(term) {
