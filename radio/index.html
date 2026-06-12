@@ -232,8 +232,8 @@
 			let btTarget = urlParams.get('bt');
 			let action = urlParams.get('action');
 
-			if (action && action.startsWith('web+fordyradio://')) {
-				let parts = action.replace('web+fordyradio://', '').split(/[/?]+/);
+			if (action && action.startsWith('fordyradio://')) {
+				let parts = action.replace('fordyradio://', '').split(/[/?]+/);
 				if (parts[0] === 'play') playTarget = parts[1];
 				if (parts[0] === 'bt') btTarget = parts[1];
 			}

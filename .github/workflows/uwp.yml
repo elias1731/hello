@@ -1,5 +1,4 @@
-# GitHub Action for UWP MSIX packaging
-name: Build UWP App (dev)
+name: "[📻FordyRadio] Build UWP App (dev)"
 on:
   workflow_dispatch:
 
@@ -9,32 +8,62 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    # Locate Windows SDK tools dynamically
     - name: Setup Build Variables
       run: |
         $sdkPath = (Get-ChildItem "C:\Program Files (x86)\Windows Kits\10\bin\*\x64\makeappx.exe" | Select-Object -First 1).DirectoryName
         echo "SDK_PATH=$sdkPath" >> $env:GITHUB_ENV
 
-    # Create MSIX package from src directory
+    - name: Inject Partner Center Identity
+      env:
+        PC_PACKAGE_NAME: ${{ secrets.PC_PACKAGE_NAME }}
+        PC_PUBLISHER: ${{ secrets.PC_PUBLISHER }}
+        PC_PUB_DISPLAY: ${{ secrets.PC_PUB_DISPLAY }}
+      run: |
+        $manifestPath = "radio/uwp/AppxManifest.xml"
+        [xml]$xml = Get-Content $manifestPath
+        
+        # Identität aktualisieren
+        $xml.Package.Identity.Name = $env:PC_PACKAGE_NAME
+        $xml.Package.Identity.Publisher = $env:PC_PUBLISHER
+        $xml.Package.Properties.PublisherDisplayName = $env:PC_PUB_DISPLAY
+        
+        # Speichern
+        $xml.Save($manifestPath)
+
+    - name: Get Version from Manifest
+      id: get_version
+      run: |
+        $manifestPath = "radio/uwp/AppxManifest.xml"
+        [xml]$xml = Get-Content $manifestPath
+        $version = $xml.Package.Identity.Version
+        # Extrahiere X.Y.Z aus X.Y.Z.0
+        if ($version -match "^(\d+\.\d+\.\d+)") {
+            $shortVersion = $matches[1]
+        } else {
+            $shortVersion = $version
+        }
+        echo "APP_VERSION=$shortVersion" >> $env:GITHUB_ENV
+
+    # Create MSIX package with new dynamic version name
     - name: Pack MSIX
       run: |
-        & "${{ env.SDK_PATH }}\makeappx.exe" pack /d radio/uwp /p FordyRadio.msix
-
-    # Generate self-signed cert matching publisher CN=Fordy
+        & "${{ env.SDK_PATH }}\makeappx.exe" pack /d radio/uwp /p FordyRadio_v${{ env.APP_VERSION }}.msix
+    
     - name: Generate Certificate
       run: |
-        $cert = New-SelfSignedCertificate -Type Custom -Subject "CN=Fordy" -KeyUsage DigitalSignature -FriendlyName "FordyRadio" -CertStoreLocation "Cert:\CurrentUser\My" -TextExtension @("2.5.29.37={text}1.3.6.1.5.5.7.3.3", "2.5.29.19={text}")
+        $publisher = "${{ secrets.PC_PUBLISHER }}"
+        $cert = New-SelfSignedCertificate -Type Custom -Subject $publisher -KeyUsage DigitalSignature -FriendlyName "FordyRadio" -CertStoreLocation "Cert:\CurrentUser\My" -TextExtension @("2.5.29.37={text}1.3.6.1.5.5.7.3.3", "2.5.29.19={text}")
         $pwd = ConvertTo-SecureString -String "fordy123" -Force -AsPlainText
         Export-PfxCertificate -cert $cert -FilePath "key.pfx" -Password $pwd
 
-    # Sign the generated package
-    - name: Sign Appx
+    - name: Sign MSIX
       run: |
-        & "${{ env.SDK_PATH }}\signtool.exe" sign /fd SHA256 /a /f key.pfx /p fordy123 FordyRadio.msix
+        & "${{ env.SDK_PATH }}\signtool.exe" sign /fd SHA256 /a /f key.pfx /p fordy123 FordyRadio_v${{ env.APP_VERSION }}.msix
 
-    # Upload final package as artifact
-    - name: Upload Artifact
-      uses: actions/upload-artifact@v4
+    - name: Create Release and Upload Asset
+      uses: softprops/action-gh-release@v1
       with:
-        name: FordyRadio-Xbox-Windows
-        path: FordyRadio.msix
+        tag_name: fordyradio-uwp
+        name: "FordyRadio | UWP v${{ env.APP_VERSION }} | Xbox Dev Mode .msix"
+        prerelease: true
+        files: FordyRadio_v${{ env.APP_VERSION }}.msix

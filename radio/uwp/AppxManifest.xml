@@ -1,54 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Package
-  xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
-  xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
-  xmlns:uap3="http://schemas.microsoft.com/appx/manifest/uap/windows10/3"
-  IgnorableNamespaces="uap uap3">
-
-  <Identity
-    Name="HeyFordy.Radio"
-    Publisher="CN=Fordy"
-    Version="1.0.0.0" />
-
+<Package xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10" xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10" xmlns:uap3="http://schemas.microsoft.com/appx/manifest/uap/windows10/3" xmlns:uap7="http://schemas.microsoft.com/appx/manifest/uap/windows10/7" IgnorableNamespaces="uap uap3 uap7">
+  <!-- Official store identity details -->
+  <Identity Name="heyFordy.dev.Fordy-Radio" Publisher="CN=heyFordy" Version="1.0.1.0" />
   <Properties>
-    <DisplayName>Fordy Radio</DisplayName>
-    <PublisherDisplayName>Fordy</PublisherDisplayName>
+    <DisplayName>Fordy-Radio</DisplayName>
+    <PublisherDisplayName>heyFordy.dev</PublisherDisplayName>
     <Logo>Assets\StoreLogo.scale-100.png</Logo>
   </Properties>
-
   <Dependencies>
+    <!-- Target platforms for universal and xbox -->
     <TargetDeviceFamily Name="Windows.Universal" MinVersion="10.0.17763.0" MaxVersionTested="10.0.19041.0" />
     <TargetDeviceFamily Name="Windows.Xbox" MinVersion="10.0.17763.0" MaxVersionTested="10.0.19041.0" />
   </Dependencies>
-
   <Resources>
     <Resource Language="de-DE" />
   </Resources>
-
   <Applications>
-    <Application
-      Id="App"
-      StartPage="https://heyfordy.dev/radio/index.html">
-      
-      <uap:VisualElements
-        DisplayName="𝓕𝓸𝓻𝓭𝔂•Radio"
-        Description="Web Radio Player"
-        BackgroundColor="#000000"
-        Square150x150Logo="Assets\Square150x150Logo.scale-100.png"
-        Square44x44Logo="Assets\Square44x44Logo.scale-100.png">
+    <!-- Application entry point and visual definitions -->
+    <Application Id="App" StartPage="https://heyfordy.dev/radio/index.html">
+      <uap:VisualElements DisplayName="𝓕𝓸𝓻𝓭𝔂•Radio" Description="Fordy's Radio Webplayer" BackgroundColor="#000000" Square150x150Logo="Assets\Square150x150Logo.scale-100.png" Square44x44Logo="Assets\Square44x44Logo.scale-100.png">
         <uap:DefaultTile Wide310x150Logo="Assets\Wide310x150Logo.scale-100.png" />
-        <uap:SplashScreen Image="Assets\SplashScreen.scale-100.png" />
+        <uap:SplashScreen Image="Assets\SplashScreen.scale-200.png" />
       </uap:VisualElements>
-      
       <uap:ApplicationContentUriRules>
+        <!-- Allowed web domains and local network rules -->
         <uap:Rule Match="https://heyfordy.dev/" Type="include" WindowsRuntimeAccess="all" />
         <uap:Rule Match="https://api.heyfordy.dev/" Type="include" />
+        <uap:Rule Match="http://10.69.254.100:8090/" Type="include" />
+        <uap:Rule Match="http://10.69.254.100:8090/stream" Type="include" />
+        <uap:Rule Match="http://10.69.254.100:8090/meta" Type="include" />
+        <uap:Rule Match="http://10.69.254.100:8090/cover" Type="include" />
       </uap:ApplicationContentUriRules>
     </Application>
   </Applications>
-
-  <Capabilities>
-    <Capability Name="internetClient" />
-    <uap3:Capability Name="backgroundMediaPlayback" />
-  </Capabilities>
-</Package>
+  
+<Capabilities><Capability Name="internetClient" /><Capability Name="internetClientServer" /><Capability Name="privateNetworkClientServer" /><Capability Name="codeGeneration" /><uap:Capability Name="removableStorage" /><uap3:Capability Name="backgroundMediaPlayback" /><uap7:Capability Name="globalMediaControl" /></Capabilities></Package>

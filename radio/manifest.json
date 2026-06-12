@@ -17,7 +17,7 @@
   },
   "protocol_handlers": [
     {
-      "protocol": "web+fordyradio",
+      "protocol": "fordyradio",
       "url": "/radio/?action=%s"
     }
   ],
@@ -42,6 +42,32 @@
       "icons": [
         {
           "src": "./assets/sunshine-90s.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Rockland Radio",
+      "short_name": "Rockland",
+      "description": "Rockland Radio",
+      "url": "./index.html?play=rockland",
+      "icons": [
+        {
+          "src": "./assets/rockland.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "FFH Soundtrack",
+      "short_name": "FFH Soundtrack",
+      "description": "FFH Soundtrack",
+      "url": "./index.html?play=ffh-soundtrack",
+      "icons": [
+        {
+          "src": "./assets/ffh-soundtrack.png",
           "sizes": "192x192",
           "type": "image/png"
         }
