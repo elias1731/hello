@@ -83,6 +83,11 @@
         "icon": "fa-brands fa-android"
       },
       {
+        "name": "Spritpreise LU",
+        "url": "https://heyfordy.dev/sprit",
+        "icon": "fa-solid fa-gas-pump"
+      },
+      {
         "name": "HENfw DL",
         "url": "https://heyfordy.dev/ps3hen",
         "icon": "fa-brands fa-playstation"

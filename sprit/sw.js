@@ -1,11 +1,11 @@
 const CACHE_NAME = 'spritpreise-lu-v1';
 const ASSETS = [
-  'index.html',
-  'style.css',
-  'manifest.json'
+  './index.html',
+  './assets/style.css',
+  './assets/app.png',
+  './assets/favicon.png'
 ];
 
-// Install Service Worker
 self.addEventListener('install', (e) => {
   e.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
@@ -14,7 +14,6 @@ self.addEventListener('install', (e) => {
   );
 });
 
-// Activate & Cleanup Old Caches
 self.addEventListener('activate', (e) => {
   e.waitUntil(
     caches.keys().then((keys) => {
@@ -29,16 +28,32 @@ self.addEventListener('activate', (e) => {
   );
 });
 
-// Network First fallback to Cache strategy
 self.addEventListener('fetch', (e) => {
-  if (e.request.url.includes('api-gate.rtl.lu')) {
-    // Let API calls pass without full asset caching, handeled via JS custom fallback
-    return;
+  if (e.request.url.includes('api.heyfordy.dev')) {
+    e.respondWith(
+      fetch(e.request)
+        .then((response) => {
+          const responseClone = response.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(e.request, responseClone);
+          });
+          return response;
+        })
+        .catch(() => {
+          return caches.match(e.request).then((cachedResponse) => {
+            if (cachedResponse) {
+              return cachedResponse;
+            }
+            throw new Error('Offline and no cache available');
+          });
+        })
+    );
+  } else {
+    e.respondWith(
+      fetch(e.request)
+        .catch(() => {
+          return caches.match(e.request);
+        })
+    );
   }
-  e.respondWith(
-    fetch(e.request)
-      .catch(() => {
-        return caches.match(e.request);
-      })
-  );
 });

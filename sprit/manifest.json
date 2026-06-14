@@ -2,17 +2,28 @@
   "theme_color": "#1a1a1a",
   "background_color": "#121214",
   "display": "standalone",
+  "orientation": "any",
   "scope": ".",
   "start_url": "https://heyfordy.dev/sprit",
   "name": "Spritpreise 🇱🇺",
   "short_name": "Spritpreise 🇱🇺",
   "description": "Aktuelle Kraftstoff- und Spritpreise direkt aus Luxemburg im minimalistischen Überblick.",
+  "launch_handler": {
+    "client_mode": [
+      "focus-existing",
+      "navigate-existing"
+    ]
+  },
   "icons": [
     {
-      "src": "https://cdn-icons-png.flaticon.com/512/481/481233.png",
+      "src": "./assets/app128.png",
+      "sizes": "128x128",
+      "type": "image/png"
+    },
+    {
+      "src": "./assets/app.png",
       "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
+      "type": "image/png"
     }
   ]
 }
