@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Spritpreise 🇱🇺</title>
+    
+    <!-- PWA Meta Tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Spritpreise 🇱🇺">
+    <meta name="theme-color" content="#1a1a1a">
+    
+    <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="style.css">
+    
+    <!-- Inter Font via system fallback or Google Fonts alternative (using clean system fonts in CSS, but adding look) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <header>
+            <div class="header-main">
+                <h1>Spritpreise <span class="accent">🇱🇺</span></h1>
+                <p class="subtitle">Aktuelle Kraftstoffpreise in Luxemburg</p>
+            </div>
+            <div class="status-badge" id="statusBadge">
+                <span class="status-dot loading"></span>
+                <span id="statusText">Lade Daten...</span>
+            </div>
+        </header>
+
+        <main>
+            <!-- Date Section -->
+            <div class="date-container">
+                <p>Stand: <span id="priceDate">--.--.----</span></p>
+            </div>
+
+            <!-- Tabs Navigation -->
+            <div class="tabs">
+                <button class="tab-btn active" onclick="switchTab('all')">Alle</button>
+                <button class="tab-btn" onclick="switchTab('fuel')">Kraftstoff</button>
+                <button class="tab-btn" onclick="switchTab('heating')">Heizung & Gas</button>
+            </div>
+
+            <!-- Price Grid -->
+            <div class="price-grid" id="priceGrid">
+                <!-- Cards will be injected by JavaScript -->
+                <div class="skeleton-card"></div>
+                <div class="skeleton-card"></div>
+                <div class="skeleton-card"></div>
+                <div class="skeleton-card"></div>
+            </div>
+        </main>
+
+        <footer>
+            <p>Datenquelle: RTL.lu &bull; heyFordy.dev</p>
+            <button class="refresh-btn" onclick="fetchPrices()">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+                Aktualisieren
+            </button>
+        </footer>
+    </div>
+
+    <script>
+        const fallbackData = {
+            "id": 1234,
+            "date": "2026-00-00T00:00:00+02:00",
+            "98oct": 0,
+            "95oct": 0,
+            "diesel": 0,
+            "mazout": 0,
+            "mazout10ppm": 0,
+            "erdgascng": 0,
+            "lpg_carburant": 0,
+            "propane_vrac": 0,
+            "propane_bouteille": 0,
+            "butane_bouteille": 0
+        };
+
+        const fuelMapping = {
+            "95oct": { label: "Super 95 (E10)", type: "fuel", unit: "€/L", icon: "⛽" },
+            "98oct": { label: "Super 98 (E5)", type: "fuel", unit: "€/L", icon: "⚡" },
+            "diesel": { label: "Diesel", type: "fuel", unit: "€/L", icon: "🚙" },
+            "lpg_carburant": { label: "Autogas (LPG)", type: "fuel", unit: "€/L", icon: "🌱" },
+            "erdgascng": { label: "Erdgas (CNG)", type: "fuel", unit: "€/kg", icon: "🍃" },
+            "mazout": { label: "Heizöl (Mazout)", type: "heating", unit: "€/L", icon: "🔥" },
+            "mazout10ppm": { label: "Heizöl 10ppm", type: "heating", unit: "€/L", icon: "💧" },
+            "propane_vrac": { label: "Propan (lose)", type: "heating", unit: "€/kg", icon: "💨" },
+            "propane_bouteille": { label: "Propan (Flasche)", type: "heating", unit: "€/Fl.", icon: "🧴" },
+            "butane_bouteille": { label: "Butan (Flasche)", type: "heating", unit: "€/Fl.", icon: "🛢️" }
+        };
+
+        let currentData = null;
+        let currentTab = 'all';
+
+        async function fetchPrices() {
+            const statusDot = document.querySelector('.status-dot');
+            const statusText = document.getElementById('statusText');
+            
+            statusDot.className = 'status-dot loading';
+            statusText.innerText = 'Lade aktuelle Preise...';
+
+            try {
+                // RTL API current endpoint
+                const response = await fetch('https://api-gate.rtl.lu/fuel-prices/current');
+                if (!response.ok) throw new Error('Netzwerk-Antwort war nicht ok');
+                
+                const data = await response.json();
+                renderData(data, false);
+            } catch (error) {
+                console.warn('CORS Einschränkung oder Netzwerkfehler. Verwende lokale Offline-Daten:', error);
+                renderData(fallbackData, true);
+            }
+        }
+
+        function renderData(data, isFallback) {
+            currentData = data;
+            
+            // Format Date
+            const dateObj = new Date(data.date);
+            const formattedDate = dateObj.toLocaleDateString('de-DE', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric'
+            });
+            document.getElementById('priceDate').innerText = formattedDate;
+
+            // Status indicator
+            const statusDot = document.querySelector('.status-dot');
+            const statusText = document.getElementById('statusText');
+            if (isFallback) {
+                statusDot.className = 'status-dot offline';
+                statusText.innerText = 'Offline-Modus / Cache';
+            } else {
+                statusDot.className = 'status-dot online';
+                statusText.innerText = 'Live-Preise aktiv';
+            }
+
+            filterAndRenderCards();
+        }
+
+        function filterAndRenderCards() {
+            if (!currentData) return;
+            
+            const grid = document.getElementById('priceGrid');
+            grid.innerHTML = '';
+
+            Object.keys(fuelMapping).forEach(key => {
+                const config = fuelMapping[key];
+                
+                // Tab filter logic
+                if (currentTab !== 'all' && config.type !== currentTab) return;
+
+                const price = currentData[key];
+                if (price === undefined || price === null) return;
+
+                const card = document.createElement('div');
+                card.className = `price-card ${config.type}`;
+                
+                card.innerHTML = `
+                    <div class="card-header">
+                        <span class="card-icon">${config.icon}</span>
+                        <span class="card-title">${config.label}</span>
+                    </div>
+                    <div class="card-body">
+                        <span class="price-value">${price.toFixed(3)}</span>
+                        <span class="price-unit">${config.unit}</span>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function switchTab(tabName) {
+            currentTab = tabName;
+            
+            // Update active state of buttons
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Highlight current button
+            const event = window.event;
+            if(event && event.target) {
+                event.target.classList.add('active');
+            } else {
+                // Find by onclick text match fallback
+                const buttons = document.querySelectorAll('.tab-btn');
+                if(tabName === 'all') buttons[0].classList.add('active');
+                if(tabName === 'fuel') buttons[1].classList.add('active');
+                if(tabName === 'heating') buttons[2].classList.add('active');
+            }
+
+            filterAndRenderCards();
+        }
+
+        // Service Worker registration for PWA functionality
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                    .then(reg => console.log('Service Worker registriert', reg))
+                    .catch(err => console.error('Service Worker Fehler', err));
+            });
+        }
+
+        // Initial fetch on mount
+        window.addEventListener('DOMContentLoaded', fetchPrices);
+    </script>
+</body>
+</html>
