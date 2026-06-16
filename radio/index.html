@@ -30,8 +30,8 @@
 		</div>
 		
 		<div style="display: flex; gap: 12px;">
-			<button id="bt-toggle-btn" class="round-btn" onclick="toggleBluetooth()">
-				<i class="fa-brands fa-bluetooth-b"></i>
+			<button class="round-btn" onclick="window.location.href='jelly.html'">
+				<span style="font-weight: 700; font-size: 1.2rem; font-family: 'Rubik', sans-serif;">J</span>
 			</button>
 			<button class="round-btn" onclick="window.location.href='info.html'">
 				<i class="fa-solid fa-circle-info"></i>
@@ -57,6 +57,8 @@
 				
 				<audio id="audio-el" preload="none" msAudioCategory="BackgroundCapableMedia"></audio>
 				<audio id="dummy-audio" preload="none"></audio>
+				
+				<input type="range" id="volume-slider" min="0" max="1" step="0.01" value="1" style="opacity: 0; position: absolute; pointer-events: none;" oninput="document.getElementById('audio-el').volume = this.value">
 
 				<div class="controls">
 					<button onclick="toggleMute()" class="round-btn secondary-ctrl"><i id="mute-icon" class="fa-solid fa-volume-high"></i></button>
@@ -98,9 +100,20 @@
 			<button class="modal-close-btn-x" onclick="closeManager()"><i class="fa-solid fa-xmark"></i></button>
 			<h3 class="modal-title">Sender verwalten</h3>
 			
-			<div class="switch-container" style="margin-bottom: 20px;">
+			<div class="switch-container" style="margin-bottom: 10px;">
 				<div style="flex:1;"><strong>Titelinfos deaktivieren</strong></div>
-				<input type="checkbox" id="disable-meta-toggle" onchange="toggleMetaSetting()">
+				<label class="toggle">
+					<input type="checkbox" id="disable-meta-toggle" onchange="toggleMetaSetting()">
+					<span class="toggle-slider"></span>
+				</label>
+			</div>
+
+			<div class="switch-container" style="margin-bottom: 20px;">
+				<div style="flex:1;"><strong>BT-Metadaten</strong></div>
+				<label class="toggle">
+					<input type="checkbox" id="bt-mode-toggle" onchange="toggleBluetooth()">
+					<span class="toggle-slider"></span>
+				</label>
 			</div>
 
 			<div id="settings-list" style="margin-bottom: 25px;"></div>
@@ -123,7 +136,6 @@
 	<canvas id="color-canvas" style="display:none;"></canvas>
 
 	<script>
-		// Setup default station list
 		const defaultStations = [
 			{ isDefault: true, name: "Sunshine LiVE", displayName: "SUNSHINE LiVE", apiId: "sunshine-live", url: "https://sunsl.streamabc.net/sunsl-sslsimulcast-mp3-192-4434053", logo: "./assets/sunshine.png" },
 			{ isDefault: true, name: "Sunshine LiVE • 90s", displayName: "SUNSHINE 90s", apiId: "sunshine-90s", url: "https://sunsl.streamabc.net/sunsl-90er-mp3-192-9697679", logo: "./assets/sunshine-90s.png" },
@@ -139,7 +151,6 @@
 			{ isDefault: true, name: "AirPlay (Lokal)", displayName: "AirPlay", apiId: "airplay", url: "http://10.69.254.100:8090/stream", logo: "https://raw.githubusercontent.com/Bitte-ein-Git/ha_repo/refs/heads/development/airplay_web/icon.png", metaUrl: "http://10.69.254.100:8090/meta", coverUrl: "http://10.69.254.100:8090/cover" }
 		];
 
-		// Check and load stations
 		let stations = JSON.parse(localStorage.getItem('radio_stations'));
 		if (!stations || !stations.find(s => s.apiId === 'rtl-today') || !stations.find(s => s.apiId === 'airplay') || !stations.find(s => s.apiId === 'sunshine-90s')) {
 			stations = defaultStations;
@@ -154,7 +165,7 @@
 		let mediaRotationInterval = null; 
 		let userPaused = false;
 		let disableMeta = localStorage.getItem('radio_disable_meta') === 'true';
-		let focusedButtonIndex = -1; // Track which control button has focus
+		let focusedButtonIndex = -1;
 		
 		const audio = document.getElementById('audio-el');
 		
@@ -173,10 +184,10 @@
 		let currentCoverUrl = ""; 
 
 		document.getElementById('disable-meta-toggle').checked = disableMeta;
+		document.getElementById('bt-mode-toggle').checked = isBtActive;
 		renderStations();
 		handleStartup();
 
-		// Media session actions setup
 		if ('mediaSession' in navigator) {
 			navigator.mediaSession.setActionHandler('play', () => { if (audio.paused) togglePlay(); });
 			navigator.mediaSession.setActionHandler('pause', () => { if (!audio.paused) togglePlay(); });
@@ -188,7 +199,6 @@
 			} catch(e) {}
 		}
 
-		// Windows integrations setup
 		if (typeof Windows !== 'undefined') {
 			try {
 				const smtc = Windows.Media.SystemMediaTransportControls.getForCurrentView();
@@ -202,7 +212,6 @@
 			} catch(e) {}
 		}
 
-		// Event listeners for playback
 		audio.addEventListener('playing', () => { updateStatus("playing"); updatePlayBtn(true); });
 		
 		audio.addEventListener('pause', () => { 
@@ -225,7 +234,6 @@
 			updateStatus("error"); updatePlayBtn(false); 
 		});
 
-		// Manage app startup routing
 		function handleStartup() {
 			const urlParams = new URLSearchParams(window.location.search);
 			let playTarget = urlParams.get('play');
@@ -258,7 +266,6 @@
 			}
 		}
 
-		// Toggle Bluetooth mode
 		function toggleBluetooth() {
 			isBtActive = !isBtActive;
 			localStorage.setItem('radio_bt_mode', isBtActive);
@@ -266,19 +273,11 @@
 			if (currentStationIndex !== -1) renderMediaSessionState();
 		}
 
-		// Bluetooth button state UI helper
 		function updateBtBtnState() {
-			const btn = document.getElementById('bt-toggle-btn');
-			if (isBtActive) {
-				btn.style.color = '#007aff';
-				btn.style.textShadow = '0 0 10px rgba(0, 122, 255, 0.8)';
-			} else {
-				btn.style.color = 'var(--text-color)';
-				btn.style.textShadow = 'none';
-			}
+			const toggle = document.getElementById('bt-mode-toggle');
+			if (toggle) toggle.checked = isBtActive;
 		}
 
-		// Play chosen station
 		function playStation(index) {
 			currentStationIndex = index;
 			userPaused = false;
@@ -329,7 +328,6 @@
 			}
 		}
 
-		// Play/Pause button controller
 		function togglePlay() {
 			if (currentStationIndex === -1) return;
 			const s = stations[currentStationIndex];
@@ -350,7 +348,6 @@
 			}
 		}
 
-		// Skip to next station
 		function skipNext() {
 			if (currentStationIndex === -1) return;
 			let next = currentStationIndex;
@@ -362,7 +359,6 @@
 			playStation(next);
 		}
 
-		// Skip to previous station
 		function skipPrev() {
 			if (currentStationIndex === -1) return;
 			let prev = currentStationIndex;
@@ -374,7 +370,6 @@
 			playStation(prev);
 		}
 
-		// Toggle volume mute
 		function toggleMute() {
 			audio.muted = !audio.muted;
 			document.getElementById('mute-icon').className = audio.muted ? 'fa-solid fa-volume-xmark' : 'fa-solid fa-volume-high';
@@ -392,7 +387,6 @@
 			if (currentStationIndex !== -1) renderMediaSessionState();
 		}
 
-		// Reset views to station info
 		function resetToStationView() {
 			if (currentStationIndex === -1) return;
 			const s = stations[currentStationIndex];
@@ -405,7 +399,6 @@
 			startMediaSessionRotation(s, null, null, null);
 		}
 
-		// Update UI status text
 		function updateStatus(state) {
 			const el = document.getElementById('player-status');
 			const map = {
@@ -422,12 +415,10 @@
 			document.title = text;
 		}
 
-		// Play/Pause button icon updater
 		function updatePlayBtn(isPlaying) {
 			document.getElementById('play-icon').className = isPlaying ? 'fa-solid fa-stop' : 'fa-solid fa-play';
 		}
 
-		// Live Metadata fetch engine
 		function startMetaFetcher(station) {
 			if (metaInterval) clearInterval(metaInterval);
 			const fetchInfo = async () => {
@@ -467,7 +458,6 @@
 			metaInterval = setInterval(fetchInfo, station.apiId === 'airplay' ? 5000 : 10000);
 		}
 
-		// Handle Airplay local streams
 		async function handleAirplayData(station, data) {
 			if (data.isPlaying) {
 				if (userPaused) return;
@@ -511,7 +501,6 @@
 			}
 		}
 
-		// Handle standard Icecast streams metadata
 		async function handleStationData(station, sd) {
 			if (audio.paused || !audio.src || !audio.src.includes('://')) return;
 			
@@ -583,7 +572,6 @@
 			}
 		}
 
-		// Update both visual artwork and MediaSession
 		function updateCoverAndSession(coverUrl, title, sessionArtist, showOverlay, overlayLogoUrl, station) {
 			const finalCover = coverUrl || './assets/app.png';
 			changeCover(finalCover);
@@ -599,7 +587,6 @@
 			startMediaSessionRotation(station, title, sessionArtist, finalCover);
 		}
 
-		// Switch cover artwork with crossfade
 		function changeCover(newSrc) {
 			if (currentCoverUrl === newSrc) return; 
 			currentCoverUrl = newSrc;
@@ -614,14 +601,12 @@
 			}, 300);
 		}
 
-		// Hide visual station logo overlay
 		function hideOverlayLogo() { 
 			const el = document.getElementById('player-overlay-logo');
 			el.style.display = 'none'; 
 			el.style.transform = 'scale(1)'; 
 		}
 
-		// Dynamic color glow extractor
 		function extractAndApplyColor() {
 			const img = document.getElementById('player-img');
 			const canvas = document.getElementById('color-canvas');
@@ -636,7 +621,6 @@
 			}
 		}
 
-		// Handle active MediaSession track rotation
 		function startMediaSessionRotation(station, trackTitle, trackArtist, coverUrl) {
 			activeTrackTitle = trackTitle || "";
 			activeTrackArtist = trackArtist || "";
@@ -652,7 +636,6 @@
 			}, 5000);
 		}
 
-		// Determine current state for MediaSession rendering
 		function renderMediaSessionState() {
 			if (currentStationIndex === -1) return;
 			const station = stations[currentStationIndex];
@@ -694,7 +677,6 @@
 			updateMediaSessionNative(t, a, al, c);
 		}
 
-		// Write metadata & push iOS PositionState for live indicator
 		function updateMediaSessionNative(t, a, al, i) {
 			if('mediaSession' in navigator) {
 				navigator.mediaSession.metadata = new MediaMetadata({ 
@@ -707,7 +689,6 @@
 				});
 				navigator.mediaSession.playbackState = audio.paused ? "paused" : "playing";
 
-				// Fixes the "-- / --" indicator issue on iOS systems
 				try {
 					if ('setPositionState' in navigator.mediaSession) {
 						navigator.mediaSession.setPositionState({
@@ -751,7 +732,6 @@
 			}
 		}
 
-		// Toggle bottom drawer footer
 		function toggleFooter(force) {
 			footerOpen = (force !== undefined) ? force : !footerOpen;
 			const footer = document.getElementById('main-footer');
@@ -759,11 +739,9 @@
 			document.getElementById('footer-arrow').innerText = footerOpen ? '▼' : '▲';
 		}
 
-		// Admin Modal actions
 		function openManager() { renderManagerList(); document.getElementById('manager-modal').style.display = 'flex'; }
 		function closeManager() { document.getElementById('manager-modal').style.display = 'none'; }
 
-		// Draw channel layout HTML
 		function renderStations() {
 			const list = document.getElementById('footer-list');
 			const sideList = document.getElementById('sidebar-list');
@@ -781,7 +759,6 @@
 				sideList.innerHTML += html;
 			});
 
-			// Add keyboard navigation for station items
 			document.querySelectorAll('.station-item').forEach((item) => {
 				item.addEventListener('keydown', (e) => {
 					if (e.key === 'Enter' || e.key === ' ') {
@@ -792,7 +769,6 @@
 			});
 		}
 
-		// Draw settings list channels
 		function renderManagerList() {
 			const list = document.getElementById('settings-list');
 			list.innerHTML = '';
@@ -808,13 +784,11 @@
 			});
 		}
 
-		// Enable/disable channel toggle
 		function toggleStation(idx) {
 			stations[idx].isDisabled = !stations[idx].isDisabled;
 			saveAndRefresh();
 		}
 
-		// Metadata fetch settings controller
 		function toggleMetaSetting() {
 			disableMeta = document.getElementById('disable-meta-toggle').checked;
 			localStorage.setItem('radio_disable_meta', disableMeta);
@@ -824,7 +798,6 @@
 			}
 		}
 
-		// Swap channel indexes
 		function moveStation(idx, dir) {
 			let nIdx = idx + dir;
 			if (nIdx < 0 || nIdx >= stations.length) return;
@@ -832,10 +805,8 @@
 			saveAndRefresh();
 		}
 
-		// Delete a manual channel
 		function removeStation(idx) { stations.splice(idx, 1); saveAndRefresh(); }
 
-		// Add customized stream channel
 		function addStationManual() {
 			const n = document.getElementById('new-name').value;
 			const u = document.getElementById('new-url').value;
@@ -853,13 +824,11 @@
 			}
 		}
 
-		// Cache actions & data synchronizer
 		function saveAndRefresh() { localStorage.setItem('radio_stations', JSON.stringify(stations)); renderStations(); renderManagerList(); }
 		function clearCache() { localStorage.clear(); window.location.reload(true); }
 
 		window.onclick = (e) => { if (e.target.className === 'modal') { closeManager(); } }
 
-		// Dpad / Tastatur
 		document.addEventListener('keydown', (e) => {
 			if (!audio) return;
 
@@ -869,7 +838,6 @@
 				if (e.key === 'ArrowRight') skipNext();
 			}
 
-			// Play/Pause mit Space/Enter
 			if (e.key === ' ' || e.key === 'Enter') {
 				const activeEl = document.activeElement;
 				if (!activeEl.matches('input, button, [role="button"]')) {
@@ -878,7 +846,6 @@
 				}
 			}
 
-			// Lautstärke
 			if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
 				const activeEl = document.activeElement;
 				if (!activeEl.matches('input')) {
@@ -890,7 +857,6 @@
 				}
 			}
 
-			// Tab-Navigation
 			if (e.key === 'Tab') {
 				const controlButtons = document.querySelectorAll('.round-btn, .play-btn');
 				if (controlButtons.length === 0) return;
@@ -908,7 +874,6 @@
 			}
 		});
 
-		// Retrieve covers from iTunes
 		async function fetchItunesCover(term) {
 			try {
 				const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(term)}&media=music&limit=1`);

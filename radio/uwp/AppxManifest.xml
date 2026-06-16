@@ -1,7 +1,7 @@
-<?xml version="1.0" encoding="utf-8"?>
-<Package xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10" xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10" xmlns:uap3="http://schemas.microsoft.com/appx/manifest/uap/windows10/3" xmlns:uap7="http://schemas.microsoft.com/appx/manifest/uap/windows10/7" IgnorableNamespaces="uap uap3 uap7">
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Package xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10" xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10" xmlns:uap3="http://schemas.microsoft.com/appx/manifest/uap/windows10/3" xmlns:uap7="http://schemas.microsoft.com/appx/manifest/uap/windows10/7" IgnorableNamespaces="uap uap3 uap7" xmlns:mp="http://schemas.microsoft.com/appx/2014/phone/manifest">
   <!-- Official store identity details -->
-  <Identity Name="heyFordy.dev.Fordy-Radio" Publisher="CN=heyFordy" Version="1.0.1.0" />
+  <Identity Name="heyFordy.dev.Fordy-Radio" Publisher="CN=55A3BA7D-F57F-4FA7-AAFA-61C48C2AAED5" Version="1.0.1.0" />
   <Properties>
     <DisplayName>Fordy-Radio</DisplayName>
     <PublisherDisplayName>heyFordy.dev</PublisherDisplayName>
@@ -33,5 +33,14 @@
       </uap:ApplicationContentUriRules>
     </Application>
   </Applications>
-  
-<Capabilities><Capability Name="internetClient" /><Capability Name="internetClientServer" /><Capability Name="privateNetworkClientServer" /><Capability Name="codeGeneration" /><uap:Capability Name="removableStorage" /><uap3:Capability Name="backgroundMediaPlayback" /><uap7:Capability Name="globalMediaControl" /></Capabilities></Package>
+  <Capabilities>
+    <Capability Name="internetClient" />
+    <Capability Name="internetClientServer" />
+    <Capability Name="privateNetworkClientServer" />
+    <Capability Name="codeGeneration" />
+    <uap:Capability Name="removableStorage" />
+    <uap3:Capability Name="backgroundMediaPlayback" />
+    <uap7:Capability Name="globalMediaControl" />
+  </Capabilities>
+  <mp:PhoneIdentity PhoneProductId="dee77a45-8b2d-4c57-8003-961b1d60830a" PhonePublisherId="4a84652a-b677-41ea-9f79-8622149721bf" />
+</Package>

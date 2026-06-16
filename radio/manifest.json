@@ -4,7 +4,12 @@
   "description": "» heyFordy Radio 🗿",
   "id": "https://heyfordy.dev/radio",
   "start_url": "https://heyfordy.dev/radio",
-  "scope": "https://heyfordy.dev/radio",
+  "lang": "de",
+  "categories": [
+    "entertainment",
+    "multimedia",
+    "music"
+  ],
   "display": "standalone",
   "orientation": "any",
   "background_color": "#121212",
