@@ -18,6 +18,7 @@
 			<div class="logo-text"> 𝓙𝓮𝓵𝓵𝔂𝓯𝓲𝓷</div>
 			<div class="header-controls" style="display: flex; gap: 12px;">
 				<button class="round-btn" onclick="location.href='index.html'" aria-label="Zurück"><i class="fa-solid fa-arrow-left"></i></button>
+				<button class="round-btn" id="jelly-queue-btn" aria-label="Warteschlange"><i class="fa-solid fa-list-ul"></i></button>
 				<button class="round-btn" id="jelly-settings-btn" aria-label="Einstellungen"><i class="fa-solid fa-gear"></i></button>
 			</div>
 		</header>
@@ -49,6 +50,7 @@
 		const iframe = document.getElementById('jellyfin-iframe');
 		const configModal = document.getElementById('jelly-config-modal');
 		const settingsBtn = document.getElementById('jelly-settings-btn');
+		const queueBtn = document.getElementById('jelly-queue-btn');
 		const closeBtn = document.getElementById('close-jelly-modal');
 		const saveBtn = document.getElementById('save-jelly-config');
 		const urlInput = document.getElementById('jelly-url-input');
@@ -69,7 +71,7 @@
 			if (!url) {
 				showConfig();
 			} else {
-				iframe.src = url;
+				iframe.src = url + '/#/music';
 				iframe.style.display = 'block';
 				configModal.style.display = 'none';
 				startSessionPolling(url, key);
@@ -83,6 +85,14 @@
 		}
 
 		settingsBtn.addEventListener('click', showConfig);
+		
+		queueBtn.addEventListener('click', () => {
+			const url = localStorage.getItem('jellyfin_url');
+			if (url) {
+				iframe.src = url + '/#/queue';
+			}
+		});
+
 		closeBtn.addEventListener('click', () => {
 			if (localStorage.getItem('jellyfin_url')) {
 				configModal.style.display = 'none';
@@ -133,6 +143,12 @@
 						const item = activeSession.NowPlayingItem;
 						const isPaused = activeSession.PlayState && activeSession.PlayState.IsPaused;
 						
+						if (!isPaused && silentAudio.paused) {
+							silentAudio.play().catch(() => {});
+						} else if (isPaused && !silentAudio.paused) {
+							silentAudio.pause();
+						}
+						
 						if ('mediaSession' in navigator) {
 							navigator.mediaSession.metadata = new MediaMetadata({
 								title: item.Name,
@@ -171,8 +187,6 @@
 								smtc.playbackStatus = isPaused ? Windows.Media.MediaPlaybackStatus.paused : Windows.Media.MediaPlaybackStatus.playing;
 							} catch(e) {}
 						}
-
-						triggerSilentAudio();
 					}
 				} catch (e) {}
 			}, 2000);
