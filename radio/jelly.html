@@ -24,7 +24,7 @@
 		</header>
 
 		<div id="iframe-container" style="flex: 1; width: 100%; height: 100%; position: relative;">
-			<iframe id="jellyfin-iframe" style="width: 100%; height: 100%; border: none; display: none;" allow="autoplay; encrypted-media"></iframe>
+			<iframe id="jellyfin-iframe" style="width: 100%; height: 100%; border: none; display: none;" allow="autoplay; encrypted-media; background-sync; fullscreen; picture-in-picture" allowfullscreen></iframe>
 		</div>
 	</div>
 
@@ -44,7 +44,7 @@
 		</div>
 	</div>
 
-	<audio id="bg-silent-audio" loop preload="none" msAudioCategory="BackgroundCapableMedia" src="data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA=="></audio>
+	<audio id="bg-silent-audio" loop preload="auto" msAudioCategory="BackgroundCapableMedia" src="data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA=="></audio>
 
 	<script>
 		const iframe = document.getElementById('jellyfin-iframe');
@@ -116,11 +116,9 @@
 			}
 		});
 
-		window.addEventListener('click', (e) => {
-			if (e.target === silentAudio || e.target === document.body || e.target === iframe) {
-				triggerSilentAudio();
-			}
-		});
+		window.addEventListener('pointerdown', triggerSilentAudio, { passive: true });
+		window.addEventListener('keydown', triggerSilentAudio, { passive: true });
+		window.addEventListener('click', triggerSilentAudio, { passive: true });
 
 		function triggerSilentAudio() {
 			if (silentAudio.paused) {
@@ -143,8 +141,8 @@
 						const item = activeSession.NowPlayingItem;
 						const isPaused = activeSession.PlayState && activeSession.PlayState.IsPaused;
 						
-						if (!isPaused && silentAudio.paused) {
-							silentAudio.play().catch(() => {});
+						if (!isPaused) {
+							triggerSilentAudio();
 						} else if (isPaused && !silentAudio.paused) {
 							silentAudio.pause();
 						}
