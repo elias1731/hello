@@ -44,7 +44,7 @@
 		</div>
 	</div>
 
-	<audio id="bg-silent-audio" loop preload="auto" msAudioCategory="BackgroundCapableMedia" src="data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA=="></audio>
+	<audio id="native-audio-player" preload="auto" msAudioCategory="BackgroundCapableMedia"></audio>
 
 	<script>
 		const iframe = document.getElementById('jellyfin-iframe');
@@ -55,13 +55,14 @@
 		const saveBtn = document.getElementById('save-jelly-config');
 		const urlInput = document.getElementById('jelly-url-input');
 		const keyInput = document.getElementById('jelly-key-input');
-		const silentAudio = document.getElementById('bg-silent-audio');
+		const nativeAudio = document.getElementById('native-audio-player');
 
 		let currentSessionId = null;
+		let currentItemId = null;
 		let pollingInterval = null;
 
-		if ('msAudioCategory' in silentAudio) {
-			silentAudio.msAudioCategory = 'BackgroundCapableMedia';
+		if ('msAudioCategory' in nativeAudio) {
+			nativeAudio.msAudioCategory = 'BackgroundCapableMedia';
 		}
 
 		function loadJellyfin() {
@@ -116,16 +117,6 @@
 			}
 		});
 
-		window.addEventListener('pointerdown', triggerSilentAudio, { passive: true });
-		window.addEventListener('keydown', triggerSilentAudio, { passive: true });
-		window.addEventListener('click', triggerSilentAudio, { passive: true });
-
-		function triggerSilentAudio() {
-			if (silentAudio.paused) {
-				silentAudio.play().catch(() => {});
-			}
-		}
-
 		function startSessionPolling(url, key) {
 			if (pollingInterval) clearInterval(pollingInterval);
 			if (!key) return;
@@ -139,12 +130,41 @@
 					if (activeSession) {
 						currentSessionId = activeSession.Id;
 						const item = activeSession.NowPlayingItem;
-						const isPaused = activeSession.PlayState && activeSession.PlayState.IsPaused;
+						const playState = activeSession.PlayState || {};
+						const isPaused = playState.IsPaused;
+						const positionTicks = playState.PositionTicks || 0;
 						
-						if (!isPaused) {
-							triggerSilentAudio();
-						} else if (isPaused && !silentAudio.paused) {
-							silentAudio.pause();
+						if (item && item.Id) {
+							if (item.Id !== currentItemId) {
+								currentItemId = item.Id;
+								nativeAudio.src = `${url}/Audio/${item.Id}/stream?api_key=${key}&static=true`;
+								nativeAudio.load();
+								
+								try {
+									fetch(`${url}/Sessions/${currentSessionId}/Command?api_key=${key}`, {
+										method: 'POST',
+										headers: { 'Content-Type': 'application/json' },
+										body: JSON.stringify({ Name: 'SetVolume', Arguments: { Volume: 0 } })
+									}).catch(() => {});
+								} catch (e) {}
+
+								if (!isPaused) {
+									nativeAudio.play().catch(() => {});
+								}
+							} else {
+								if (!isPaused && nativeAudio.paused) {
+									nativeAudio.play().catch(() => {});
+								} else if (isPaused && !nativeAudio.paused) {
+									nativeAudio.pause();
+								}
+								
+								if (!isPaused && positionTicks > 0) {
+									const serverTimeSec = positionTicks / 10000000;
+									if (Math.abs(nativeAudio.currentTime - serverTimeSec) > 3) {
+										nativeAudio.currentTime = serverTimeSec;
+									}
+								}
+							}
 						}
 						
 						if ('mediaSession' in navigator) {
@@ -190,19 +210,25 @@
 			}, 2000);
 		}
 
-		async function sendJellyfinCommand(command) {
+		async function sendJellyfinCommand(command, data) {
 			const url = localStorage.getItem('jellyfin_url');
 			const key = localStorage.getItem('jellyfin_apikey');
 			if (!url || !key || !currentSessionId) return;
 
 			try {
-				await fetch(`${url}/Sessions/${currentSessionId}/Playing/Command/${command}?api_key=${key}`, { method: 'POST' });
+				let endpoint = `${url}/Sessions/${currentSessionId}/Playing/Command/${command}?api_key=${key}`;
+				const opts = { method: 'POST' };
+				if (data) {
+					opts.headers = { 'Content-Type': 'application/json' };
+					opts.body = JSON.stringify(data);
+				}
+				await fetch(endpoint, opts);
 			} catch (e) {}
 		}
 
 		if ('mediaSession' in navigator) {
-			navigator.mediaSession.setActionHandler('play', () => { triggerSilentAudio(); sendJellyfinCommand('Unpause'); });
-			navigator.mediaSession.setActionHandler('pause', () => { sendJellyfinCommand('Pause'); });
+			navigator.mediaSession.setActionHandler('play', () => { nativeAudio.play(); sendJellyfinCommand('Unpause'); });
+			navigator.mediaSession.setActionHandler('pause', () => { nativeAudio.pause(); sendJellyfinCommand('Pause'); });
 			navigator.mediaSession.setActionHandler('nexttrack', () => { sendJellyfinCommand('NextTrack'); });
 			navigator.mediaSession.setActionHandler('previoustrack', () => { sendJellyfinCommand('PreviousTrack'); });
 		}
@@ -218,8 +244,8 @@
 				
 				smtc.addEventListener("buttonpressed", (e) => {
 					const btn = Windows.Media.SystemMediaTransportControlsButton;
-					if (e.button === btn.play) { triggerSilentAudio(); sendJellyfinCommand('Unpause'); }
-					if (e.button === btn.pause) { sendJellyfinCommand('Pause'); }
+					if (e.button === btn.play) { nativeAudio.play(); sendJellyfinCommand('Unpause'); }
+					if (e.button === btn.pause) { nativeAudio.pause(); sendJellyfinCommand('Pause'); }
 					if (e.button === btn.next) { sendJellyfinCommand('NextTrack'); }
 					if (e.button === btn.previous) { sendJellyfinCommand('PreviousTrack'); }
 				});
