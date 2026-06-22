@@ -1,258 +1,56 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-	<title>𝓙𝓮𝓵𝓵𝔂𝓯𝓲𝓷</title>
-	<meta name="theme-color" content="#0a0a0a">
-	<meta name="apple-mobile-web-app-capable" content="yes">
-	<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-	<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;700&display=swap" rel="stylesheet">
-	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-	<link rel="stylesheet" href="assets/style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+<title>Jellyfin</title>
+<style>
+html,body{margin:0;height:100%;background:#000}
+iframe{width:100%;height:100%;border:0}
+</style>
 </head>
-<body id="app-body">
-	<div id="dynamic-bg"></div>
-	<div class="player-wrapper" style="height: 100vh; display: flex; flex-direction: column;">
-		<header>
-			<div class="logo-text"> 𝓙𝓮𝓵𝓵𝔂𝓯𝓲𝓷</div>
-			<div class="header-controls" style="display: flex; gap: 12px;">
-				<button class="round-btn" onclick="location.href='index.html'" aria-label="Zurück"><i class="fa-solid fa-arrow-left"></i></button>
-				<button class="round-btn" id="jelly-queue-btn" aria-label="Warteschlange"><i class="fa-solid fa-list-ul"></i></button>
-				<button class="round-btn" id="jelly-settings-btn" aria-label="Einstellungen"><i class="fa-solid fa-gear"></i></button>
-			</div>
-		</header>
+<body>
+<iframe id="jellyfin" src="https://jmusic.heyfordy.dev" allow="autoplay; fullscreen; picture-in-picture"></iframe>
 
-		<div id="iframe-container" style="flex: 1; width: 100%; height: 100%; position: relative;">
-			<iframe id="jellyfin-iframe" style="width: 100%; height: 100%; border: none; display: none;" allow="autoplay; encrypted-media; background-sync; fullscreen; picture-in-picture" allowfullscreen></iframe>
-		</div>
-	</div>
+<script>
+const JELLY_URL = "https://jmusic.heyfordy.dev";
 
-	<div id="jelly-config-modal" class="modal" style="display: none;">
-		<div class="modal-content">
-			<div class="modal-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px;">
-				<h3 class="modal-title" style="margin:0;">Jellyfin Setup</h3>
-				<button class="modal-close-btn-x" id="close-jelly-modal"><i class="fa-solid fa-xmark"></i></button>
-			</div>
-			<div style="margin-top: 15px;">
-				<label style="display:block; margin-bottom: 5px; color: var(--text-muted); font-size: 14px;">Jellyfin Server URL:</label>
-				<input type="text" id="jelly-url-input" placeholder="https://jellyfin.example.com">
-				<label style="display:block; margin-top: 15px; margin-bottom: 5px; color: var(--text-muted); font-size: 14px;">API Key (für Mediensteuerung):</label>
-				<input type="text" id="jelly-key-input" placeholder="Dein API-Key">
-				<button id="save-jelly-config" class="modal-btn save" style="margin-top:20px; width: 100%; padding: 14px; background: var(--accent); color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer;">Speichern</button>
-			</div>
-		</div>
-	</div>
+if ("mediaSession" in navigator) {
+    navigator.mediaSession.setActionHandler("play", () => {
+        document.getElementById("jellyfin").contentWindow?.postMessage({type:"play"}, JELLY_URL);
+    });
 
-	<audio id="native-audio-player" preload="auto" msAudioCategory="BackgroundCapableMedia"></audio>
+    navigator.mediaSession.setActionHandler("pause", () => {
+        document.getElementById("jellyfin").contentWindow?.postMessage({type:"pause"}, JELLY_URL);
+    });
 
-	<script>
-		const iframe = document.getElementById('jellyfin-iframe');
-		const configModal = document.getElementById('jelly-config-modal');
-		const settingsBtn = document.getElementById('jelly-settings-btn');
-		const queueBtn = document.getElementById('jelly-queue-btn');
-		const closeBtn = document.getElementById('close-jelly-modal');
-		const saveBtn = document.getElementById('save-jelly-config');
-		const urlInput = document.getElementById('jelly-url-input');
-		const keyInput = document.getElementById('jelly-key-input');
-		const nativeAudio = document.getElementById('native-audio-player');
+    navigator.mediaSession.setActionHandler("nexttrack", () => {
+        document.getElementById("jellyfin").contentWindow?.postMessage({type:"next"}, JELLY_URL);
+    });
 
-		let currentSessionId = null;
-		let currentItemId = null;
-		let pollingInterval = null;
+    navigator.mediaSession.setActionHandler("previoustrack", () => {
+        document.getElementById("jellyfin").contentWindow?.postMessage({type:"previous"}, JELLY_URL);
+    });
+}
 
-		if ('msAudioCategory' in nativeAudio) {
-			nativeAudio.msAudioCategory = 'BackgroundCapableMedia';
-		}
+window.addEventListener("message", e => {
+    if (e.origin !== JELLY_URL) return;
 
-		function loadJellyfin() {
-			const url = localStorage.getItem('jellyfin_url');
-			const key = localStorage.getItem('jellyfin_apikey');
+    if (e.data?.type === "mediaMetadata" && navigator.mediaSession) {
+        navigator.mediaSession.metadata = new MediaMetadata(e.data.metadata);
+    }
+});
 
-			if (!url) {
-				showConfig();
-			} else {
-				iframe.src = url + '/#/music';
-				iframe.style.display = 'block';
-				configModal.style.display = 'none';
-				startSessionPolling(url, key);
-			}
-		}
-
-		function showConfig() {
-			urlInput.value = localStorage.getItem('jellyfin_url') || '';
-			keyInput.value = localStorage.getItem('jellyfin_apikey') || '';
-			configModal.style.display = 'flex';
-		}
-
-		settingsBtn.addEventListener('click', showConfig);
-		
-		queueBtn.addEventListener('click', () => {
-			const url = localStorage.getItem('jellyfin_url');
-			if (url) {
-				iframe.src = url + '/#/queue';
-			}
-		});
-
-		closeBtn.addEventListener('click', () => {
-			if (localStorage.getItem('jellyfin_url')) {
-				configModal.style.display = 'none';
-			}
-		});
-
-		saveBtn.addEventListener('click', () => {
-			let url = urlInput.value.trim();
-			if (url && !url.startsWith('http://') && !url.startsWith('https://')) {
-				url = 'https://' + url;
-			}
-			if (url.endsWith('/')) {
-				url = url.slice(0, -1);
-			}
-			const key = keyInput.value.trim();
-
-			if (url) {
-				localStorage.setItem('jellyfin_url', url);
-				localStorage.setItem('jellyfin_apikey', key);
-				loadJellyfin();
-			}
-		});
-
-		function startSessionPolling(url, key) {
-			if (pollingInterval) clearInterval(pollingInterval);
-			if (!key) return;
-
-			pollingInterval = setInterval(async () => {
-				try {
-					const res = await fetch(`${url}/Sessions?api_key=${key}`);
-					const sessions = await res.json();
-					const activeSession = sessions.find(s => s.NowPlayingItem);
-
-					if (activeSession) {
-						currentSessionId = activeSession.Id;
-						const item = activeSession.NowPlayingItem;
-						const playState = activeSession.PlayState || {};
-						const isPaused = playState.IsPaused;
-						const positionTicks = playState.PositionTicks || 0;
-						
-						if (item && item.Id) {
-							if (item.Id !== currentItemId) {
-								currentItemId = item.Id;
-								nativeAudio.src = `${url}/Audio/${item.Id}/stream?api_key=${key}&static=true`;
-								nativeAudio.load();
-								
-								try {
-									fetch(`${url}/Sessions/${currentSessionId}/Command?api_key=${key}`, {
-										method: 'POST',
-										headers: { 'Content-Type': 'application/json' },
-										body: JSON.stringify({ Name: 'SetVolume', Arguments: { Volume: 0 } })
-									}).catch(() => {});
-								} catch (e) {}
-
-								if (!isPaused) {
-									nativeAudio.play().catch(() => {});
-								}
-							} else {
-								if (!isPaused && nativeAudio.paused) {
-									nativeAudio.play().catch(() => {});
-								} else if (isPaused && !nativeAudio.paused) {
-									nativeAudio.pause();
-								}
-								
-								if (!isPaused && positionTicks > 0) {
-									const serverTimeSec = positionTicks / 10000000;
-									if (Math.abs(nativeAudio.currentTime - serverTimeSec) > 3) {
-										nativeAudio.currentTime = serverTimeSec;
-									}
-								}
-							}
-						}
-						
-						if ('mediaSession' in navigator) {
-							navigator.mediaSession.metadata = new MediaMetadata({
-								title: item.Name,
-								artist: item.Artists ? item.Artists.join(', ') : '',
-								album: item.Album || '',
-								artwork: [{ src: `${url}/Items/${item.Id}/Images/Primary?api_key=${key}`, sizes: '512x512', type: 'image/png' }]
-							});
-							navigator.mediaSession.playbackState = isPaused ? 'paused' : 'playing';
-						}
-						
-						if (typeof Windows !== 'undefined') {
-							try {
-								const smtc = Windows.Media.SystemMediaTransportControls.getForCurrentView();
-								const updater = smtc.displayUpdater;
-								updater.type = Windows.Media.MediaPlaybackType.music;
-								updater.musicProperties.title = item.Name || "";
-								updater.musicProperties.artist = item.Artists ? item.Artists.join(', ') : "";
-								updater.musicProperties.albumTitle = item.Album || "";
-								
-								const imgUrl = `${url}/Items/${item.Id}/Images/Primary?api_key=${key}`;
-								if (imgUrl.startsWith('http://')) {
-									const folder = Windows.Storage.ApplicationData.current.localCacheFolder;
-									folder.createFileAsync("smtc_jelly_cover.jpg", Windows.Storage.CreationCollisionOption.replaceExisting).then(file => {
-										const client = new Windows.Web.Http.HttpClient();
-										client.getBufferAsync(new Windows.Foundation.Uri(imgUrl)).then(buffer => {
-											Windows.Storage.FileIO.writeBufferAsync(file, buffer).then(() => {
-												updater.thumbnail = Windows.Storage.Streams.RandomAccessStreamReference.createFromFile(file);
-												updater.update();
-											});
-										});
-									});
-								} else {
-									updater.thumbnail = Windows.Storage.Streams.RandomAccessStreamReference.createFromUri(new Windows.Foundation.Uri(imgUrl));
-									updater.update();
-								}
-								smtc.playbackStatus = isPaused ? Windows.Media.MediaPlaybackStatus.paused : Windows.Media.MediaPlaybackStatus.playing;
-							} catch(e) {}
-						}
-					}
-				} catch (e) {}
-			}, 2000);
-		}
-
-		async function sendJellyfinCommand(command, data) {
-			const url = localStorage.getItem('jellyfin_url');
-			const key = localStorage.getItem('jellyfin_apikey');
-			if (!url || !key || !currentSessionId) return;
-
-			try {
-				let endpoint = `${url}/Sessions/${currentSessionId}/Playing/Command/${command}?api_key=${key}`;
-				const opts = { method: 'POST' };
-				if (data) {
-					opts.headers = { 'Content-Type': 'application/json' };
-					opts.body = JSON.stringify(data);
-				}
-				await fetch(endpoint, opts);
-			} catch (e) {}
-		}
-
-		if ('mediaSession' in navigator) {
-			navigator.mediaSession.setActionHandler('play', () => { nativeAudio.play(); sendJellyfinCommand('Unpause'); });
-			navigator.mediaSession.setActionHandler('pause', () => { nativeAudio.pause(); sendJellyfinCommand('Pause'); });
-			navigator.mediaSession.setActionHandler('nexttrack', () => { sendJellyfinCommand('NextTrack'); });
-			navigator.mediaSession.setActionHandler('previoustrack', () => { sendJellyfinCommand('PreviousTrack'); });
-		}
-		
-		if (typeof Windows !== 'undefined') {
-			try {
-				const smtc = Windows.Media.SystemMediaTransportControls.getForCurrentView();
-				smtc.isEnabled = true;
-				smtc.isPlayEnabled = true;
-				smtc.isPauseEnabled = true;
-				smtc.isNextEnabled = true;
-				smtc.isPreviousEnabled = true;
-				
-				smtc.addEventListener("buttonpressed", (e) => {
-					const btn = Windows.Media.SystemMediaTransportControlsButton;
-					if (e.button === btn.play) { nativeAudio.play(); sendJellyfinCommand('Unpause'); }
-					if (e.button === btn.pause) { nativeAudio.pause(); sendJellyfinCommand('Pause'); }
-					if (e.button === btn.next) { sendJellyfinCommand('NextTrack'); }
-					if (e.button === btn.previous) { sendJellyfinCommand('PreviousTrack'); }
-				});
-			} catch(e) {}
-		}
-
-		window.addEventListener('DOMContentLoaded', loadJellyfin);
-	</script>
+if (typeof Windows !== "undefined") {
+    try {
+        const smtc = Windows.Media.SystemMediaTransportControls.getForCurrentView();
+        smtc.isEnabled = true;
+        smtc.isPlayEnabled = true;
+        smtc.isPauseEnabled = true;
+        smtc.isNextEnabled = true;
+        smtc.isPreviousEnabled = true;
+    } catch(e) {}
+}
+</script>
 </body>
 </html>
