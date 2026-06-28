@@ -1,0 +1,75 @@
+name: Fetch and Deploy JellyMusic to Subfolder
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: 'Git ref (branch or tag) of elias1731/jellymusic to build (defaults to main)'
+        required: false
+        default: 'main'
+
+permissions:
+  contents: write # Required to push commit to repository
+
+jobs:
+  build-and-commit:
+    runs-on: ubuntu-latest
+    steps:
+      # Checkout target repository
+      - name: Checkout target repository (hello)
+        uses: actions/checkout@v4
+        with:
+          path: main-repo # Target directory
+
+      # Checkout source fork
+      - name: Checkout jellymusic fork
+        uses: actions/checkout@v4
+        with:
+          repository: elias1731/jellymusic
+          ref: ${{ github.event.inputs.ref || 'main' }}
+          path: jellymusic-src # Source directory
+          fetch-depth: 0
+
+      - name: Install Yarn
+        run: npm install --global yarn
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'yarn'
+          cache-dependency-path: jellymusic-src/yarn.lock # Explicit path required for subdirectories
+
+      # Build application with custom base path
+      - name: Install dependencies and build
+        working-directory: ./jellymusic-src
+        run: |
+          yarn
+          URL_BASE_PATH=radio/jellymusic/ yarn build
+          cp dist/index.html dist/404.html
+
+      # Transfer build artifacts to target directory
+      - name: Copy built files to target destination
+        run: |
+          # Create target directory if missing
+          mkdir -p main-repo/radio/jellymusic
+          
+          # Clear previous build to prevent orphaned files
+          rm -rf main-repo/radio/jellymusic/*
+          
+          # Copy new build output
+          cp -r jellymusic-src/dist/* main-repo/radio/jellymusic/
+
+      # Commit and push to target repository
+      - name: Commit and push changes
+        working-directory: ./main-repo
+        run: |
+          # Configure bot identity
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          
+          # Stage target directory
+          git add radio/jellymusic
+          
+          # Commit and push only if changes exist
+          git diff --staged --quiet || (git commit -m "Deploy latest JellyMusic build to /radio/jellymusic/" && git push)

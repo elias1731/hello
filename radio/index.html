@@ -30,7 +30,7 @@
 		</div>
 		
 		<div style="display: flex; gap: 12px;">
-			<button class="round-btn" onclick="window.location.href='jelly.html'">
+			<button class="round-btn" onclick="window.location.href='https://jmusic.heyfordy.dev/'">
 				<span style="font-weight: 700; font-size: 1.2rem; font-family: 'Rubik', sans-serif;">J</span>
 			</button>
 			<button class="round-btn" onclick="window.location.href='info.html'">
@@ -98,7 +98,7 @@
 	<div id="manager-modal" class="modal">
 		<div class="modal-content">
 			<button class="modal-close-btn-x" onclick="closeManager()"><i class="fa-solid fa-xmark"></i></button>
-			<h3 class="modal-title">Sender verwalten</h3>
+			<h3 class="modal-title" style="margin-bottom: 20px;">Sender verwalten</h3>
 			
 			<div class="switch-container" style="margin-bottom: 10px;">
 				<div style="flex:1;"><strong>Titelinfos deaktivieren</strong></div>
@@ -118,6 +118,14 @@
 
 			<div id="settings-list" style="margin-bottom: 25px;"></div>
 			
+			<div style="background: rgba(255,255,255,0.03); padding: 20px; border-radius: 20px; margin-bottom: 20px;">
+				<h4 style="margin-bottom: 15px;">Jellyfin Konfiguration</h4>
+				<input type="text" id="jf-server" placeholder="Server URL (z.B. https://jellyfin.example)">
+				<input type="text" id="jf-user" placeholder="User-ID">
+				<input type="text" id="jf-token" placeholder="API Token">
+				<button onclick="saveJellyfinConfig()" class="modal-btn save">Speichern</button>
+			</div>
+
 			<div style="background: rgba(255,255,255,0.03); padding: 20px; border-radius: 20px;">
 				<h4 style="margin-bottom: 15px;">Sender manuell hinzufügen</h4>
 				<div class="tab-content active" style="display:block;">
@@ -148,11 +156,12 @@
 			{ isDefault: true, name: "RTL Lëtzebuerg", displayName: "RTL.lu", apiId: "rtl-lux", url: "https://sc.bce.lu/rtl", logo: "./assets/rtl.lu.png" },
 			{ isDefault: true, name: "RTL TODAY RADIO", displayName: "RTL TODAY", apiId: "rtl-today", url: "https://sc.bce.lu/rtltoday", logo: "./assets/rtl-today.lu.png" },
 			{ isDefault: true, name: "RADIO ENERGY", displayName: "RADIO NRJ", apiId: "nrj", url: "https://frontend.streamonkey.net/energy-digital", logo: "./assets/nrj.png" },
-			{ isDefault: true, name: "AirPlay (Lokal)", displayName: "AirPlay", apiId: "airplay", url: "http://10.69.254.100:8090/stream", logo: "https://raw.githubusercontent.com/Bitte-ein-Git/ha_repo/refs/heads/development/airplay_web/icon.png", metaUrl: "http://10.69.254.100:8090/meta", coverUrl: "http://10.69.254.100:8090/cover" }
+			{ isDefault: true, name: "AirPlay (Lokal)", displayName: "AirPlay", apiId: "airplay", url: "http://10.69.254.100:8090/stream", logo: "https://raw.githubusercontent.com/Bitte-ein-Git/ha_repo/refs/heads/development/airplay_web/icon.png", metaUrl: "http://10.69.254.100:8090/meta", coverUrl: "http://10.69.254.100:8090/cover" },
+			{ isDefault: true, name: "Jellyfin", displayName: "Jellyfin", apiId: "jellyfin-cast", url: "", logo: "./assets/jelly.png" }
 		];
 
 		let stations = JSON.parse(localStorage.getItem('radio_stations'));
-		if (!stations || !stations.find(s => s.apiId === 'rtl-today') || !stations.find(s => s.apiId === 'airplay') || !stations.find(s => s.apiId === 'sunshine-90s')) {
+		if (!stations || !stations.find(s => s.apiId === 'rtl-today') || !stations.find(s => s.apiId === 'airplay') || !stations.find(s => s.apiId === 'jellyfin-cast')) {
 			stations = defaultStations;
 			localStorage.setItem('radio_stations', JSON.stringify(stations));
 		}
@@ -167,6 +176,15 @@
 		let disableMeta = localStorage.getItem('radio_disable_meta') === 'true';
 		let focusedButtonIndex = -1;
 		
+		let jfServer = localStorage.getItem('radio_jf_server') || '';
+		let jfUser = localStorage.getItem('radio_jf_user') || '';
+		let jfToken = localStorage.getItem('radio_jf_token') || '';
+		let jfDeviceId = localStorage.getItem('radio_jf_device') || 'fordy-radio-' + Math.floor(Math.random()*100000);
+		localStorage.setItem('radio_jf_device', jfDeviceId);
+		let jfSocket = null;
+		let jfInterval = null;
+		let currentJfItemId = null;
+
 		const audio = document.getElementById('audio-el');
 		
 		let isBtActive = localStorage.getItem('radio_bt_mode') === 'true';
@@ -231,7 +249,26 @@
 				handleAirplayData(stations[currentStationIndex], { isPlaying: false });
 				return;
 			}
+			if (currentStationIndex !== -1 && stations[currentStationIndex].apiId === 'jellyfin-cast') {
+				return;
+			}
 			updateStatus("error"); updatePlayBtn(false); 
+		});
+
+		audio.addEventListener('ended', () => {
+			if (currentStationIndex !== -1 && stations[currentStationIndex].apiId === 'jellyfin-cast' && currentJfItemId) {
+				fetch(`${jfServer}/Sessions/Playing/Stopped`, {
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json",
+						"X-Emby-Authorization": `MediaBrowser Client="FordyRadio", Device="FordyRadio", DeviceId="${jfDeviceId}", Version="1.0.0", Token="${jfToken}"`
+					},
+					body: JSON.stringify({
+						ItemId: currentJfItemId,
+						PositionTicks: Math.round(audio.currentTime * 10000000)
+					})
+				}).catch(()=>{});
+			}
 		});
 
 		function handleStartup() {
@@ -317,14 +354,116 @@
 
 			if(metaInterval) clearInterval(metaInterval);
 			
-			if (s.apiId === 'airplay') {
+			if(jfSocket && s.apiId !== 'jellyfin-cast') {
+				jfSocket.close();
+				jfSocket = null;
+			}
+			if(jfInterval) clearInterval(jfInterval);
+
+			if (s.apiId === 'airplay' || s.apiId === 'jellyfin-cast') {
 				audio.src = dummyAudioSrc;
 				audio.loop = true;
-				audio.play().then(() => startMetaFetcher(s)).catch(() => { updatePlayBtn(false); updateStatus("ready"); });
+				audio.play().then(() => {
+					if (s.apiId === 'jellyfin-cast') {
+						initJellyfin(s);
+					} else {
+						startMetaFetcher(s);
+					}
+				}).catch(() => { updatePlayBtn(false); updateStatus("ready"); });
 			} else {
 				audio.loop = false;
 				audio.src = s.url;
 				audio.play().then(() => startMetaFetcher(s)).catch(() => { updatePlayBtn(false); updateStatus("ready"); });
+			}
+		}
+
+		function initJellyfin(station) {
+			if (!jfServer || !jfToken) {
+				document.getElementById('player-title').innerText = "Fehler!";
+				document.getElementById('player-artist').innerText = "Bitte Jellyfin einrichten...";
+				return;
+			}
+
+			const wsUrl = jfServer.replace(/^http/, 'ws') + `/socket?api_key=${jfToken}&deviceId=${jfDeviceId}`;
+			jfSocket = new WebSocket(wsUrl);
+
+			jfSocket.onopen = () => {
+				fetch(`${jfServer}/Sessions/Capabilities/Full`, {
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json",
+						"X-Emby-Authorization": `MediaBrowser Client="FordyRadio", Device="FordyRadio", DeviceId="${jfDeviceId}", Version="1.0.0", Token="${jfToken}"`
+					},
+					body: JSON.stringify({
+						PlayableMediaTypes: ["Audio"],
+						SupportedCommands: ["Play", "Pause", "Unpause", "Stop", "SetVolume"],
+						SupportsMediaControl: true
+					})
+				}).catch(()=>{});
+				
+				if(jfInterval) clearInterval(jfInterval);
+				jfInterval = setInterval(() => {
+					if(jfSocket.readyState === WebSocket.OPEN && currentJfItemId) {
+						fetch(`${jfServer}/Sessions/Playing/Progress`, {
+							method: "POST",
+							headers: {
+								"Content-Type": "application/json",
+								"X-Emby-Authorization": `MediaBrowser Client="FordyRadio", Device="FordyRadio", DeviceId="${jfDeviceId}", Version="1.0.0", Token="${jfToken}"`
+							},
+							body: JSON.stringify({
+								IsPaused: audio.paused,
+								VolumeLevel: Math.round(audio.volume * 100),
+								ItemId: currentJfItemId,
+								PositionTicks: Math.round(audio.currentTime * 10000000)
+							})
+						}).catch(()=>{});
+					}
+				}, 5000);
+			};
+
+			jfSocket.onmessage = async (e) => {
+				const msg = JSON.parse(e.data);
+				if (msg.MessageType === "Play") {
+					currentJfItemId = msg.Data.ItemIds[0];
+					audio.loop = false;
+					audio.src = `${jfServer}/Audio/${currentJfItemId}/universal?api_key=${jfToken}&deviceId=${jfDeviceId}&UserId=${jfUser}&Container=mp3,aac`;
+					audio.play().catch(()=>{});
+
+					try {
+						const res = await fetch(`${jfServer}/Users/${jfUser}/Items/${currentJfItemId}`, {
+							headers: { "X-Emby-Authorization": `MediaBrowser Client="FordyRadio", Device="FordyRadio", DeviceId="${jfDeviceId}", Version="1.0.0", Token="${jfToken}"` }
+						});
+						const item = await res.json();
+						const title = item.Name || "Unbekannt";
+						const artist = item.Artists ? item.Artists.join(", ") : "Jellyfin";
+						const coverUrl = (item.ImageTags && item.ImageTags.Primary) ? `${jfServer}/Items/${currentJfItemId}/Images/Primary?api_key=${jfToken}` : station.logo;
+
+						document.getElementById('player-title').innerText = title;
+						document.getElementById('player-artist').innerText = artist;
+						updateCoverAndSession(coverUrl, title, artist, false, station.logo, station);
+					} catch(e) {}
+				} else if (msg.MessageType === "Playstate") {
+					if (msg.Data.Command === "Pause") audio.pause();
+					else if (msg.Data.Command === "Unpause") audio.play().catch(()=>{});
+					else if (msg.Data.Command === "Stop") {
+						audio.src = dummyAudioSrc;
+						audio.play().catch(()=>{});
+						currentJfItemId = null;
+					}
+				}
+			};
+		}
+
+		function saveJellyfinConfig() {
+			jfServer = document.getElementById('jf-server').value.replace(/\/$/, "");
+			jfUser = document.getElementById('jf-user').value;
+			jfToken = document.getElementById('jf-token').value;
+			localStorage.setItem('radio_jf_server', jfServer);
+			localStorage.setItem('radio_jf_user', jfUser);
+			localStorage.setItem('radio_jf_token', jfToken);
+			closeManager();
+			if(currentStationIndex !== -1 && stations[currentStationIndex].apiId === 'jellyfin-cast') {
+				playStation(currentStationIndex);
 			}
 		}
 
@@ -334,15 +473,21 @@
 			
 			if (audio.paused || !audio.src || audio.src === window.location.href) {
 				userPaused = false;
-				audio.src = (s.apiId === 'airplay') ? dummyAudioSrc : s.url;
-				audio.play().then(() => startMetaFetcher(s)).catch(()=>{ updatePlayBtn(false); updateStatus("ready"); });
+				if (s.apiId === 'airplay' || s.apiId === 'jellyfin-cast') {
+					if (audio.src === window.location.href || !audio.src) audio.src = dummyAudioSrc;
+				} else {
+					audio.src = s.url;
+				}
+				audio.play().then(() => {
+					if (s.apiId !== 'jellyfin-cast') startMetaFetcher(s);
+				}).catch(()=>{ updatePlayBtn(false); updateStatus("ready"); });
 				if('mediaSession' in navigator) navigator.mediaSession.playbackState = 'playing';
 			} else {
 				userPaused = true;
 				audio.pause();
 				updateStatus("stopped");
 				updatePlayBtn(false);
-				resetToStationView();
+				if (s.apiId !== 'jellyfin-cast') resetToStationView();
 				if('mediaSession' in navigator) navigator.mediaSession.playbackState = 'paused';
 				renderMediaSessionState();
 			}
@@ -373,7 +518,6 @@
 		function toggleMute() {
 			audio.muted = !audio.muted;
 			document.getElementById('mute-icon').className = audio.muted ? 'fa-solid fa-volume-xmark' : 'fa-solid fa-volume-high';
-			
 			const dummyStream = document.getElementById('dummy-audio');
 			if (audio.muted) {
 				dummyStream.src = dummyAudioSrc;
@@ -383,8 +527,7 @@
 				dummyStream.pause();
 				dummyStream.src = "";
 			}
-			
-			if (currentStationIndex !== -1) renderMediaSessionState();
+			renderMediaSessionState();
 		}
 
 		function resetToStationView() {
@@ -393,7 +536,6 @@
 			document.getElementById('player-title').innerText = s.name;
 			document.getElementById('player-artist').innerText = "𝓕𝓸𝓻𝓭𝔂•𝗥𝗮𝗱𝗶𝓸";
 			document.getElementById('player-station-name').style.display = 'none';
-			
 			changeCover(s.logo || './assets/app.png');
 			hideOverlayLogo();
 			startMediaSessionRotation(s, null, null, null);
@@ -409,7 +551,6 @@
 				"error": "FEHLER"
 			};
 			const emojiMap = { "ready": "◽️", "loading": "🔸", "playing": "▶️", "stopped": "⭕️", "error": "⚠️" };
-			
 			const text = `${emojiMap[state] || emojiMap.ready} ${map[state] || map.ready}`;
 			el.innerText = text;
 			document.title = text;
@@ -423,29 +564,23 @@
 			if (metaInterval) clearInterval(metaInterval);
 			const fetchInfo = async () => {
 				if (audio.paused && !audio.src.startsWith('data:')) return;
-				
 				if (disableMeta) {
 					resetToStationView();
 					return;
 				}
-
 				if (station.apiId === 'airplay') {
 					try {
 						let data;
-						if (typeof Windows !== 'undefined' && typeof Windows.Web !== 'undefined' && typeof Windows.Web.Http !== 'undefined') {
+						if (typeof Windows !== 'undefined' && Windows.Web) {
 							const client = new Windows.Web.Http.HttpClient();
-							const uri = new Windows.Foundation.Uri(station.metaUrl + "?t=" + Date.now());
-							const resStr = await client.getStringAsync(uri);
+							const resStr = await client.getStringAsync(new Windows.Foundation.Uri(station.metaUrl + "?t=" + Date.now()));
 							data = JSON.parse(resStr);
 						} else {
 							const res = await fetch(station.metaUrl + "?t=" + Date.now());
-							if (!res.ok) throw new Error('fail');
 							data = await res.json();
 						}
 						handleAirplayData(station, data);
-					} catch(e) {
-						handleAirplayData(station, { isPlaying: false });
-					}
+					} catch(e) { handleAirplayData(station, { isPlaying: false }); }
 				} else {
 					if (!audio.src || audio.src === window.location.href || audio.src.startsWith('data:')) return;
 					fetch('https://api.heyfordy.dev/radio?t=' + Date.now()).then(r=>r.json()).then(d => {
@@ -461,29 +596,23 @@
 		async function handleAirplayData(station, data) {
 			if (data.isPlaying) {
 				if (userPaused) return;
-				
 				if (audio.src.startsWith('data:') || audio.src === window.location.href || audio.paused) {
 					audio.loop = false;
 					audio.src = station.url;
 					try { await audio.play(); } catch(e){}
 				}
-
 				const trackTitle = data.title || "Unbekannter Titel";
 				const trackArtist = data.artist || "Unbekannter Interpret";
-
 				document.getElementById('player-title').innerText = trackTitle;
 				document.getElementById('player-artist').innerText = trackArtist;
-				
 				const hideStationName = (trackArtist === station.name || trackArtist === station.displayName);
 				document.getElementById('player-station-name').innerText = station.name;
 				document.getElementById('player-station-name').style.display = hideStationName ? 'none' : 'block';
-
 				let newCover = currentCoverUrl;
 				if (trackTitle !== airplayLastTitle) {
 					newCover = station.coverUrl + "?t=" + new Date().getTime();
 					airplayLastTitle = trackTitle;
 				}
-
 				updateCoverAndSession(newCover, trackTitle, trackArtist, false, station.logo, station);
 			} else {
 				if (!audio.src.startsWith('data:')) {
@@ -491,11 +620,9 @@
 					audio.src = dummyAudioSrc;
 					try { await audio.play(); } catch(e){}
 				}
-
 				document.getElementById('player-title').innerText = "AirPlay bereit";
 				document.getElementById('player-artist').innerText = "Warte auf Stream...";
 				document.getElementById('player-station-name').style.display = 'none';
-				
 				updateCoverAndSession(station.logo, null, null, false, null, station);
 				airplayLastTitle = "";
 			}
@@ -503,73 +630,37 @@
 
 		async function handleStationData(station, sd) {
 			if (audio.paused || !audio.src || !audio.src.includes('://')) return;
-			
 			let rawTitle = sd ? (sd.track || "").trim() : "";
 			let rawArtist = sd ? (sd.artist || "").trim() : "";
 			let apiArt = sd ? (sd.cover || null) : null;
-			
 			if (station.apiId === 'rockland') {
 				if (apiArt && apiArt.includes('lqv1b91s.png')) apiArt = null; 
 				if (rawTitle) rawTitle = rawTitle.replace('Rockland Radio - Werbung', 'Werbung').replace('Rockland Radio - Nachrichten', 'Nachrichten');
 				if (rawArtist) rawArtist = rawArtist.replace('Rockland Radio - Werbung', 'Werbung').replace('Rockland Radio - Nachrichten', 'Nachrichten');
 			}
-
 			const isUnavailable = (rawTitle.toLowerCase().includes("info unavailable") || rawArtist.toLowerCase().includes("info unavailable"));
-
-			if (isUnavailable || (!rawTitle && !rawArtist)) {
-				resetToStationView();
-				lastTrackRaw = "";
-				return;
-			}
-
-			let trackTitle = "";
-			let trackArtist = "";
-
-			if (rawTitle && rawArtist) {
-				trackTitle = rawTitle;
-				trackArtist = rawArtist;
-			} else if (rawTitle && !rawArtist) {
-				trackTitle = rawTitle;
-				trackArtist = station.displayName;
-			} else if (!rawTitle && rawArtist) {
-				trackTitle = rawArtist;
-				trackArtist = station.displayName;
-			}
-
+			if (isUnavailable || (!rawTitle && !rawArtist)) { resetToStationView(); lastTrackRaw = ""; return; }
+			let trackTitle = "", trackArtist = "";
+			if (rawTitle && rawArtist) { trackTitle = rawTitle; trackArtist = rawArtist; }
+			else if (rawTitle && !rawArtist) { trackTitle = rawTitle; trackArtist = station.displayName; }
+			else if (!rawTitle && rawArtist) { trackTitle = rawArtist; trackArtist = station.displayName; }
 			const currentCombo = trackTitle + "|||" + trackArtist;
 			if (currentCombo === lastTrackRaw) return;
 			lastTrackRaw = currentCombo;
-
 			document.getElementById('player-title').innerText = trackTitle;
 			document.getElementById('player-artist').innerText = trackArtist;
-			
 			const hideStationName = (trackArtist === station.name || trackArtist === station.displayName);
 			document.getElementById('player-station-name').innerText = station.name;
 			document.getElementById('player-station-name').style.display = hideStationName ? 'none' : 'block';
-			
-			let finalArt = apiArt;
-			let showOverlay = !!apiArt;
-
+			let finalArt = apiArt, showOverlay = !!apiArt;
 			if (!finalArt && trackTitle && trackArtist) {
-				const lowerTitle = trackTitle.toLowerCase();
-				const lowerStation = station.name.toLowerCase();
-				const lowerDisplay = station.displayName.toLowerCase();
-				
-				if (!lowerTitle.includes(lowerStation) && !lowerTitle.includes(lowerDisplay)) {
-					const searchTerm = `${trackArtist} ${trackTitle}`.trim();
-					const itunesArt = await fetchItunesCover(searchTerm);
-					if (itunesArt) {
-						finalArt = itunesArt;
-						showOverlay = true;
-					}
+				const lowerTitle = trackTitle.toLowerCase(), lowerStation = station.name.toLowerCase();
+				if (!lowerTitle.includes(lowerStation)) {
+					const itunesArt = await fetchItunesCover(`${trackArtist} ${trackTitle}`.trim());
+					if (itunesArt) { finalArt = itunesArt; showOverlay = true; }
 				}
 			}
-
-			if (finalArt) {
-				updateCoverAndSession(finalArt, trackTitle, trackArtist, showOverlay, station.logo, station);
-			} else {
-				updateCoverAndSession(station.logo, trackTitle, trackArtist, false, null, station);
-			}
+			updateCoverAndSession(finalArt || station.logo, trackTitle, trackArtist, showOverlay, finalArt ? station.logo : null, station);
 		}
 
 		function updateCoverAndSession(coverUrl, title, sessionArtist, showOverlay, overlayLogoUrl, station) {
@@ -580,9 +671,7 @@
 				overlayEl.src = overlayLogoUrl;
 				overlayEl.style.display = 'block';
 				overlayEl.style.transform = 'scale(1.5)';
-			} else {
-				hideOverlayLogo();
-			}
+			} else { hideOverlayLogo(); }
 			setTimeout(extractAndApplyColor, 700);
 			startMediaSessionRotation(station, title, sessionArtist, finalCover);
 		}
@@ -590,7 +679,6 @@
 		function changeCover(newSrc) {
 			if (currentCoverUrl === newSrc) return; 
 			currentCoverUrl = newSrc;
-			
 			const img = document.getElementById('player-img');
 			img.style.opacity = 0;
 			setTimeout(() => {
@@ -603,8 +691,7 @@
 
 		function hideOverlayLogo() { 
 			const el = document.getElementById('player-overlay-logo');
-			el.style.display = 'none'; 
-			el.style.transform = 'scale(1)'; 
+			el.style.display = 'none'; el.style.transform = 'scale(1)'; 
 		}
 
 		function extractAndApplyColor() {
@@ -616,19 +703,15 @@
 				ctx.drawImage(img, 0, 0, 10, 10);
 				const p = ctx.getImageData(5, 5, 1, 1).data;
 				document.documentElement.style.setProperty('--glow-color', `rgba(${p[0]}, ${p[1]}, ${p[2]}, 0.5)`);
-			} catch(e) {
-				document.documentElement.style.setProperty('--glow-color', `rgba(255, 100, 0, 0.4)`);
-			}
+			} catch(e) { document.documentElement.style.setProperty('--glow-color', `rgba(255, 100, 0, 0.4)`); }
 		}
 
 		function startMediaSessionRotation(station, trackTitle, trackArtist, coverUrl) {
 			activeTrackTitle = trackTitle || "";
 			activeTrackArtist = trackArtist || "";
 			activeCoverUrl = coverUrl || station.logo || './assets/app.png';
-
 			if (mediaRotationInterval) clearInterval(mediaRotationInterval);
 			isTrackInfoPhase = true;
-			
 			renderMediaSessionState();
 			mediaRotationInterval = setInterval(() => {
 				isTrackInfoPhase = !isTrackInfoPhase;
@@ -639,92 +722,35 @@
 		function renderMediaSessionState() {
 			if (currentStationIndex === -1) return;
 			const station = stations[currentStationIndex];
-			let t = "", a = "", al = "", c = "";
-
 			const dispTitle = activeTrackTitle ? activeTrackTitle : station.displayName;
 			const dispArtist = activeTrackTitle ? activeTrackArtist : "Fordy-FM";
 			const dispCover = activeCoverUrl; 
 			const logoCover = station.logo || './assets/app.png';
+			let t, a, c, al = "heyFordy.dev Radio";
 
-			if (audio.paused) {
-				t = station.displayName;
-				a = "Fordy-FM";
-				c = logoCover;
-				al = "heyFordy.dev Radio";
-			} else if (audio.muted) {
-				t = "Stummgeschaltet";
-				a = station.displayName;
-				c = logoCover;
-				al = "heyFordy.dev Radio";
-			} else if (isBtActive) {
-				t = dispTitle;
-				a = dispArtist;
-				c = isTrackInfoPhase ? dispCover : logoCover;
-				al = isTrackInfoPhase ? "heyFordy.dev Radio" : station.displayName;
-			} else {
-				if (isTrackInfoPhase) {
-					t = dispTitle;
-					a = dispArtist;
-					c = dispCover;
-				} else {
-					t = station.displayName;
-					a = "Fordy-FM";
-					c = logoCover;
-				}
-				al = "heyFordy.dev Radio";
+			if (audio.paused) { t = station.displayName; a = "Fordy-FM"; c = logoCover; }
+			else if (audio.muted) { t = "Stummgeschaltet"; a = station.displayName; c = logoCover; }
+			else if (isBtActive) { t = dispTitle; a = dispArtist; c = isTrackInfoPhase ? dispCover : logoCover; }
+			else {
+				if (isTrackInfoPhase) { t = dispTitle; a = dispArtist; c = dispCover; }
+				else { t = station.displayName; a = "Fordy-FM"; c = logoCover; }
 			}
-			
 			updateMediaSessionNative(t, a, al, c);
 		}
 
 		function updateMediaSessionNative(t, a, al, i) {
 			if('mediaSession' in navigator) {
-				navigator.mediaSession.metadata = new MediaMetadata({ 
-					title: t, 
-					artist: a, 
-					album: al,
-					duration: Infinity, 
-					startTime: 0,
-					artwork: [{ src: i || './assets/app.png', sizes: '512x512', type: 'image/png' }] 
-				});
+				navigator.mediaSession.metadata = new MediaMetadata({ title: t, artist: a, album: al, duration: Infinity, artwork: [{ src: i || './assets/app.png', sizes: '512x512', type: 'image/png' }] });
 				navigator.mediaSession.playbackState = audio.paused ? "paused" : "playing";
-
-				try {
-					if ('setPositionState' in navigator.mediaSession) {
-						navigator.mediaSession.setPositionState({
-							duration: Infinity,
-							playbackRate: 1.0,
-							position: 0.0
-						});
-					}
-				} catch(e) {}
 			}
-			
 			if (typeof Windows !== 'undefined') {
 				(async () => {
 					try {
 						const smtc = Windows.Media.SystemMediaTransportControls.getForCurrentView();
-						smtc.isPlayEnabled = true; smtc.isPauseEnabled = true; smtc.isNextEnabled = true; smtc.isPreviousEnabled = true;
 						const updater = smtc.displayUpdater;
 						updater.type = Windows.Media.MediaPlaybackType.music;
-						updater.musicProperties.title = t;
-						updater.musicProperties.artist = a;
-						updater.musicProperties.albumTitle = al;
-						
-						if (i) {
-							const absUrl = new URL(i, document.baseURI).href;
-							if (absUrl.startsWith('http://')) {
-								const folder = Windows.Storage.ApplicationData.current.localCacheFolder;
-								const file = await folder.createFileAsync("smtc_cover.jpg", Windows.Storage.CreationCollisionOption.replaceExisting);
-								const client = new Windows.Web.Http.HttpClient();
-								const buffer = await client.getBufferAsync(new Windows.Foundation.Uri(absUrl));
-								await Windows.Storage.FileIO.writeBufferAsync(file, buffer);
-								updater.thumbnail = Windows.Storage.Streams.RandomAccessStreamReference.createFromFile(file);
-							} else {
-								updater.thumbnail = Windows.Storage.Streams.RandomAccessStreamReference.createFromUri(new Windows.Foundation.Uri(absUrl));
-							}
-						}
-						
+						updater.musicProperties.title = t; updater.musicProperties.artist = a; updater.musicProperties.albumTitle = al;
+						if (i) updater.thumbnail = Windows.Storage.Streams.RandomAccessStreamReference.createFromUri(new Windows.Foundation.Uri(new URL(i, document.baseURI).href));
 						updater.update();
 						smtc.playbackStatus = audio.paused ? Windows.Media.MediaPlaybackStatus.paused : Windows.Media.MediaPlaybackStatus.playing;
 					} catch(e) {}
@@ -734,38 +760,31 @@
 
 		function toggleFooter(force) {
 			footerOpen = (force !== undefined) ? force : !footerOpen;
-			const footer = document.getElementById('main-footer');
-			footer.classList.toggle('expanded', footerOpen);
+			document.getElementById('main-footer').classList.toggle('expanded', footerOpen);
 			document.getElementById('footer-arrow').innerText = footerOpen ? '▼' : '▲';
 		}
 
-		function openManager() { renderManagerList(); document.getElementById('manager-modal').style.display = 'flex'; }
+		function openManager() { 
+			renderManagerList(); 
+			document.getElementById('jf-server').value = jfServer;
+			document.getElementById('jf-user').value = jfUser;
+			document.getElementById('jf-token').value = jfToken;
+			document.getElementById('manager-modal').style.display = 'flex'; 
+		}
+		
 		function closeManager() { document.getElementById('manager-modal').style.display = 'none'; }
 
 		function renderStations() {
-			const list = document.getElementById('footer-list');
-			const sideList = document.getElementById('sidebar-list');
-			list.innerHTML = '';
-			sideList.innerHTML = '';
-			
+			const list = document.getElementById('footer-list'), sideList = document.getElementById('sidebar-list');
+			list.innerHTML = ''; sideList.innerHTML = '';
 			stations.forEach((s, i) => {
 				if (s.isDisabled) return;
-				const html = `<div class="station-item ${i === currentStationIndex ? 'active' : ''}" data-index="${i}" onclick="playStation(${i})" tabindex="0" role="button" aria-label="Station ${s.name}">
+				const html = `<div class="station-item ${i === currentStationIndex ? 'active' : ''}" data-index="${i}" onclick="playStation(${i})" tabindex="0" role="button">
 					<img src="${s.logo || './assets/app.png'}" class="station-logo" onerror="this.src='./assets/app.png'">
 					<div class="station-info"><span>${s.name}</span></div>
 					<i class="fa-solid fa-play" style="opacity:0.2; font-size: 0.8rem;"></i>
 				</div>`;
-				list.innerHTML += html;
-				sideList.innerHTML += html;
-			});
-
-			document.querySelectorAll('.station-item').forEach((item) => {
-				item.addEventListener('keydown', (e) => {
-					if (e.key === 'Enter' || e.key === ' ') {
-						e.preventDefault();
-						playStation(parseInt(item.dataset.index));
-					}
-				});
+				list.innerHTML += html; sideList.innerHTML += html;
 			});
 		}
 
@@ -776,101 +795,47 @@
 				list.innerHTML += `<div class="switch-container">
 					<div style="flex:1; opacity: ${s.isDisabled ? 0.4 : 1};"><strong>${s.name}</strong></div>
 					<div style="display:flex; gap: 12px; align-items:center;">
-						<i class="fa-solid fa-chevron-up" onclick="moveStation(${i},-1)" style="cursor:pointer; opacity:0.5;" tabindex="0" role="button" aria-label="Move ${s.name} up"></i>
-						<i class="fa-solid fa-chevron-down" onclick="moveStation(${i},1)" style="cursor:pointer; opacity:0.5;" tabindex="0" role="button" aria-label="Move ${s.name} down"></i>
-						${!s.isDefault ? `<i class="fa-solid fa-trash-can" onclick="removeStation(${i})" style="color:#ff4444; cursor:pointer; tabindex:0;" tabindex="0" role="button" aria-label="Delete ${s.name}"></i>` : `<i class="fa-solid ${s.isDisabled ? 'fa-eye-slash' : 'fa-eye'}" onclick="toggleStation(${i})" style="cursor:pointer; opacity:0.5;" tabindex="0" role="button" aria-label="Toggle ${s.name}"></i>`}
+						<i class="fa-solid fa-chevron-up" onclick="moveStation(${i},-1)" style="cursor:pointer; opacity:0.5;"></i>
+						<i class="fa-solid fa-chevron-down" onclick="moveStation(${i},1)" style="cursor:pointer; opacity:0.5;"></i>
+						${!s.isDefault ? `<i class="fa-solid fa-trash-can" onclick="removeStation(${i})" style="color:#ff4444; cursor:pointer;"></i>` : `<i class="fa-solid ${s.isDisabled ? 'fa-eye-slash' : 'fa-eye'}" onclick="toggleStation(${i})" style="cursor:pointer; opacity:0.5;"></i>`}
 					</div>
 				</div>`;
 			});
 		}
 
-		function toggleStation(idx) {
-			stations[idx].isDisabled = !stations[idx].isDisabled;
-			saveAndRefresh();
-		}
-
-		function toggleMetaSetting() {
-			disableMeta = document.getElementById('disable-meta-toggle').checked;
-			localStorage.setItem('radio_disable_meta', disableMeta);
-			if (disableMeta) {
-				lastTrackRaw = "";
-				resetToStationView();
-			}
-		}
-
-		function moveStation(idx, dir) {
-			let nIdx = idx + dir;
-			if (nIdx < 0 || nIdx >= stations.length) return;
-			[stations[idx], stations[nIdx]] = [stations[nIdx], stations[idx]];
-			saveAndRefresh();
-		}
-
+		function toggleStation(idx) { stations[idx].isDisabled = !stations[idx].isDisabled; saveAndRefresh(); }
+		function toggleMetaSetting() { disableMeta = document.getElementById('disable-meta-toggle').checked; localStorage.setItem('radio_disable_meta', disableMeta); if (disableMeta) resetToStationView(); }
+		function moveStation(idx, dir) { let nIdx = idx + dir; if (nIdx >= 0 && nIdx < stations.length) { [stations[idx], stations[nIdx]] = [stations[nIdx], stations[idx]]; saveAndRefresh(); } }
 		function removeStation(idx) { stations.splice(idx, 1); saveAndRefresh(); }
-
 		function addStationManual() {
-			const n = document.getElementById('new-name').value;
-			const u = document.getElementById('new-url').value;
+			const n = document.getElementById('new-name').value, u = document.getElementById('new-url').value;
 			if(n && u) {
-				stations.push({ 
-					name: n, 
-					displayName: n, 
-					url: u, 
-					logo: document.getElementById('new-logo').value
-				});
+				stations.push({ name: n, displayName: n, url: u, logo: document.getElementById('new-logo').value });
 				saveAndRefresh();
-				document.getElementById('new-name').value = '';
-				document.getElementById('new-url').value = '';
-				document.getElementById('new-logo').value = '';
 			}
 		}
 
 		function saveAndRefresh() { localStorage.setItem('radio_stations', JSON.stringify(stations)); renderStations(); renderManagerList(); }
 		function clearCache() { localStorage.clear(); window.location.reload(true); }
 
-		window.onclick = (e) => { if (e.target.className === 'modal') { closeManager(); } }
+		window.onclick = (e) => { if (e.target.className === 'modal') closeManager(); }
 
 		document.addEventListener('keydown', (e) => {
 			if (!audio) return;
-
-			if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
-				e.preventDefault();
-				if (e.key === 'ArrowLeft') skipPrev();
-				if (e.key === 'ArrowRight') skipNext();
-			}
-
+			if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') { e.preventDefault(); e.key === 'ArrowLeft' ? skipPrev() : skipNext(); }
 			if (e.key === ' ' || e.key === 'Enter') {
 				const activeEl = document.activeElement;
-				if (!activeEl.matches('input, button, [role="button"]')) {
-					e.preventDefault();
-					togglePlay();
-				}
+				if (!activeEl.matches('input, button, [role="button"]')) { e.preventDefault(); togglePlay(); }
 			}
-
 			if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
 				const activeEl = document.activeElement;
-				if (!activeEl.matches('input')) {
-					e.preventDefault();
-					let currentVol = audio.volume;
-					if (e.key === 'ArrowUp') currentVol = Math.min(1, currentVol + 0.1);
-					if (e.key === 'ArrowDown') currentVol = Math.max(0, currentVol - 0.1);
-					audio.volume = currentVol;
-				}
+				if (!activeEl.matches('input')) { e.preventDefault(); audio.volume = Math.max(0, Math.min(1, audio.volume + (e.key === 'ArrowUp' ? 0.1 : -0.1))); }
 			}
-
 			if (e.key === 'Tab') {
-				const controlButtons = document.querySelectorAll('.round-btn, .play-btn');
-				if (controlButtons.length === 0) return;
-
-				let currentFocused = Array.from(controlButtons).findIndex(btn => btn === document.activeElement);
-				
-				if (e.shiftKey) {
-					currentFocused = (currentFocused - 1 + controlButtons.length) % controlButtons.length;
-				} else {
-					currentFocused = (currentFocused + 1) % controlButtons.length;
-				}
-
-				e.preventDefault();
-				controlButtons[currentFocused].focus();
+				const controls = Array.from(document.querySelectorAll('.round-btn, .play-btn'));
+				let idx = controls.findIndex(btn => btn === document.activeElement);
+				idx = (e.shiftKey ? (idx - 1 + controls.length) : (idx + 1)) % controls.length;
+				e.preventDefault(); controls[idx].focus();
 			}
 		});
 
@@ -878,9 +843,7 @@
 			try {
 				const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(term)}&media=music&limit=1`);
 				const data = await res.json();
-				if (data.results && data.results.length > 0) {
-					return data.results[0].artworkUrl100.replace('100x100', '600x600');
-				}
+				if (data.results && data.results.length > 0) return data.results[0].artworkUrl100.replace('100x100', '600x600');
 			} catch(e) {}
 			return null;
 		}

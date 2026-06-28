@@ -1,0 +1,4 @@
+{
+    "DEFAULT_JELLYFIN_URL": "https://jelly.heyfordy.dev/",
+    "LOCK_JELLYFIN_URL": "true"
+}
