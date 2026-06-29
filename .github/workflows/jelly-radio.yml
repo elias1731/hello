@@ -40,6 +40,9 @@ jobs:
           cache: 'yarn'
           cache-dependency-path: jellymusic-src/yarn.lock # Explicit path required for subdirectories
 
+      - name: Install legacy dependencies
+        run: npm install -D @vitejs/plugin-legacy@7.2.1 core-js regenerator-runtime
+
       # Build application with custom base path
       - name: Install dependencies and build
         working-directory: ./jellymusic-src
