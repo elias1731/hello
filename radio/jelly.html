@@ -3,59 +3,455 @@
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-	<title>𝓙𝓮𝓵𝓵𝔂𝓯𝓲𝓷</title>
+	<title>𝓙𝓮𝓵𝓵𝔂•Music</title>
 	<meta name="theme-color" content="#0a0a0a">
 	<meta name="apple-mobile-web-app-capable" content="yes">
 	<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 	<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;700&display=swap" rel="stylesheet">
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 	<link rel="stylesheet" href="assets/style.css">
+	<style>
+		:root {
+			--accent: #4caf50;
+		}
+		.jelly-layout {
+			display: flex;
+			height: 100vh;
+			flex-direction: column;
+		}
+		.jelly-header {
+			background: rgba(20,20,20,0.95);
+			backdrop-filter: blur(25px);
+			padding: var(--safe-area-top, 20px) 20px 10px;
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			border-bottom: 1px solid rgba(255,255,255,0.1);
+			z-index: 100;
+		}
+		.jelly-main {
+			flex: 1;
+			display: flex;
+			overflow: hidden;
+		}
+		.jelly-sidebar {
+			width: 260px;
+			background: rgba(15,15,15,0.95);
+			border-right: 1px solid rgba(255,255,255,0.08);
+			overflow-y: auto;
+			padding: 20px 0;
+		}
+		.jelly-content {
+			flex: 1;
+			overflow-y: auto;
+			padding: 20px;
+		}
+		.jelly-player {
+			position: fixed;
+			bottom: 0;
+			left: 0;
+			right: 0;
+			background: rgba(15,15,15,0.98);
+			backdrop-filter: blur(30px);
+			border-top: 1px solid rgba(255,255,255,0.1);
+			padding: 12px 20px;
+			display: flex;
+			align-items: center;
+			gap: 16px;
+			z-index: 200;
+		}
+		.jelly-grid {
+			display: grid;
+			grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+			gap: 20px;
+		}
+		.jelly-item {
+			cursor: pointer;
+			transition: transform 0.2s;
+		}
+		.jelly-item:hover {
+			transform: scale(1.04);
+		}
+		.jelly-item img {
+			width: 100%;
+			aspect-ratio: 1/1;
+			object-fit: cover;
+			border-radius: 12px;
+			box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+		}
+		.jelly-item .title {
+			margin-top: 10px;
+			font-weight: 600;
+			font-size: 0.95rem;
+		}
+		.jelly-item .subtitle {
+			color: #aaa;
+			font-size: 0.85rem;
+		}
+		.now-playing-info {
+			flex: 1;
+			min-width: 0;
+		}
+		.queue-list {
+			max-height: 300px;
+			overflow-y: auto;
+		}
+		.loading {
+			opacity: 0.6;
+			text-align: center;
+			padding: 40px;
+		}
+	</style>
 </head>
 <body id="app-body">
 	<div id="dynamic-bg"></div>
-	<div class="player-wrapper" style="height: 100vh; display: flex; flex-direction: column;">
-		<header>
-			<div class="logo-text"> 𝓙𝓮𝓵𝓵𝔂𝓯𝓲𝓷</div>
-			<div class="header-controls" style="display: flex; gap: 12px;">
-				<button class="round-btn" onclick="location.href='index.html'" aria-label="Zurück"><i class="fa-solid fa-arrow-left"></i></button>
+	
+	<div class="jelly-layout">
+		<header class="jelly-header">
+			<div style="display:flex; align-items:center; gap:12px;">
+				<button class="round-btn" onclick="goBack()" aria-label="Zurück"><i class="fa-solid fa-arrow-left"></i></button>
+				<div class="logo-text" style="font-size:1.4rem;">𝓙𝓮𝓵𝓵𝔂𝓯𝓲𝓷</div>
+			</div>
+			
+			<div style="display:flex; gap:12px; align-items:center;">
+				<input type="text" id="search-input" placeholder="Suchen..." style="width:280px; padding:10px 16px; border-radius:9999px; background:rgba(255,255,255,0.1); border:none; color:white;" onkeypress="if(event.key==='Enter') search()">
+				<button class="round-btn" onclick="toggleQueue()"><i class="fa-solid fa-list"></i></button>
 			</div>
 		</header>
 
-		<div id="iframe-container" style="flex: 1; width: 100%; height: 100%; position: relative;">
-			<iframe id="jellyfin-iframe" style="width: 100%; height: 100%; border: none; display: none;" allow="autoplay; encrypted-media"></iframe>
+		<div class="jelly-main">
+			<!-- Sidebar -->
+			<div class="jelly-sidebar">
+				<div style="padding:0 20px 20px;">
+					<div class="switch-container" onclick="loadLibraries()" style="cursor:pointer;">
+						<i class="fa-solid fa-music"></i> <span style="margin-left:12px;">Bibliotheken</span>
+					</div>
+					<div class="switch-container" onclick="loadArtists()" style="cursor:pointer;">
+						<i class="fa-solid fa-user"></i> <span style="margin-left:12px;">Künstler</span>
+					</div>
+					<div class="switch-container" onclick="loadAlbums()" style="cursor:pointer;">
+						<i class="fa-solid fa-compact-disc"></i> <span style="margin-left:12px;">Alben</span>
+					</div>
+					<div class="switch-container" onclick="loadPlaylists()" style="cursor:pointer;">
+						<i class="fa-solid fa-list-ul"></i> <span style="margin-left:12px;">Playlists</span>
+					</div>
+				</div>
+			</div>
+
+			<!-- Main Content -->
+			<div class="jelly-content" id="main-content">
+				<div id="content-header" style="margin-bottom:24px;"></div>
+				<div id="content-grid" class="jelly-grid"></div>
+			</div>
+		</div>
+
+		<!-- Bottom Player -->
+		<div class="jelly-player">
+			<div style="display:flex; align-items:center; gap:16px; flex:1; min-width:0;">
+				<img id="player-cover" src="./assets/app.png" style="width:52px; height:52px; border-radius:8px; object-fit:cover;" alt="">
+				<div class="now-playing-info">
+					<div id="player-title" style="font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Jellyfin bereit</div>
+					<div id="player-artist" style="color:#aaa; font-size:0.9rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Wähle etwas zum Abspielen</div>
+				</div>
+			</div>
+
+			<div style="display:flex; gap:12px; align-items:center;">
+				<button class="round-btn secondary-ctrl" onclick="prevTrack()"><i class="fa-solid fa-backward-step"></i></button>
+				<button class="play-btn" id="play-btn" onclick="togglePlay()" style="width:64px;height:64px;font-size:1.8rem;">
+					<i id="play-icon" class="fa-solid fa-play"></i>
+				</button>
+				<button class="round-btn secondary-ctrl" onclick="nextTrack()"><i class="fa-solid fa-forward-step"></i></button>
+			</div>
+
+			<div style="flex:1; display:flex; justify-content:flex-end; gap:12px;">
+				<button class="round-btn secondary-ctrl" onclick="toggleMutePlayer()"><i id="mute-icon-player" class="fa-solid fa-volume-high"></i></button>
+				<input type="range" id="progress-bar" min="0" max="100" value="0" style="width:180px;" oninput="seekTo(this.value)">
+			</div>
 		</div>
 	</div>
 
-	<audio id="bg-silent-audio" loop preload="none" msAudioCategory="BackgroundCapableMedia" src="data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA=="></audio>
+	<!-- Queue Modal -->
+	<div id="queue-modal" class="modal" style="display:none;">
+		<div class="modal-content" style="max-width:500px;">
+			<button class="modal-close-btn-x" onclick="toggleQueue()"><i class="fa-solid fa-xmark"></i></button>
+			<h3 style="margin-bottom:20px;">Warteschlange</h3>
+			<div id="queue-list" class="queue-list"></div>
+		</div>
+	</div>
+
+	<audio id="jelly-audio" preload="metadata"></audio>
+	<audio id="silent-audio" loop preload="none" src="data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA=="></audio>
 
 	<script>
-		const iframe = document.getElementById('jellyfin-iframe');
-		const silentAudio = document.getElementById('bg-silent-audio');
+		const JF_SERVER = 'https://jelly.heyfordy.dev';
+		let jfToken = localStorage.getItem('radio_jf_token') || '';
+		let jfUserId = localStorage.getItem('radio_jf_user') || '';
+		let currentLibraryId = null;
+		let currentView = 'libraries';
+		let queue = [];
+		let currentTrackIndex = -1;
+		let audio = document.getElementById('jelly-audio');
+		let isPlaying = false;
+		let isMuted = false;
 
-		const FIXED_JELLYFIN_URL = 'https://jmusic.heyfordy.dev/';
-
-		if ('msAudioCategory' in silentAudio) {
-			silentAudio.msAudioCategory = 'BackgroundCapableMedia';
+		// Media Session
+		function updateMediaSession() {
+			if (!('mediaSession' in navigator)) return;
+			const track = queue[currentTrackIndex];
+			if (!track) return;
+			
+			navigator.mediaSession.metadata = new MediaMetadata({
+				title: track.Name,
+				artist: track.Artists ? track.Artists.join(', ') : 'Unknown',
+				album: track.Album,
+				artwork: [{ src: getImageUrl(track), sizes: '512x512' }]
+			});
+			navigator.mediaSession.playbackState = isPlaying ? 'playing' : 'paused';
 		}
 
-		function loadJellyfin() {
-			iframe.src = FIXED_JELLYFIN_URL;
-			iframe.style.display = 'block';
+		function getImageUrl(item, size = 400) {
+			if (!item.ImageTags || !item.ImageTags.Primary) return './assets/app.png';
+			return `${JF_SERVER}/Items/${item.Id}/Images/Primary?maxHeight=${size}&tag=${item.ImageTags.Primary}&quality=90`;
 		}
 
-		window.addEventListener('click', (e) => {
-			if (e.target === silentAudio || e.target === document.body || e.target === iframe) {
-				triggerSilentAudio();
+		async function apiGet(endpoint) {
+			if (!jfToken) {
+				alert('Jellyfin Token fehlt. Bitte in der Haupt-App konfigurieren.');
+				return null;
+			}
+			try {
+				const res = await fetch(`${JF_SERVER}${endpoint}`, {
+					headers: {
+						'X-Emby-Authorization': `MediaBrowser Client="FordyRadio", Device="FordyRadio", DeviceId="fordy-jelly-browser", Version="1.0", Token="${jfToken}"`
+					}
+				});
+				if (!res.ok) throw new Error('API error');
+				return await res.json();
+			} catch(e) {
+				console.error(e);
+				return null;
+			}
+		}
+
+		async function loadLibraries() {
+			currentView = 'libraries';
+			const data = await apiGet(`/Users/${jfUserId}/Views`);
+			const content = document.getElementById('content-grid');
+			content.innerHTML = '';
+			
+			document.getElementById('content-header').innerHTML = '<h2>Bibliotheken</h2>';
+			
+			if (!data || !data.Items) return;
+			
+			data.Items.forEach(lib => {
+				if (!lib.CollectionType || !['music','musicvideos'].includes(lib.CollectionType)) return;
+				
+				const div = document.createElement('div');
+				div.className = 'jelly-item';
+				div.innerHTML = `
+					<img src="${getImageUrl(lib)}" alt="${lib.Name}">
+					<div class="title">${lib.Name}</div>
+				`;
+				div.onclick = () => {
+					currentLibraryId = lib.Id;
+					loadAlbums(lib.Id);
+				};
+				content.appendChild(div);
+			});
+		}
+
+		async function loadArtists() {
+			currentView = 'artists';
+			const data = await apiGet(`/Users/${jfUserId}/Items?IncludeItemTypes=Artist&Recursive=true&SortBy=SortName&SortOrder=Ascending&Limit=100`);
+			renderItems(data, 'Künstler');
+		}
+
+		async function loadAlbums(libraryId = null) {
+			currentView = 'albums';
+			let url = `/Users/${jfUserId}/Items?IncludeItemTypes=MusicAlbum&Recursive=true&SortBy=SortName&SortOrder=Ascending&Limit=100`;
+			if (libraryId) url += `&ParentId=${libraryId}`;
+			const data = await apiGet(url);
+			renderItems(data, 'Alben');
+		}
+
+		async function loadPlaylists() {
+			currentView = 'playlists';
+			const data = await apiGet(`/Users/${jfUserId}/Items?IncludeItemTypes=Playlist&Recursive=true`);
+			renderItems(data, 'Playlists');
+		}
+
+		function renderItems(data, title) {
+			const content = document.getElementById('content-grid');
+			content.innerHTML = '';
+			document.getElementById('content-header').innerHTML = `<h2>${title}</h2>`;
+			
+			if (!data || !data.Items) return;
+			
+			data.Items.forEach(item => {
+				const div = document.createElement('div');
+				div.className = 'jelly-item';
+				div.innerHTML = `
+					<img src="${getImageUrl(item)}" alt="${item.Name}">
+					<div class="title">${item.Name}</div>
+					<div class="subtitle">${item.Artists ? item.Artists.join(', ') : item.AlbumArtist || ''}</div>
+				`;
+				div.onclick = () => openItem(item);
+				content.appendChild(div);
+			});
+		}
+
+		async function openItem(item) {
+			if (item.Type === 'MusicAlbum' || item.Type === 'Playlist') {
+				const tracks = await apiGet(`/Users/${jfUserId}/Items?parentId=${item.Id}&IncludeItemTypes=Audio&SortBy=IndexNumber`);
+				if (tracks && tracks.Items && tracks.Items.length) {
+					queue = tracks.Items;
+					currentTrackIndex = 0;
+					playCurrentTrack();
+				}
+			} else if (item.Type === 'Audio') {
+				queue = [item];
+				currentTrackIndex = 0;
+				playCurrentTrack();
+			} else if (item.Type === 'Artist') {
+				const albums = await apiGet(`/Users/${jfUserId}/Items?IncludeItemTypes=MusicAlbum&Recursive=true&ArtistIds=${item.Id}`);
+				renderItems(albums, item.Name + ' - Alben');
+			}
+		}
+
+		function playCurrentTrack() {
+			if (currentTrackIndex < 0 || !queue[currentTrackIndex]) return;
+			
+			const track = queue[currentTrackIndex];
+			const streamUrl = `${JF_SERVER}/Audio/${track.Id}/stream.mp3?static=true&deviceId=fordy-jelly-browser`;
+			
+			audio.src = streamUrl;
+			audio.play().then(() => {
+				isPlaying = true;
+				updateUI();
+				updateMediaSession();
+			}).catch(console.error);
+		}
+
+		function togglePlay() {
+			if (audio.paused) {
+				audio.play();
+				isPlaying = true;
+			} else {
+				audio.pause();
+				isPlaying = false;
+			}
+			updateUI();
+			updateMediaSession();
+		}
+
+		function nextTrack() {
+			if (currentTrackIndex < queue.length - 1) {
+				currentTrackIndex++;
+				playCurrentTrack();
+			}
+		}
+
+		function prevTrack() {
+			if (currentTrackIndex > 0) {
+				currentTrackIndex--;
+				playCurrentTrack();
+			}
+		}
+
+		function seekTo(percent) {
+			if (audio.duration) {
+				audio.currentTime = (percent / 100) * audio.duration;
+			}
+		}
+
+		function toggleMutePlayer() {
+			isMuted = !isMuted;
+			audio.muted = isMuted;
+			document.getElementById('mute-icon-player').className = isMuted ? 'fa-solid fa-volume-xmark' : 'fa-solid fa-volume-high';
+		}
+
+		function updateUI() {
+			const track = queue[currentTrackIndex];
+			if (!track) return;
+			
+			document.getElementById('player-title').textContent = track.Name;
+			document.getElementById('player-artist').textContent = track.Artists ? track.Artists.join(', ') : '';
+			document.getElementById('player-cover').src = getImageUrl(track, 300);
+			
+			document.getElementById('play-icon').className = isPlaying ? 'fa-solid fa-pause' : 'fa-solid fa-play';
+		}
+
+		function toggleQueue() {
+			const modal = document.getElementById('queue-modal');
+			const list = document.getElementById('queue-list');
+			list.innerHTML = '';
+			
+			queue.forEach((track, i) => {
+				const div = document.createElement('div');
+				div.style.padding = '12px';
+				div.style.borderBottom = '1px solid rgba(255,255,255,0.1)';
+				div.style.cursor = 'pointer';
+				div.style.background = i === currentTrackIndex ? 'rgba(76,175,80,0.2)' : 'transparent';
+				div.innerHTML = `<strong>${track.Name}</strong><br><small>${track.Artists ? track.Artists.join(', ') : ''}</small>`;
+				div.onclick = () => {
+					currentTrackIndex = i;
+					playCurrentTrack();
+					toggleQueue();
+				};
+				list.appendChild(div);
+			});
+			
+			modal.style.display = modal.style.display === 'flex' ? 'none' : 'flex';
+		}
+
+		function goBack() {
+			window.location.href = 'index.html';
+		}
+
+		// Audio events
+		audio.addEventListener('timeupdate', () => {
+			if (audio.duration) {
+				const percent = (audio.currentTime / audio.duration) * 100;
+				document.getElementById('progress-bar').value = percent;
 			}
 		});
 
-		function triggerSilentAudio() {
-			if (silentAudio.paused) {
-				silentAudio.play().catch(() => {});
-			}
-		}
+		audio.addEventListener('ended', () => {
+			nextTrack();
+		});
 
-		window.addEventListener('DOMContentLoaded', loadJellyfin);
+		// Keyboard support
+		document.addEventListener('keydown', e => {
+			if (e.key === ' ' && document.activeElement.tagName !== 'INPUT') {
+				e.preventDefault();
+				togglePlay();
+			}
+			if (e.key === 'ArrowRight') nextTrack();
+			if (e.key === 'ArrowLeft') prevTrack();
+		});
+
+		// Init
+		window.onload = () => {
+			if (!jfToken || !jfUserId) {
+				document.getElementById('content-header').innerHTML = '<h2 style="color:#ff6666;">Bitte zuerst in der Haupt-App Jellyfin konfigurieren.</h2>';
+				return;
+			}
+			loadLibraries();
+			
+			// Background audio support (Xbox / UWP)
+			const silent = document.getElementById('silent-audio');
+			document.body.addEventListener('click', () => {
+				if (silent.paused) silent.play().catch(()=>{});
+			}, {once: true});
+			
+			// Media Session handlers
+			if ('mediaSession' in navigator) {
+				navigator.mediaSession.setActionHandler('play', () => { if (audio.paused) togglePlay(); });
+				navigator.mediaSession.setActionHandler('pause', () => { if (!audio.paused) togglePlay(); });
+				navigator.mediaSession.setActionHandler('nexttrack', nextTrack);
+				navigator.mediaSession.setActionHandler('previoustrack', prevTrack);
+			}
+		};
 	</script>
 </body>
 </html>
