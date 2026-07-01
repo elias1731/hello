@@ -118,6 +118,15 @@
 
 			<div id="settings-list" style="margin-bottom: 25px;"></div>
 			
+			<!-- Jellyfin Konfiguration bleibt erhalten -->
+			<div style="background: rgba(255,255,255,0.03); padding: 20px; border-radius: 20px; margin-bottom: 20px;">
+				<h4 style="margin-bottom: 15px;">Jellyfin Konfiguration</h4>
+				<input type="text" id="jf-server" placeholder="Server URL (z.B. https://jelly.heyfordy.dev)">
+				<input type="text" id="jf-user" placeholder="User-ID">
+				<input type="text" id="jf-token" placeholder="API Token">
+				<button onclick="saveJellyfinConfig()" class="modal-btn save">Speichern</button>
+			</div>
+
 			<div style="background: rgba(255,255,255,0.03); padding: 20px; border-radius: 20px;">
 				<h4 style="margin-bottom: 15px;">Sender manuell hinzufügen</h4>
 				<div class="tab-content active" style="display:block;">
@@ -166,6 +175,11 @@
 		let userPaused = false;
 		let disableMeta = localStorage.getItem('radio_disable_meta') === 'true';
 		
+		// Jellyfin Konfig bleibt erhalten
+		let jfServer = localStorage.getItem('radio_jf_server') || '';
+		let jfUser = localStorage.getItem('radio_jf_user') || '';
+		let jfToken = localStorage.getItem('radio_jf_token') || '';
+
 		const audio = document.getElementById('audio-el');
 		
 		let isBtActive = localStorage.getItem('radio_bt_mode') === 'true';
@@ -325,6 +339,16 @@
 				audio.src = s.url;
 				audio.play().then(() => startMetaFetcher(s)).catch(() => { updatePlayBtn(false); updateStatus("ready"); });
 			}
+		}
+
+		function saveJellyfinConfig() {
+			jfServer = document.getElementById('jf-server').value.replace(/\/$/, "");
+			jfUser = document.getElementById('jf-user').value;
+			jfToken = document.getElementById('jf-token').value;
+			localStorage.setItem('radio_jf_server', jfServer);
+			localStorage.setItem('radio_jf_user', jfUser);
+			localStorage.setItem('radio_jf_token', jfToken);
+			closeManager();
 		}
 
 		function togglePlay() {
@@ -626,6 +650,9 @@
 
 		function openManager() { 
 			renderManagerList(); 
+			document.getElementById('jf-server').value = jfServer;
+			document.getElementById('jf-user').value = jfUser;
+			document.getElementById('jf-token').value = jfToken;
 			document.getElementById('manager-modal').style.display = 'flex'; 
 		}
 		
