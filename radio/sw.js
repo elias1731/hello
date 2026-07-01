@@ -1,6 +1,7 @@
-const CACHE_NAME = 'fordy-radio-v1';
+const CACHE_NAME = 'fordy-radio-v2';
 const ASSETS = [
   './index.html',
+  './jelly.html',
   './assets/style.css',
   '../assets/style.css',
   '../assets/icon.png',
