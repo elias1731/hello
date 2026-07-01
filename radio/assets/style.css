@@ -130,6 +130,24 @@ main {
 .play-btn:focus { outline: 2px solid rgba(76, 175, 80, 0.8); }
 .secondary-ctrl { width: 50px; height: 50px; font-size: 1.1rem; }
 
+.volume-wrapper { position: relative; display: flex; align-items: center; justify-content: center; }
+.volume-popup {
+    position: absolute; bottom: calc(100% + 15px); left: 50%; transform: translateX(-50%);
+    background: rgba(20,20,20,0.95); padding: 15px 20px; border-radius: 20px;
+    display: none; align-items: center; justify-content: center;
+    border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(20px);
+    z-index: 300; width: 180px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+.volume-wrapper:hover .volume-popup, .volume-wrapper.active .volume-popup { display: flex; }
+.vol-slider-input {
+    width: 100%; height: 6px; -webkit-appearance: none; background: rgba(255,255,255,0.2);
+    border-radius: 3px; outline: none; margin: 0;
+}
+.vol-slider-input::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 18px; height: 18px; background: var(--accent);
+    border-radius: 50%; cursor: pointer;
+}
+
 #sidebar-stations {
     width: 350px; background: rgba(10, 10, 10, 0.4); 
     backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px);
@@ -350,7 +368,7 @@ footer#main-footer.expanded { height: 80vh; }
 }
 .tabs { display: flex; margin-bottom: 20px; gap: 10px; }
 .tab-content { display: block; }
-input[type="text"] { 
+input[type="text"], input[type="password"] { 
     width: 100%; 
     padding: 14px; 
     margin-bottom: 10px; 
@@ -362,7 +380,7 @@ input[type="text"] {
     outline: 2px solid transparent;
     transition: all 0.2s;
 }
-input[type="text"]:focus {
+input[type="text"]:focus, input[type="password"]:focus {
     outline: 2px solid rgba(76, 175, 80, 0.8);
     border-color: rgba(76, 175, 80, 0.5);
 }
@@ -421,4 +439,17 @@ input[type="text"]:focus {
 }
 .toggle input:checked + .toggle-slider:before {
     transform: translateX(20px);
+}
+
+@media (max-width: 768px) {
+    .jelly-main { flex-direction: column; }
+    .jelly-sidebar { width: 100%; border-right: none; border-bottom: 1px solid rgba(255,255,255,0.08); display: flex; padding: 10px; overflow-x: auto; flex-shrink: 0; }
+    .jelly-sidebar > div { display: flex; gap: 10px; padding: 0 !important; flex-wrap: nowrap; width: max-content; }
+    .jelly-sidebar .switch-container { flex: 0 0 auto; margin: 0; padding: 10px 15px; }
+    
+    .jelly-player { padding: 10px; flex-wrap: wrap; gap: 10px; justify-content: center; }
+    .now-playing-info { text-align: center; }
+    .jelly-player > div:first-child { flex: 100% !important; justify-content: center; margin-bottom: 5px; }
+    .jelly-player > div:nth-child(2) { justify-content: center; }
+    .jelly-player > div:last-child { flex: 100% !important; justify-content: center; margin-top: 5px; }
 }
