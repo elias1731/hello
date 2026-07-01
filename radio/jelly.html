@@ -148,7 +148,7 @@
 		<!-- Bottom Player -->
 		<div class="jelly-player">
 			<div style="display:flex; align-items:center; gap:16px; flex:1; min-width:0;">
-				<img id="player-cover" src="./assets/app.png" style="width:52px; height:52px; border-radius:8px; object-fit:cover;" alt="">
+				<img id="player-cover" src="https://heyfordy.dev/radio/assets/jelly.png" style="width:52px; height:52px; border-radius:8px; object-fit:cover;" alt="">
 				<div class="now-playing-info">
 					<div id="player-title" style="font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Jellyfin bereit</div>
 					<div id="player-artist" style="color:#aaa; font-size:0.9rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Wähle etwas zum Abspielen</div>
@@ -183,7 +183,7 @@
 	<audio id="silent-audio" loop preload="none" src="data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA=="></audio>
 
 	<script>
-		const JF_SERVER = 'https://jelly.heyfordy.dev';
+		const JF_SERVER = localStorage.getItem('radio_jf_server') || 'https://jelly.heyfordy.dev';
 		let jfToken = localStorage.getItem('radio_jf_token') || '';
 		let jfUserId = localStorage.getItem('radio_jf_user') || '';
 		let currentLibraryId = null;
@@ -210,13 +210,13 @@
 		}
 
 		function getImageUrl(item, size = 400) {
-			if (!item.ImageTags || !item.ImageTags.Primary) return './assets/app.png';
+			if (!item.ImageTags || !item.ImageTags.Primary) return 'https://heyfordy.dev/radio/assets/jelly.png';
 			return `${JF_SERVER}/Items/${item.Id}/Images/Primary?maxHeight=${size}&tag=${item.ImageTags.Primary}&quality=90`;
 		}
 
 		async function apiGet(endpoint) {
 			if (!jfToken) {
-				alert('Jellyfin Token fehlt. Bitte in der Haupt-App konfigurieren.');
+				alert('Jellyfin nicht konfiguriert. Bitte in der Haupt-App einloggen.');
 				return null;
 			}
 			try {
@@ -433,7 +433,7 @@
 		// Init
 		window.onload = () => {
 			if (!jfToken || !jfUserId) {
-				document.getElementById('content-header').innerHTML = '<h2 style="color:#ff6666;">Bitte zuerst in der Haupt-App Jellyfin konfigurieren.</h2>';
+				document.getElementById('content-header').innerHTML = '<h2 style="color:#ff6666;">Bitte zuerst in der Haupt-App Jellyfin einloggen.</h2>';
 				return;
 			}
 			loadLibraries();

@@ -30,7 +30,7 @@
 		</div>
 		
 		<div style="display: flex; gap: 12px;">
-			<button class="round-btn" onclick="window.location.href='jelly.html'">
+			<button class="round-btn" onclick="openJellyfin()">
 				<span style="font-weight: 700; font-size: 1.2rem; font-family: 'Rubik', sans-serif;">J</span>
 			</button>
 			<button class="round-btn" onclick="window.location.href='info.html'">
@@ -116,15 +116,23 @@
 				</label>
 			</div>
 
+			<div class="switch-container" style="margin-bottom: 20px;">
+				<div style="flex:1;"><strong>Force Mobile Jellyfin</strong></div>
+				<label class="toggle">
+					<input type="checkbox" id="force-mobile-jelly-toggle" onchange="toggleForceMobileJelly()">
+					<span class="toggle-slider"></span>
+				</label>
+			</div>
+
 			<div id="settings-list" style="margin-bottom: 25px;"></div>
 			
-			<!-- Jellyfin Konfiguration bleibt erhalten -->
 			<div style="background: rgba(255,255,255,0.03); padding: 20px; border-radius: 20px; margin-bottom: 20px;">
 				<h4 style="margin-bottom: 15px;">Jellyfin Konfiguration</h4>
-				<input type="text" id="jf-server" placeholder="Server URL (z.B. https://jelly.heyfordy.dev)">
-				<input type="text" id="jf-user" placeholder="User-ID">
-				<input type="text" id="jf-token" placeholder="API Token">
-				<button onclick="saveJellyfinConfig()" class="modal-btn save">Speichern</button>
+				<input type="text" id="jf-server" placeholder="Server URL" value="https://jelly.heyfordy.dev">
+				<input type="text" id="jf-username" placeholder="Benutzername">
+				<input type="password" id="jf-password" placeholder="Passwort">
+				<button onclick="saveJellyfinConfig()" class="modal-btn save">Speichern & Login</button>
+				<div id="jf-status" style="margin-top:8px; font-size:0.85rem;"></div>
 			</div>
 
 			<div style="background: rgba(255,255,255,0.03); padding: 20px; border-radius: 20px;">
@@ -174,11 +182,14 @@
 		let mediaRotationInterval = null; 
 		let userPaused = false;
 		let disableMeta = localStorage.getItem('radio_disable_meta') === 'true';
+		let forceMobileJelly = localStorage.getItem('force_mobile_jelly') === 'true';
 		
-		// Jellyfin Konfig bleibt erhalten
-		let jfServer = localStorage.getItem('radio_jf_server') || '';
-		let jfUser = localStorage.getItem('radio_jf_user') || '';
+		// Jellyfin Konfig
+		let jfServer = localStorage.getItem('radio_jf_server') || 'https://jelly.heyfordy.dev';
+		let jfUsername = localStorage.getItem('radio_jf_username') || '';
+		let jfPassword = localStorage.getItem('radio_jf_password') || ''; // hashed or plain - for demo plain
 		let jfToken = localStorage.getItem('radio_jf_token') || '';
+		let jfUserId = localStorage.getItem('radio_jf_user') || '';
 
 		const audio = document.getElementById('audio-el');
 		
@@ -198,6 +209,7 @@
 
 		document.getElementById('disable-meta-toggle').checked = disableMeta;
 		document.getElementById('bt-mode-toggle').checked = isBtActive;
+		document.getElementById('force-mobile-jelly-toggle').checked = forceMobileJelly;
 		renderStations();
 		handleStartup();
 
@@ -286,9 +298,26 @@
 			if (currentStationIndex !== -1) renderMediaSessionState();
 		}
 
+		function toggleForceMobileJelly() {
+			forceMobileJelly = !forceMobileJelly;
+			localStorage.setItem('force_mobile_jelly', forceMobileJelly);
+		}
+
 		function updateBtBtnState() {
 			const toggle = document.getElementById('bt-mode-toggle');
 			if (toggle) toggle.checked = isBtActive;
+		}
+
+		function isMobileDevice() {
+			return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
+		}
+
+		function openJellyfin() {
+			if (forceMobileJelly || (isMobileDevice() && !/Windows/.test(navigator.userAgent))) {
+				window.location.href = 'https://heyfordy.dev/radio/jellymusic';
+			} else {
+				window.location.href = 'jelly.html';
+			}
 		}
 
 		function playStation(index) {
@@ -341,14 +370,54 @@
 			}
 		}
 
-		function saveJellyfinConfig() {
-			jfServer = document.getElementById('jf-server').value.replace(/\/$/, "");
-			jfUser = document.getElementById('jf-user').value;
-			jfToken = document.getElementById('jf-token').value;
+		async function saveJellyfinConfig() {
+			const serverInput = document.getElementById('jf-server').value.trim().replace(/\/$/, "");
+			jfServer = serverInput || 'https://jelly.heyfordy.dev';
+			jfUsername = document.getElementById('jf-username').value.trim();
+			jfPassword = document.getElementById('jf-password').value.trim();
+
 			localStorage.setItem('radio_jf_server', jfServer);
-			localStorage.setItem('radio_jf_user', jfUser);
-			localStorage.setItem('radio_jf_token', jfToken);
-			closeManager();
+			localStorage.setItem('radio_jf_username', jfUsername);
+			localStorage.setItem('radio_jf_password', jfPassword);
+
+			const statusEl = document.getElementById('jf-status');
+			statusEl.textContent = 'Login wird versucht...';
+
+			try {
+				const authData = await authenticateJellyfin();
+				if (authData && authData.AccessToken) {
+					jfToken = authData.AccessToken;
+					jfUserId = authData.User.Id;
+					localStorage.setItem('radio_jf_token', jfToken);
+					localStorage.setItem('radio_jf_user', jfUserId);
+					statusEl.style.color = '#4caf50';
+					statusEl.textContent = 'Login erfolgreich!';
+					setTimeout(() => closeManager(), 1500);
+				} else {
+					statusEl.style.color = '#ff6666';
+					statusEl.textContent = 'Login fehlgeschlagen';
+				}
+			} catch(e) {
+				statusEl.style.color = '#ff6666';
+				statusEl.textContent = 'Fehler beim Login';
+			}
+		}
+
+		async function authenticateJellyfin() {
+			const url = `${jfServer}/Users/AuthenticateByName`;
+			const res = await fetch(url, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					'X-Emby-Authorization': `MediaBrowser Client="FordyRadio", Device="FordyRadio", DeviceId="fordy-jelly-browser", Version="1.0"`
+				},
+				body: JSON.stringify({
+					Username: jfUsername,
+					Pw: jfPassword
+				})
+			});
+			if (!res.ok) throw new Error('Auth failed');
+			return await res.json();
 		}
 
 		function togglePlay() {
@@ -651,8 +720,7 @@
 		function openManager() { 
 			renderManagerList(); 
 			document.getElementById('jf-server').value = jfServer;
-			document.getElementById('jf-user').value = jfUser;
-			document.getElementById('jf-token').value = jfToken;
+			document.getElementById('jf-username').value = jfUsername;
 			document.getElementById('manager-modal').style.display = 'flex'; 
 		}
 		
