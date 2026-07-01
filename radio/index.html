@@ -184,10 +184,9 @@
 		let disableMeta = localStorage.getItem('radio_disable_meta') === 'true';
 		let forceMobileJelly = localStorage.getItem('force_mobile_jelly') === 'true';
 		
-		// Jellyfin Konfig
 		let jfServer = localStorage.getItem('radio_jf_server') || 'https://jelly.heyfordy.dev';
 		let jfUsername = localStorage.getItem('radio_jf_username') || '';
-		let jfPassword = localStorage.getItem('radio_jf_password') || ''; // hashed or plain - for demo plain
+		let jfPassword = localStorage.getItem('radio_jf_password') || '';
 		let jfToken = localStorage.getItem('radio_jf_token') || '';
 		let jfUserId = localStorage.getItem('radio_jf_user') || '';
 
@@ -212,16 +211,13 @@
 		document.getElementById('force-mobile-jelly-toggle').checked = forceMobileJelly;
 		renderStations();
 		handleStartup();
+		updateBtBtnState();
 
 		if ('mediaSession' in navigator) {
 			navigator.mediaSession.setActionHandler('play', () => { if (audio.paused) togglePlay(); });
 			navigator.mediaSession.setActionHandler('pause', () => { if (!audio.paused) togglePlay(); });
 			navigator.mediaSession.setActionHandler('previoustrack', () => skipPrev());
 			navigator.mediaSession.setActionHandler('nexttrack', () => skipNext());
-			try {
-				navigator.mediaSession.setActionHandler('seekbackward', null);
-				navigator.mediaSession.setActionHandler('seekforward', null);
-			} catch(e) {}
 		}
 
 		if (typeof Windows !== 'undefined') {
@@ -242,7 +238,6 @@
 		audio.addEventListener('pause', () => { 
 			updatePlayBtn(false); 
 			updateStatus("stopped"); 
-			
 			if (typeof Windows !== 'undefined') {
 				try { Windows.Media.SystemMediaTransportControls.getForCurrentView().playbackStatus = Windows.Media.MediaPlaybackStatus.paused; } catch(e) {}
 			}
@@ -251,7 +246,6 @@
 		
 		audio.addEventListener('error', () => { 
 			if(!audio.src || audio.src === window.location.href || audio.src.startsWith('data:')) return;
-			
 			if (currentStationIndex !== -1 && stations[currentStationIndex].apiId === 'airplay') {
 				handleAirplayData(stations[currentStationIndex], { isPlaying: false });
 				return;
@@ -298,14 +292,14 @@
 			if (currentStationIndex !== -1) renderMediaSessionState();
 		}
 
-		function toggleForceMobileJelly() {
-			forceMobileJelly = !forceMobileJelly;
-			localStorage.setItem('force_mobile_jelly', forceMobileJelly);
-		}
-
 		function updateBtBtnState() {
 			const toggle = document.getElementById('bt-mode-toggle');
 			if (toggle) toggle.checked = isBtActive;
+		}
+
+		function toggleForceMobileJelly() {
+			forceMobileJelly = !forceMobileJelly;
+			localStorage.setItem('force_mobile_jelly', forceMobileJelly);
 		}
 
 		function isMobileDevice() {
@@ -411,10 +405,7 @@
 					'Content-Type': 'application/json',
 					'X-Emby-Authorization': `MediaBrowser Client="FordyRadio", Device="FordyRadio", DeviceId="fordy-jelly-browser", Version="1.0"`
 				},
-				body: JSON.stringify({
-					Username: jfUsername,
-					Pw: jfPassword
-				})
+				body: JSON.stringify({ Username: jfUsername, Pw: jfPassword })
 			});
 			if (!res.ok) throw new Error('Auth failed');
 			return await res.json();
@@ -434,14 +425,12 @@
 				audio.play().then(() => {
 					if (s.apiId !== 'airplay') startMetaFetcher(s);
 				}).catch(()=>{ updatePlayBtn(false); updateStatus("ready"); });
-				if('mediaSession' in navigator) navigator.mediaSession.playbackState = 'playing';
 			} else {
 				userPaused = true;
 				audio.pause();
 				updateStatus("stopped");
 				updatePlayBtn(false);
 				if (s.apiId !== 'airplay') resetToStationView();
-				if('mediaSession' in navigator) navigator.mediaSession.playbackState = 'paused';
 				renderMediaSessionState();
 			}
 		}
@@ -471,15 +460,6 @@
 		function toggleMute() {
 			audio.muted = !audio.muted;
 			document.getElementById('mute-icon').className = audio.muted ? 'fa-solid fa-volume-xmark' : 'fa-solid fa-volume-high';
-			const dummyStream = document.getElementById('dummy-audio');
-			if (audio.muted) {
-				dummyStream.src = dummyAudioSrc;
-				dummyStream.loop = true;
-				dummyStream.play().catch(()=>{});
-			} else {
-				dummyStream.pause();
-				dummyStream.src = "";
-			}
 			renderMediaSessionState();
 		}
 
