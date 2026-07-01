@@ -100,7 +100,7 @@
 		</div>
 	</div>
 
-	<audio id="jelly-audio" preload="metadata"></audio>
+	<audio id="jelly-audio" preload="metadata" msAudioCategory="BackgroundCapableMedia"></audio>
 	<audio id="silent-audio" loop preload="none" src="data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA=="></audio>
 
 	<script>
@@ -114,6 +114,11 @@
 		let audio = document.getElementById('jelly-audio');
 		let isPlaying = false;
 		let isMuted = false;
+
+		// WICHTIG: Setzt die Audio-Kategorie zusätzlich via JS für zuverlässigen UWP-Support
+		if ('msAudioCategory' in audio) {
+			audio.msAudioCategory = 'BackgroundCapableMedia';
+		}
 
 		function getImageUrl(item, size = 400) {
 			if (!item.ImageTags || !item.ImageTags.Primary) return 'https://heyfordy.dev/radio/assets/jelly.png';
@@ -322,18 +327,41 @@
 			if (e.key === 'ArrowLeft') prevTrack();
 		});
 
-		// Media Session + Xbox
+		// Media Session + Xbox UWP SMTC
 		function updateMediaSession() {
-			if (!('mediaSession' in navigator)) return;
 			const track = queue[currentTrackIndex];
 			if (!track) return;
-			navigator.mediaSession.metadata = new MediaMetadata({
-				title: track.Name,
-				artist: track.Artists ? track.Artists.join(', ') : 'Unknown',
-				album: track.Album || "Jellyfin",
-				artwork: [{ src: getImageUrl(track, 512), sizes: '512x512' }]
-			});
-			navigator.mediaSession.playbackState = isPlaying ? 'playing' : 'paused';
+
+			if ('mediaSession' in navigator) {
+				navigator.mediaSession.metadata = new MediaMetadata({
+					title: track.Name,
+					artist: track.Artists ? track.Artists.join(', ') : 'Unknown',
+					album: track.Album || "Jellyfin",
+					artwork: [{ src: getImageUrl(track, 512), sizes: '512x512' }]
+				});
+				navigator.mediaSession.playbackState = isPlaying ? 'playing' : 'paused';
+			}
+
+			// Xbox / Windows SMTC Updater für Cover & Metadaten
+			if (typeof Windows !== 'undefined') {
+				try {
+					const smtc = Windows.Media.SystemMediaTransportControls.getForCurrentView();
+					smtc.playbackStatus = isPlaying ? Windows.Media.MediaPlaybackStatus.playing : Windows.Media.MediaPlaybackStatus.paused;
+					
+					const updater = smtc.displayUpdater;
+					updater.type = Windows.Media.MediaPlaybackType.music;
+					updater.musicProperties.title = track.Name || "Unbekannt";
+					updater.musicProperties.artist = track.Artists ? track.Artists.join(', ') : "";
+					updater.musicProperties.albumTitle = track.Album || "Jellyfin";
+					
+					const imgUrl = new URL(getImageUrl(track, 512), document.baseURI).href;
+					updater.thumbnail = Windows.Storage.Streams.RandomAccessStreamReference.createFromUri(new Windows.Foundation.Uri(imgUrl));
+					
+					updater.update();
+				} catch(e) {
+					console.error("SMTC Update Error:", e);
+				}
+			}
 		}
 
 		window.onload = () => {
@@ -359,6 +387,13 @@
 				try {
 					const smtc = Windows.Media.SystemMediaTransportControls.getForCurrentView();
 					smtc.isEnabled = true;
+					
+					// Buttons auf der Xbox Guide sichtbar machen
+					smtc.isPlayEnabled = true;
+					smtc.isPauseEnabled = true;
+					smtc.isNextEnabled = true;
+					smtc.isPreviousEnabled = true;
+					
 					smtc.addEventListener("buttonpressed", (e) => {
 						const btn = Windows.Media.SystemMediaTransportControlsButton;
 						if (e.button === btn.play || e.button === btn.pause) togglePlay();

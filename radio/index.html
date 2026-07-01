@@ -56,7 +56,7 @@
 				<div id="player-status">◽️ BEREIT</div>
 				
 				<audio id="audio-el" preload="none" msAudioCategory="BackgroundCapableMedia"></audio>
-				<audio id="dummy-audio" preload="none"></audio>
+				<audio id="dummy-audio" preload="none" msAudioCategory="BackgroundCapableMedia"></audio>
 				
 				<input type="range" id="volume-slider" min="0" max="1" step="0.01" value="1" style="opacity: 0; position: absolute; pointer-events: none;" oninput="document.getElementById('audio-el').volume = this.value">
 
@@ -191,6 +191,7 @@
 		let jfUserId = localStorage.getItem('radio_jf_user') || '';
 
 		const audio = document.getElementById('audio-el');
+		const dummyAudio = document.getElementById('dummy-audio');
 		
 		let isBtActive = localStorage.getItem('radio_bt_mode') === 'true';
 		let activeTrackTitle = "";
@@ -200,6 +201,9 @@
 
 		if ('msAudioCategory' in audio) {
 			audio.msAudioCategory = 'BackgroundCapableMedia';
+		}
+		if ('msAudioCategory' in dummyAudio) {
+			dummyAudio.msAudioCategory = 'BackgroundCapableMedia';
 		}
 
 		const dummyAudioSrc = "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA";
@@ -224,6 +228,13 @@
 			try {
 				const smtc = Windows.Media.SystemMediaTransportControls.getForCurrentView();
 				smtc.isEnabled = true;
+				
+				// UWP/Xbox Buttons aktivieren
+				smtc.isPlayEnabled = true;
+				smtc.isPauseEnabled = true;
+				smtc.isNextEnabled = true;
+				smtc.isPreviousEnabled = true;
+				
 				smtc.addEventListener("buttonpressed", (e) => {
 					const btn = Windows.Media.SystemMediaTransportControlsButton;
 					if (e.button === btn.play || e.button === btn.pause) togglePlay();
@@ -676,15 +687,27 @@
 				navigator.mediaSession.metadata = new MediaMetadata({ title: t, artist: a, album: al, duration: Infinity, artwork: [{ src: i || './assets/app.png', sizes: '512x512', type: 'image/png' }] });
 				navigator.mediaSession.playbackState = audio.paused ? "paused" : "playing";
 			}
+			
+			// Native Xbox/Windows SMTC Update
 			if (typeof Windows !== 'undefined') {
 				(async () => {
 					try {
 						const smtc = Windows.Media.SystemMediaTransportControls.getForCurrentView();
 						const updater = smtc.displayUpdater;
 						updater.type = Windows.Media.MediaPlaybackType.music;
-						updater.musicProperties.title = t; updater.musicProperties.artist = a; updater.musicProperties.albumTitle = al;
-						if (i) updater.thumbnail = Windows.Storage.Streams.RandomAccessStreamReference.createFromUri(new Windows.Foundation.Uri(new URL(i, document.baseURI).href));
+						updater.musicProperties.title = t || "Unbekannt"; 
+						updater.musicProperties.artist = a || ""; 
+						updater.musicProperties.albumTitle = al || "";
+						
+						// Verhindert Abstürze bei Base64 Image Strings auf der Xbox
+						let safeImageUrl = new URL('./assets/app.png', document.baseURI).href;
+						if (i && !i.startsWith('data:')) {
+							safeImageUrl = new URL(i, document.baseURI).href;
+						}
+						
+						updater.thumbnail = Windows.Storage.Streams.RandomAccessStreamReference.createFromUri(new Windows.Foundation.Uri(safeImageUrl));
 						updater.update();
+						
 						smtc.playbackStatus = audio.paused ? Windows.Media.MediaPlaybackStatus.paused : Windows.Media.MediaPlaybackStatus.playing;
 					} catch(e) {}
 				})();
