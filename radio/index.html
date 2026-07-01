@@ -30,7 +30,7 @@
 		</div>
 		
 		<div style="display: flex; gap: 12px;">
-			<button class="round-btn" onclick="openJellyfin()">
+			<button id="jelly-btn" class="round-btn" onclick="window.location.href='jelly.html'" style="display: none;">
 				<span style="font-weight: 700; font-size: 1.2rem; font-family: 'Rubik', sans-serif;">J</span>
 			</button>
 			<button class="round-btn" onclick="window.location.href='info.html'">
@@ -57,11 +57,14 @@
 				
 				<audio id="audio-el" preload="none" msAudioCategory="BackgroundCapableMedia"></audio>
 				<audio id="dummy-audio" preload="none" msAudioCategory="BackgroundCapableMedia"></audio>
-				
-				<input type="range" id="volume-slider" min="0" max="1" step="0.01" value="1" style="opacity: 0; position: absolute; pointer-events: none;" oninput="document.getElementById('audio-el').volume = this.value">
 
 				<div class="controls">
-					<button onclick="toggleMute()" class="round-btn secondary-ctrl"><i id="mute-icon" class="fa-solid fa-volume-high"></i></button>
+					<div class="volume-wrapper" id="radio-vol-wrap">
+						<button onclick="toggleMute()" class="round-btn secondary-ctrl"><i id="mute-icon" class="fa-solid fa-volume-high"></i></button>
+						<div class="volume-popup">
+							<input type="range" class="vol-slider-input" min="0" max="1" step="0.01" value="1" oninput="document.getElementById('audio-el').volume = this.value; document.getElementById('dummy-audio').volume = this.value;">
+						</div>
+					</div>
 					<button onclick="togglePlay()" class="play-btn">
 						<i id="play-icon" class="fa-solid fa-play"></i>
 					</button>
@@ -112,14 +115,6 @@
 				<div style="flex:1;"><strong>BT-Metadaten</strong></div>
 				<label class="toggle">
 					<input type="checkbox" id="bt-mode-toggle" onchange="toggleBluetooth()">
-					<span class="toggle-slider"></span>
-				</label>
-			</div>
-
-			<div class="switch-container" style="margin-bottom: 20px;">
-				<div style="flex:1;"><strong>Force Mobile Jellyfin</strong></div>
-				<label class="toggle">
-					<input type="checkbox" id="force-mobile-jelly-toggle" onchange="toggleForceMobileJelly()">
 					<span class="toggle-slider"></span>
 				</label>
 			</div>
@@ -182,7 +177,6 @@
 		let mediaRotationInterval = null; 
 		let userPaused = false;
 		let disableMeta = localStorage.getItem('radio_disable_meta') === 'true';
-		let forceMobileJelly = localStorage.getItem('force_mobile_jelly') === 'true';
 		
 		let jfServer = localStorage.getItem('radio_jf_server') || 'https://jelly.heyfordy.dev';
 		let jfUsername = localStorage.getItem('radio_jf_username') || '';
@@ -212,10 +206,23 @@
 
 		document.getElementById('disable-meta-toggle').checked = disableMeta;
 		document.getElementById('bt-mode-toggle').checked = isBtActive;
-		document.getElementById('force-mobile-jelly-toggle').checked = forceMobileJelly;
+		
+		if(jfToken) {
+			document.getElementById('jelly-btn').style.display = 'block';
+		}
+		
 		renderStations();
 		handleStartup();
 		updateBtBtnState();
+		setupVolumeHold('radio-vol-wrap');
+
+		function setupVolumeHold(wrapId) {
+			const wrap = document.getElementById(wrapId);
+			if(!wrap) return;
+			let timer;
+			wrap.addEventListener('touchstart', () => { timer = setTimeout(() => wrap.classList.add('active'), 400); }, {passive: true});
+			wrap.addEventListener('touchend', () => { clearTimeout(timer); setTimeout(() => wrap.classList.remove('active'), 3000); }, {passive: true});
+		}
 
 		if ('mediaSession' in navigator) {
 			navigator.mediaSession.setActionHandler('play', () => { if (audio.paused) togglePlay(); });
@@ -229,7 +236,6 @@
 				const smtc = Windows.Media.SystemMediaTransportControls.getForCurrentView();
 				smtc.isEnabled = true;
 				
-				// UWP/Xbox Buttons aktivieren
 				smtc.isPlayEnabled = true;
 				smtc.isPauseEnabled = true;
 				smtc.isNextEnabled = true;
@@ -282,6 +288,13 @@
 			}
 			updateBtBtnState();
 
+			if (playTarget || (action && action.includes('play'))) {
+				localStorage.setItem('last_played_context', 'radio');
+			} else if (localStorage.getItem('last_played_context') === 'jellyfin' && window.location.search.indexOf('noredirect') === -1) {
+				window.location.href = 'jelly.html?autoplay=true';
+				return;
+			}
+
 			let targetIdx = -1;
 			if (playTarget) {
 				targetIdx = stations.findIndex(s => s.apiId === playTarget);
@@ -308,27 +321,11 @@
 			if (toggle) toggle.checked = isBtActive;
 		}
 
-		function toggleForceMobileJelly() {
-			forceMobileJelly = !forceMobileJelly;
-			localStorage.setItem('force_mobile_jelly', forceMobileJelly);
-		}
-
-		function isMobileDevice() {
-			return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
-		}
-
-		function openJellyfin() {
-			if (forceMobileJelly || (isMobileDevice() && !/Windows/.test(navigator.userAgent))) {
-				window.location.href = 'https://heyfordy.dev/radio/jellymusic';
-			} else {
-				window.location.href = 'jelly.html';
-			}
-		}
-
 		function playStation(index) {
 			currentStationIndex = index;
 			userPaused = false;
 			localStorage.setItem('radio_last_index', index);
+			localStorage.setItem('last_played_context', 'radio');
 			const s = stations[index];
 			
 			toggleFooter(false);
@@ -397,6 +394,7 @@
 					localStorage.setItem('radio_jf_user', jfUserId);
 					statusEl.style.color = '#4caf50';
 					statusEl.textContent = 'Login erfolgreich!';
+					document.getElementById('jelly-btn').style.display = 'block';
 					setTimeout(() => closeManager(), 1500);
 				} else {
 					statusEl.style.color = '#ff6666';
@@ -688,7 +686,6 @@
 				navigator.mediaSession.playbackState = audio.paused ? "paused" : "playing";
 			}
 			
-			// Native Xbox/Windows SMTC Update
 			if (typeof Windows !== 'undefined') {
 				(async () => {
 					try {
@@ -699,7 +696,6 @@
 						updater.musicProperties.artist = a || ""; 
 						updater.musicProperties.albumTitle = al || "";
 						
-						// Verhindert Abstürze bei Base64 Image Strings auf der Xbox
 						let safeImageUrl = new URL('./assets/app.png', document.baseURI).href;
 						if (i && !i.startsWith('data:')) {
 							safeImageUrl = new URL(i, document.baseURI).href;
