@@ -86,12 +86,7 @@
 			</div>
 
 			<div style="flex:1; display:flex; justify-content:flex-end; gap:12px; align-items:center;">
-				<div class="volume-wrapper" id="jelly-vol-wrap">
-					<button class="round-btn secondary-ctrl" onclick="toggleMutePlayer()"><i id="mute-icon-player" class="fa-solid fa-volume-high"></i></button>
-					<div class="volume-popup">
-						<input type="range" class="vol-slider-input" min="0" max="1" step="0.01" value="1" oninput="document.getElementById('jelly-audio').volume = this.value">
-					</div>
-				</div>
+				<button class="round-btn secondary-ctrl" onclick="toggleMutePlayer()"><i id="mute-icon-player" class="fa-solid fa-volume-high"></i></button>
 				<input type="range" id="progress-bar" min="0" max="100" value="0" style="width:100%; max-width:180px;" oninput="seekTo(this.value)">
 			</div>
 		</div>
@@ -376,21 +371,12 @@
 			}
 		}
 
-		function setupVolumeHold(wrapId) {
-			const wrap = document.getElementById(wrapId);
-			if(!wrap) return;
-			let timer;
-			wrap.addEventListener('touchstart', () => { timer = setTimeout(() => wrap.classList.add('active'), 400); }, {passive: true});
-			wrap.addEventListener('touchend', () => { clearTimeout(timer); setTimeout(() => wrap.classList.remove('active'), 3000); }, {passive: true});
-		}
-
 		window.onload = () => {
 			if (!jfToken || !jfUserId) {
 				document.getElementById('content-header').innerHTML = '<h2 style="color:#ff6666;">Bitte zuerst in der Haupt-App Jellyfin einloggen.</h2>';
 				return;
 			}
 			loadLibraries();
-			setupVolumeHold('jelly-vol-wrap');
 			
 			const savedQueue = localStorage.getItem('jf_queue');
 			if (savedQueue) {

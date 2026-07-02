@@ -59,12 +59,7 @@
 				<audio id="dummy-audio" preload="none" msAudioCategory="Media"></audio>
 
 				<div class="controls">
-					<div class="volume-wrapper" id="radio-vol-wrap">
-						<button onclick="toggleMute()" class="round-btn secondary-ctrl"><i id="mute-icon" class="fa-solid fa-volume-high"></i></button>
-						<div class="volume-popup">
-							<input type="range" class="vol-slider-input" min="0" max="1" step="0.01" value="1" oninput="document.getElementById('audio-el').volume = this.value; document.getElementById('dummy-audio').volume = this.value;">
-						</div>
-					</div>
+					<button onclick="toggleMute()" class="round-btn secondary-ctrl"><i id="mute-icon" class="fa-solid fa-volume-high"></i></button>
 					<button onclick="togglePlay()" class="play-btn">
 						<i id="play-icon" class="fa-solid fa-play"></i>
 					</button>
@@ -214,15 +209,6 @@
 		renderStations();
 		handleStartup();
 		updateBtBtnState();
-		setupVolumeHold('radio-vol-wrap');
-
-		function setupVolumeHold(wrapId) {
-			const wrap = document.getElementById(wrapId);
-			if(!wrap) return;
-			let timer;
-			wrap.addEventListener('touchstart', () => { timer = setTimeout(() => wrap.classList.add('active'), 400); }, {passive: true});
-			wrap.addEventListener('touchend', () => { clearTimeout(timer); setTimeout(() => wrap.classList.remove('active'), 3000); }, {passive: true});
-		}
 
 		if ('mediaSession' in navigator) {
 			navigator.mediaSession.setActionHandler('play', () => { if (audio.paused) togglePlay(); });
