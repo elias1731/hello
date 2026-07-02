@@ -55,8 +55,8 @@
 				
 				<div id="player-status">◽️ BEREIT</div>
 				
-				<audio id="audio-el" preload="none" msAudioCategory="BackgroundCapableMedia"></audio>
-				<audio id="dummy-audio" preload="none" msAudioCategory="BackgroundCapableMedia"></audio>
+				<audio id="audio-el" preload="none" msAudioCategory="Media"></audio>
+				<audio id="dummy-audio" preload="none" msAudioCategory="Media"></audio>
 
 				<div class="controls">
 					<div class="volume-wrapper" id="radio-vol-wrap">
@@ -194,10 +194,10 @@
 		let isTrackInfoPhase = true;
 
 		if ('msAudioCategory' in audio) {
-			audio.msAudioCategory = 'BackgroundCapableMedia';
+			audio.msAudioCategory = 'Media';
 		}
 		if ('msAudioCategory' in dummyAudio) {
-			dummyAudio.msAudioCategory = 'BackgroundCapableMedia';
+			dummyAudio.msAudioCategory = 'Media';
 		}
 
 		const dummyAudioSrc = "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA";

@@ -105,7 +105,7 @@
 		</div>
 	</div>
 
-	<audio id="jelly-audio" preload="metadata" msAudioCategory="BackgroundCapableMedia"></audio>
+	<audio id="jelly-audio" preload="metadata" msAudioCategory="Media"></audio>
 	<audio id="silent-audio" loop preload="none" src="data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA=="></audio>
 
 	<script>
@@ -121,7 +121,7 @@
 		let isMuted = false;
 
 		if ('msAudioCategory' in audio) {
-			audio.msAudioCategory = 'BackgroundCapableMedia';
+			audio.msAudioCategory = 'Media';
 		}
 
 		function getImageUrl(item, size = 400) {
