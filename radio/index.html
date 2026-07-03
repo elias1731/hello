@@ -687,11 +687,24 @@
 							safeImageUrl = new URL(i, document.baseURI).href;
 						}
 						
-						updater.thumbnail = Windows.Storage.Streams.RandomAccessStreamReference.createFromUri(new Windows.Foundation.Uri(safeImageUrl));
-						updater.update();
+						const uri = new Windows.Foundation.Uri(safeImageUrl);
+
+						if (safeImageUrl.startsWith('http')) {
+							const httpClient = new Windows.Web.Http.HttpClient();
+							const buffer = await httpClient.getBufferAsync(uri);
+							const stream = new Windows.Storage.Streams.InMemoryRandomAccessStream();
+							await stream.writeAsync(buffer);
+							stream.seek(0); 
+							updater.thumbnail = Windows.Storage.Streams.RandomAccessStreamReference.createFromStream(stream);
+						} else {
+							updater.thumbnail = Windows.Storage.Streams.RandomAccessStreamReference.createFromUri(uri);
+						}
 						
+						updater.update();
 						smtc.playbackStatus = audio.paused ? Windows.Media.MediaPlaybackStatus.paused : Windows.Media.MediaPlaybackStatus.playing;
-					} catch(e) {}
+					} catch(e) {
+						console.error("UWP SMTC Error:", e);
+					}
 				})();
 			}
 		}
