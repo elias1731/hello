@@ -21,7 +21,7 @@ jobs:
       - name: Define variables
         id: vars
         run: |
-          echo "url=http://update.rwfc.net:8000/RetroRewind/RetroRewindVersion.txt" >> $GITHUB_ENV
+          echo "url=https://update.rwfc.net/RetroRewind/RetroRewindVersion.txt" >> $GITHUB_ENV
           echo "target_dir=rwfc" >> $GITHUB_ENV
           # Use relative path within the workspace
           echo "target_file=${{ github.workspace }}/${{ env.target_dir }}/version.json" >> $GITHUB_ENV
