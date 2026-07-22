@@ -61,6 +61,7 @@
     </div>
 
     <script>
+        // Define fuel types and mappings
         const fuelMapping = {
             "95oct": { label: "Super 95 (E10)", type: "fuel", unit: "€/L", icon: "⛽" },
             "98oct": { label: "Super 98 (E5)", type: "fuel", unit: "€/L", icon: "⚡" },
@@ -74,9 +75,11 @@
             "butane_bouteille": { label: "Butan (Flasche)", type: "heating", unit: "€/Fl.", icon: "🛢️" }
         };
 
+        // Initialize state variables
         let currentData = null;
         let currentTab = 'fuel';
 
+        // Fetch price data from API
         async function fetchPrices() {
             const statusDot = document.querySelector('.status-dot');
             const statusText = document.getElementById('statusText');
@@ -85,11 +88,12 @@
             statusText.innerText = 'lädt...';
 
             try {
-                const response = await fetch('https://api.heyfordy.dev/spritpreise');
+                const response = await fetch('https://api.heyfordy.dev/spritpreise', { cache: 'no-store' });
                 if (!response.ok) throw new Error('Network response error');
                 
                 const data = await response.json();
-                renderData(data, !navigator.onLine);
+                const isOffline = data._isCached || !navigator.onLine;
+                renderData(data, isOffline);
             } catch (error) {
                 statusDot.className = 'status-dot offline';
                 statusText.innerText = '⚠️ Fehler!';
@@ -98,6 +102,7 @@
             }
         }
 
+        // Render retrieved data to UI
         function renderData(data, isOffline) {
             currentData = data;
             
@@ -122,6 +127,7 @@
             filterAndRenderCards();
         }
 
+        // Filter and display cards based on selected tab
         function filterAndRenderCards() {
             if (!currentData) return;
             
@@ -153,6 +159,7 @@
             });
         }
 
+        // Switch between fuel and heating tabs
         function switchTab(tabName) {
             currentTab = tabName;
             
@@ -172,12 +179,14 @@
             filterAndRenderCards();
         }
 
+        // Register service worker on load
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('sw.js').catch(() => {});
             });
         }
 
+        // Initialize fetch on DOM ready
         window.addEventListener('DOMContentLoaded', fetchPrices);
     </script>
 </body>

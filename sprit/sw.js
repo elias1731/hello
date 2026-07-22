@@ -1,3 +1,4 @@
+// Define cache name and static assets
 const CACHE_NAME = 'spritpreise-lu-v1';
 const ASSETS = [
   './index.html',
@@ -6,6 +7,7 @@ const ASSETS = [
   './assets/favicon.png'
 ];
 
+// Install service worker and cache assets
 self.addEventListener('install', (e) => {
   e.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
@@ -14,6 +16,7 @@ self.addEventListener('install', (e) => {
   );
 });
 
+// Activate service worker and clear old caches
 self.addEventListener('activate', (e) => {
   e.waitUntil(
     caches.keys().then((keys) => {
@@ -28,6 +31,7 @@ self.addEventListener('activate', (e) => {
   );
 });
 
+// Intercept fetch requests and apply caching strategies
 self.addEventListener('fetch', (e) => {
   if (e.request.url.includes('api.heyfordy.dev')) {
     e.respondWith(
@@ -42,7 +46,15 @@ self.addEventListener('fetch', (e) => {
         .catch(() => {
           return caches.match(e.request).then((cachedResponse) => {
             if (cachedResponse) {
-              return cachedResponse;
+              return cachedResponse.clone().json().then((data) => {
+                data._isCached = true;
+                return new Response(JSON.stringify(data), {
+                  status: 200,
+                  headers: { 'Content-Type': 'application/json' }
+                });
+              }).catch(() => {
+                return cachedResponse;
+              });
             }
             throw new Error('Offline and no cache available');
           });
