@@ -149,21 +149,25 @@
 			{ isDefault: true, name: "Sunshine Eurodance", displayName: "SUNSHINE E.DANCE", apiId: "sunshine-eurodance", url: "http://stream.sunshine-live.de/eurodance/mp3-192/tunein/", logo: "./assets/sunshine-eurodance.png" },
 			{ isDefault: true, name: "RADiO BOB! • National", displayName: "RADiO BOB!", apiId: "radio-bob", url: "https://streams.radiobob.de/bob-national/mp3-192/tunein/", logo: "./assets/radio-bob.png" },
 			{ isDefault: true, name: "Rockland Radio • Trier", displayName: "Rockland Trier", apiId: "rockland", url: "https://streams.rockland.de/trier/mp3-192/direkt/", logo: "./assets/rockland.png" },
+			{ isDefault: true, name: "Antenne Trier", displayName: "Antenne Trier", apiId: "antenne-trier", url: "https://stream.radiogroup.de/antenne-trier/mp3-192/", logo: "https://heyfordy.dev/radio/assets/antenne-trier.png" },
 			{ isDefault: true, name: "ROCK ANTENNE", displayName: "ROCK ANTENNE", apiId: "rockantenne", url: "https://s3-webradio.rockantenne.de/rockantenne/stream/aacp?aw_0_1st.playerid=tunein.com", logo: "./assets/rockantenne.png" },
 			{ isDefault: true, name: "Eldoradio Lëtzebuerg", displayName: "E L D O", apiId: "eldoradio", url: "https://sc.bce.lu/eldo", logo: "./assets/eldo.lu.png" },
 			{ isDefault: true, name: "FFH SOUNDTRACK", displayName: "FFH SOUNDTRACK", apiId: "ffh-soundtrack", url: "https://mp3.ffh.de/ffhchannels/hqsoundtrack.aac", logo: "./assets/ffh-soundtrack.png" },
 			{ isDefault: true, name: "RTL Lëtzebuerg", displayName: "RTL.lu", apiId: "rtl-lux", url: "https://sc.bce.lu/rtl", logo: "./assets/rtl.lu.png" },
 			{ isDefault: true, name: "RTL TODAY RADIO", displayName: "RTL TODAY", apiId: "rtl-today", url: "https://sc.bce.lu/rtltoday", logo: "./assets/rtl-today.lu.png" },
 			{ isDefault: true, name: "RADIO ENERGY", displayName: "RADIO NRJ", apiId: "nrj", url: "https://frontend.streamonkey.net/energy-digital", logo: "./assets/nrj.png" },
-			{ isDefault: true, name: "AirPlay (Lokal)", displayName: "AirPlay", apiId: "airplay", url: "https://lap.heyfordy.dev/stream", logo: "https://raw.githubusercontent.com/Bitte-ein-Git/ha_repo/refs/heads/development/airplay_web/icon.png", metaUrl: "https://lap.heyfordy.dev/meta", coverUrl: "https://lap.heyfordy.dev/cover" }
+			{ isDefault: true, name: "AirPlay (Lokal)", displayName: "AirPlay", apiId: "airplay", url: "https://lap.heyfordy.dev/stream", logo: "https://raw.githubusercontent.com/Bitte-ein-Git/ha_repo/refs/heads/development/airplay_web/icon.png", metaUrl: "https://lap.heyfordy.dev/meta", coverUrl: "https://lap.heyfordy.dev/cover" },
+			{ isDefault: true, name: "Spotify Connect", displayName: "Spotify Connect", apiId: "spotify", url: "https://vac.heyfordy.dev/stream", logo: "https://repo.heyfordy.dev/assets/spot.png" }
 		];
 
+		// Load or initialize station list
 		let stations = JSON.parse(localStorage.getItem('radio_stations'));
-		if (!stations || !stations.find(s => s.apiId === 'rtl-today') || !stations.find(s => s.apiId === 'airplay')) {
+		if (!stations || !stations.find(s => s.apiId === 'rtl-today') || !stations.find(s => s.apiId === 'airplay') || !stations.find(s => s.apiId === 'spotify') || !stations.find(s => s.apiId === 'antenne-trier')) {
 			stations = defaultStations;
 			localStorage.setItem('radio_stations', JSON.stringify(stations));
 		}
 		
+		// Global playback and application state
 		let lastPlayedIndex = parseInt(localStorage.getItem('radio_last_index')) || 0;
 		let currentStationIndex = -1;
 		let metaInterval = null;
@@ -173,21 +177,25 @@
 		let userPaused = false;
 		let disableMeta = localStorage.getItem('radio_disable_meta') === 'true';
 		
+		// Jellyfin settings
 		let jfServer = localStorage.getItem('radio_jf_server') || 'https://jelly.heyfordy.dev';
 		let jfUsername = localStorage.getItem('radio_jf_username') || '';
 		let jfPassword = localStorage.getItem('radio_jf_password') || '';
 		let jfToken = localStorage.getItem('radio_jf_token') || '';
 		let jfUserId = localStorage.getItem('radio_jf_user') || '';
 
+		// Audio element references
 		const audio = document.getElementById('audio-el');
 		const dummyAudio = document.getElementById('dummy-audio');
 		
+		// Bluetooth mode and track info state
 		let isBtActive = localStorage.getItem('radio_bt_mode') === 'true';
 		let activeTrackTitle = "";
 		let activeTrackArtist = "";
 		let activeCoverUrl = "";
 		let isTrackInfoPhase = true;
 
+		// Set media category for Windows platform
 		if ('msAudioCategory' in audio) {
 			audio.msAudioCategory = 'Media';
 		}
@@ -195,10 +203,12 @@
 			dummyAudio.msAudioCategory = 'Media';
 		}
 
+		// Dummy audio stream base64 data
 		const dummyAudioSrc = "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA";
 		let airplayLastTitle = "";
 		let currentCoverUrl = ""; 
 
+		// Initialize interface toggles
 		document.getElementById('disable-meta-toggle').checked = disableMeta;
 		document.getElementById('bt-mode-toggle').checked = isBtActive;
 		
@@ -210,6 +220,7 @@
 		handleStartup();
 		updateBtBtnState();
 
+		// Media session handlers
 		if ('mediaSession' in navigator) {
 			navigator.mediaSession.setActionHandler('play', () => { if (audio.paused) togglePlay(); });
 			navigator.mediaSession.setActionHandler('pause', () => { if (!audio.paused) togglePlay(); });
@@ -217,6 +228,7 @@
 			navigator.mediaSession.setActionHandler('nexttrack', () => skipNext());
 		}
 
+		// Windows transport control listeners
 		if (typeof Windows !== 'undefined') {
 			try {
 				const smtc = Windows.Media.SystemMediaTransportControls.getForCurrentView();
@@ -236,6 +248,7 @@
 			} catch(e) {}
 		}
 
+		// Audio event listeners
 		audio.addEventListener('playing', () => { updateStatus("playing"); updatePlayBtn(true); });
 		
 		audio.addEventListener('pause', () => { 
@@ -256,6 +269,7 @@
 			updateStatus("error"); updatePlayBtn(false); 
 		});
 
+		// Startup logic execution
 		function handleStartup() {
 			const urlParams = new URLSearchParams(window.location.search);
 			let playTarget = urlParams.get('play');
@@ -295,6 +309,7 @@
 			}
 		}
 
+		// Toggle bluetooth mode
 		function toggleBluetooth() {
 			isBtActive = !isBtActive;
 			localStorage.setItem('radio_bt_mode', isBtActive);
@@ -302,11 +317,13 @@
 			if (currentStationIndex !== -1) renderMediaSessionState();
 		}
 
+		// Update bluetooth button UI state
 		function updateBtBtnState() {
 			const toggle = document.getElementById('bt-mode-toggle');
 			if (toggle) toggle.checked = isBtActive;
 		}
 
+		// Play selected station
 		function playStation(index) {
 			currentStationIndex = index;
 			userPaused = false;
@@ -358,6 +375,7 @@
 			}
 		}
 
+		// Save Jellyfin configuration
 		async function saveJellyfinConfig() {
 			const serverInput = document.getElementById('jf-server').value.trim().replace(/\/$/, "");
 			jfServer = serverInput || 'https://jelly.heyfordy.dev';
@@ -392,6 +410,7 @@
 			}
 		}
 
+		// Authenticate with Jellyfin server
 		async function authenticateJellyfin() {
 			const url = `${jfServer}/Users/AuthenticateByName`;
 			const res = await fetch(url, {
@@ -406,6 +425,7 @@
 			return await res.json();
 		}
 
+		// Toggle audio playback state
 		function togglePlay() {
 			if (currentStationIndex === -1) return;
 			const s = stations[currentStationIndex];
@@ -430,6 +450,7 @@
 			}
 		}
 
+		// Skip to next station
 		function skipNext() {
 			if (currentStationIndex === -1) return;
 			let next = currentStationIndex;
@@ -441,6 +462,7 @@
 			playStation(next);
 		}
 
+		// Skip to previous station
 		function skipPrev() {
 			if (currentStationIndex === -1) return;
 			let prev = currentStationIndex;
@@ -452,23 +474,26 @@
 			playStation(prev);
 		}
 
+		// Toggle audio mute state
 		function toggleMute() {
 			audio.muted = !audio.muted;
 			document.getElementById('mute-icon').className = audio.muted ? 'fa-solid fa-volume-xmark' : 'fa-solid fa-volume-high';
 			renderMediaSessionState();
 		}
 
+		// Reset UI to current station default display
 		function resetToStationView() {
 			if (currentStationIndex === -1) return;
 			const s = stations[currentStationIndex];
 			document.getElementById('player-title').innerText = s.name;
-			document.getElementById('player-artist').innerText = "𝓕𝓸𝓻𝓭𝔂•𝗥𝗮𝗱𝗶𝓸";
+			document.getElementById('player-artist').innerText = "𝓕𝓸𝓻𝓭𝔂•𝗥𝒂𝗱𝗶𝓸";
 			document.getElementById('player-station-name').style.display = 'none';
 			changeCover(s.logo || './assets/app.png');
 			hideOverlayLogo();
 			startMediaSessionRotation(s, null, null, null);
 		}
 
+		// Update playback status text
 		function updateStatus(state) {
 			const el = document.getElementById('player-status');
 			const map = {
@@ -484,10 +509,12 @@
 			document.title = text;
 		}
 
+		// Update play button icon
 		function updatePlayBtn(isPlaying) {
 			document.getElementById('play-icon').className = isPlaying ? 'fa-solid fa-stop' : 'fa-solid fa-play';
 		}
 
+		// Start background metadata polling
 		function startMetaFetcher(station) {
 			if (metaInterval) clearInterval(metaInterval);
 			const fetchInfo = async () => {
@@ -521,6 +548,7 @@
 			metaInterval = setInterval(fetchInfo, station.apiId === 'airplay' ? 5000 : 10000);
 		}
 
+		// Process AirPlay metadata payload
 		async function handleAirplayData(station, data) {
 			if (data.isPlaying) {
 				if (userPaused) return;
@@ -556,6 +584,7 @@
 			}
 		}
 
+		// Process web radio metadata payload
 		async function handleStationData(station, sd) {
 			if (audio.paused || !audio.src || !audio.src.includes('://')) return;
 			let rawTitle = sd ? (sd.track || "").trim() : "";
@@ -591,6 +620,7 @@
 			updateCoverAndSession(finalArt || station.logo, trackTitle, trackArtist, showOverlay, finalArt ? station.logo : null, station);
 		}
 
+		// Update album cover and system media session state
 		function updateCoverAndSession(coverUrl, title, sessionArtist, showOverlay, overlayLogoUrl, station) {
 			const finalCover = coverUrl || './assets/app.png';
 			changeCover(finalCover);
@@ -604,6 +634,7 @@
 			startMediaSessionRotation(station, title, sessionArtist, finalCover);
 		}
 
+		// Change artwork image with smooth fade transition
 		function changeCover(newSrc) {
 			if (currentCoverUrl === newSrc) return; 
 			currentCoverUrl = newSrc;
@@ -617,11 +648,13 @@
 			}, 300);
 		}
 
+		// Hide station overlay logo element
 		function hideOverlayLogo() { 
 			const el = document.getElementById('player-overlay-logo');
 			el.style.display = 'none'; el.style.transform = 'scale(1)'; 
 		}
 
+		// Extract dominant background color from cover image
 		function extractAndApplyColor() {
 			const img = document.getElementById('player-img');
 			const canvas = document.getElementById('color-canvas');
@@ -634,6 +667,7 @@
 			} catch(e) { document.documentElement.style.setProperty('--glow-color', `rgba(255, 100, 0, 0.4)`); }
 		}
 
+		// Start media session text rotation loop
 		function startMediaSessionRotation(station, trackTitle, trackArtist, coverUrl) {
 			activeTrackTitle = trackTitle || "";
 			activeTrackArtist = trackArtist || "";
@@ -647,6 +681,7 @@
 			}, 5000);
 		}
 
+		// Render current playback state into MediaSession metadata
 		function renderMediaSessionState() {
 			if (currentStationIndex === -1) return;
 			const station = stations[currentStationIndex];
@@ -666,6 +701,7 @@
 			updateMediaSessionNative(t, a, al, c);
 		}
 
+		// Update OS level MediaSession and SMTC metadata
 		function updateMediaSessionNative(t, a, al, i) {
 			if('mediaSession' in navigator) {
 				navigator.mediaSession.metadata = new MediaMetadata({ title: t, artist: a, album: al, duration: Infinity, artwork: [{ src: i || './assets/app.png', sizes: '512x512', type: 'image/png' }] });
@@ -709,12 +745,14 @@
 			}
 		}
 
+		// Toggle footer station list visibility
 		function toggleFooter(force) {
 			footerOpen = (force !== undefined) ? force : !footerOpen;
 			document.getElementById('main-footer').classList.toggle('expanded', footerOpen);
 			document.getElementById('footer-arrow').innerText = footerOpen ? '▼' : '▲';
 		}
 
+		// Open station manager modal dialog
 		function openManager() { 
 			renderManagerList(); 
 			document.getElementById('jf-server').value = jfServer;
@@ -722,8 +760,10 @@
 			document.getElementById('manager-modal').style.display = 'flex'; 
 		}
 		
+		// Close station manager modal dialog
 		function closeManager() { document.getElementById('manager-modal').style.display = 'none'; }
 
+		// Render station lists in sidebar and footer
 		function renderStations() {
 			const list = document.getElementById('footer-list'), sideList = document.getElementById('sidebar-list');
 			list.innerHTML = ''; sideList.innerHTML = '';
@@ -738,6 +778,7 @@
 			});
 		}
 
+		// Render settings station list in manager modal
 		function renderManagerList() {
 			const list = document.getElementById('settings-list');
 			list.innerHTML = '';
@@ -753,10 +794,19 @@
 			});
 		}
 
+		// Toggle station visibility
 		function toggleStation(idx) { stations[idx].isDisabled = !stations[idx].isDisabled; saveAndRefresh(); }
+		
+		// Toggle metadata setting
 		function toggleMetaSetting() { disableMeta = document.getElementById('disable-meta-toggle').checked; localStorage.setItem('radio_disable_meta', disableMeta); if (disableMeta) resetToStationView(); }
+		
+		// Reorder station in list
 		function moveStation(idx, dir) { let nIdx = idx + dir; if (nIdx >= 0 && nIdx < stations.length) { [stations[idx], stations[nIdx]] = [stations[nIdx], stations[idx]]; saveAndRefresh(); } }
+		
+		// Remove custom station
 		function removeStation(idx) { stations.splice(idx, 1); saveAndRefresh(); }
+		
+		// Add manual station configuration
 		function addStationManual() {
 			const n = document.getElementById('new-name').value, u = document.getElementById('new-url').value;
 			if(n && u) {
@@ -765,11 +815,16 @@
 			}
 		}
 
+		// Save stations to local storage and update UI
 		function saveAndRefresh() { localStorage.setItem('radio_stations', JSON.stringify(stations)); renderStations(); renderManagerList(); }
+		
+		// Clear local cache and reload page
 		function clearCache() { localStorage.clear(); window.location.reload(true); }
 
+		// Global window click listener to close modal
 		window.onclick = (e) => { if (e.target.className === 'modal') closeManager(); }
 
+		// Keydown event listener for keyboard controls
 		document.addEventListener('keydown', (e) => {
 			if (!audio) return;
 			if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') { e.preventDefault(); e.key === 'ArrowLeft' ? skipPrev() : skipNext(); }
@@ -789,6 +844,7 @@
 			}
 		});
 
+		// Fetch artwork from iTunes Search API
 		async function fetchItunesCover(term) {
 			try {
 				const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(term)}&media=music&limit=1`);
