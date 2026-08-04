@@ -1,0 +1,16 @@
+{
+    "name": "Berichtsheft+ 🗿",
+    "short_name": "Berichtsheft+ 🗿",
+    "description": "Lokales BLok Berichtsheft",
+    "start_url": "./index.html",
+    "display": "standalone",
+    "background_color": "#0f172a",
+    "theme_color": "#1e293b",
+    "icons": [
+      {
+        "src": "./heft.png",
+        "sizes": "512x512",
+        "type": "image/png"
+      }
+    ]
+  }
