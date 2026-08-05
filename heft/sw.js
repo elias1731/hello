@@ -1,5 +1,5 @@
 // define cache namespace
-const CACHE_NAME = 'berichtsheft-pwa-v1';
+const CACHE_NAME = 'berichtsheft-pwa-v2';
 const urlsToCache = [
   './',
   './index.html',
