@@ -21,9 +21,9 @@ let authToken = localStorage.getItem('auth_token') || null;
 // update UI based on authentication status
 function updateAuthUi() {
     if (authToken) {
-        authBtnText.textContent = 'Abmelden';
+        authBtnText.textContent = '👋';
     } else {
-        authBtnText.textContent = 'Anmelden';
+        authBtnText.textContent = '✏️';
     }
 }
 
@@ -44,12 +44,21 @@ async function loadData() {
         const data = await res.json();
 
         if (data.days) {
+            // Erfolgreiche Daten lokal für Fallback sichern
+            localStorage.setItem('cached_days', JSON.stringify(data.days));
             renderDays(data.days);
         } else {
-            alert('Fehler beim Laden: Ungültiges Datenformat');
+            throw new Error('Ungültiges Datenformat');
         }
     } catch (err) {
-        alert('Netzwerkfehler: Worker nicht erreichbar.');
+        // Fallback: Zeige letzte lokal gespeicherte Einträge an
+        const cachedDays = localStorage.getItem('cached_days');
+        if (cachedDays) {
+            renderDays(JSON.parse(cachedDays));
+            console.warn('API nicht erreichbar. Lade letzten lokalen Stand.');
+        } else {
+            alert('Netzwerkfehler: Worker nicht erreichbar und kein Offline-Speicher vorhanden.');
+        }
     } finally {
         loader.classList.add('hidden');
         refreshBtn.classList.remove('animate-spin');
