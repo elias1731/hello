@@ -1,6 +1,6 @@
 // inject pwa splash screens
 const splashScreens = [
-    { media: null, href: './assets/app.png' },
+    { media: null, href: './assets/heft.png' },
     { media: 'screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)', href: './assets/splash/iPhone_11__iPhone_XR_landscape.png' },
     { media: 'screen and (device-width: 420px) and (device-height: 912px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)', href: './assets/splash/iPhone_Air_portrait.png' },
     { media: 'screen and (device-width: 402px) and (device-height: 874px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)', href: './assets/splash/iPhone_17_Pro__iPhone_17__iPhone_16_Pro_portrait.png' },
