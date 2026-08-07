@@ -1,16 +1,32 @@
 {
-    "name": "🗿Berichtsheft+",
-    "short_name": "🗿B.heft+",
-    "description": "Berichtsheft",
-    "start_url": "./index.html",
-    "display": "standalone",
-    "background_color": "#0f172a",
-    "theme_color": "#1e293b",
-    "icons": [
-      {
-        "src": "./assets/heft.png",
-        "sizes": "512x512",
-        "type": "image/png"
-      }
+  "name": "🗿Berichtsheft+",
+  "short_name": "🗿B.heft+",
+  "description": "Berichtsheft",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#1e293b",
+  "id": "https://heyfordy.dev/heft",
+  "start_url": "https://heyfordy.dev/heft",
+  "scope": "https://heyfordy.dev/heft",
+  "lang": "de",
+  "orientation": "any",
+  "launch_handler": {
+    "client_mode": [
+      "focus-existing",
+      "navigate-existing"
     ]
-  }
+  },
+  "icons": [
+    {
+      "src": "./assets/heft.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "./assets/heft.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
