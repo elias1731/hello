@@ -12,11 +12,20 @@ const passwordInput = document.getElementById('passwordInput');
 const cancelLoginBtn = document.getElementById('cancelLoginBtn');
 const submitLoginBtn = document.getElementById('submitLoginBtn');
 
+const prevWeekBtn = document.getElementById('prevWeekBtn');
+const nextWeekBtn = document.getElementById('nextWeekBtn');
+const resetWeekBtn = document.getElementById('resetWeekBtn');
+const weekLabel = document.getElementById('weekLabel');
+const dateLabel = document.getElementById('dateLabel');
+
 // store save timeouts for debounce
 const saveDebounceMap = new Map();
 
 // initialize auth token state
 let authToken = localStorage.getItem('auth_token') || null;
+
+// store current week offset (0 = current week, -1 = last week, etc.)
+let currentOffset = 0;
 
 // update UI based on authentication status
 function updateAuthUi() {
@@ -40,24 +49,31 @@ async function loadData() {
     }
 
     try {
-        const res = await fetch(WORKER_URL, { headers });
+        const res = await fetch(`${WORKER_URL}?offset=${currentOffset}`, { headers });
         const data = await res.json();
 
         if (data.days) {
-            // Erfolgreiche Daten lokal für Fallback sichern
-            localStorage.setItem('cached_days', JSON.stringify(data.days));
-            renderDays(data.days);
+            // Erfolgreiche Daten lokal für Fallback sichern (Speichert das gesamte Objekt inkl. Metadaten)
+            localStorage.setItem('cached_data', JSON.stringify(data));
+            renderData(data);
         } else {
             throw new Error('Ungültiges Datenformat');
         }
     } catch (err) {
         // Fallback: Zeige letzte lokal gespeicherte Einträge an
-        const cachedDays = localStorage.getItem('cached_days');
-        if (cachedDays) {
-            renderDays(JSON.parse(cachedDays));
+        const cachedDataStr = localStorage.getItem('cached_data');
+        const cachedDaysStr = localStorage.getItem('cached_days'); // Support für altes Format
+
+        if (cachedDataStr) {
+            renderData(JSON.parse(cachedDataStr));
             console.warn('API nicht erreichbar. Lade letzten lokalen Stand.');
+        } else if (cachedDaysStr) {
+            const parsedDays = JSON.parse(cachedDaysStr);
+            renderData({ days: parsedDays, week: '?', from: 'Offline', to: 'Stand' });
+            console.warn('API nicht erreichbar. Lade letzten lokalen Stand (Altes Format).');
         } else {
             alert('Netzwerkfehler: Worker nicht erreichbar und kein Offline-Speicher vorhanden.');
+            weekLabel.textContent = 'Fehler beim Laden';
         }
     } finally {
         loader.classList.add('hidden');
@@ -65,11 +81,31 @@ async function loadData() {
     }
 }
 
-// generate html for day cards
-function renderDays(days) {
+// generate html for day cards and update week info
+function renderData(data) {
     daysContainer.innerHTML = '';
 
-    days.forEach(day => {
+    // Update Header Infos
+    if (currentOffset === 0) {
+        weekLabel.textContent = `Aktuelle Woche (KW ${data.week || '?'})`;
+        weekLabel.classList.add('text-blue-400');
+        weekLabel.classList.remove('text-slate-200');
+    } else {
+        const offsetText = currentOffset < 0 ? `${Math.abs(currentOffset)} zurück` : `${currentOffset} vor`;
+        weekLabel.textContent = `KW ${data.week || '?'} (${offsetText})`;
+        weekLabel.classList.remove('text-blue-400');
+        weekLabel.classList.add('text-slate-200');
+    }
+
+    if (data.from && data.to) {
+        dateLabel.textContent = `${data.from} - ${data.to}`;
+        dateLabel.classList.remove('hidden');
+    } else {
+        dateLabel.classList.add('hidden');
+    }
+
+    // Render Days
+    data.days.forEach(day => {
         const card = document.createElement('div');
         card.className = 'bg-slate-800 rounded-xl p-4 shadow-lg border border-slate-700';
 
@@ -199,6 +235,24 @@ passwordInput.addEventListener('keyup', (e) => {
 });
 
 refreshBtn.addEventListener('click', loadData);
+
+// Week Navigation Events
+prevWeekBtn.addEventListener('click', () => {
+    currentOffset--;
+    loadData();
+});
+
+nextWeekBtn.addEventListener('click', () => {
+    currentOffset++;
+    loadData();
+});
+
+resetWeekBtn.addEventListener('click', () => {
+    if(currentOffset !== 0) {
+        currentOffset = 0;
+        loadData();
+    }
+});
 
 // register service worker if supported
 if ('serviceWorker' in navigator) {
