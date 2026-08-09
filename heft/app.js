@@ -20,6 +20,8 @@ const dateLabel = document.getElementById('dateLabel');
 
 // store save timeouts for debounce
 const saveDebounceMap = new Map();
+// store the current state of entries for comparison
+const currentEntriesMap = new Map();
 
 // initialize auth token state
 let authToken = localStorage.getItem('auth_token') || null;
@@ -79,6 +81,7 @@ async function loadData() {
 // generate html for day cards and update week info
 function renderData(data) {
     daysContainer.innerHTML = '';
+    currentEntriesMap.clear();
 
     // Update Header Infos
     if (currentOffset === 1) {
@@ -103,6 +106,9 @@ function renderData(data) {
 
     // Render Days
     data.days.forEach(day => {
+        const entriesState = JSON.stringify(day.entries || []);
+        currentEntriesMap.set(day.date, entriesState);
+
         const card = document.createElement('div');
         card.className = 'bg-slate-800 rounded-xl p-4 shadow-lg border border-slate-700';
 
@@ -194,6 +200,8 @@ function escapeHtml(str) {
 async function saveNoteToWorker(date, text) {
     if (!authToken) return;
 
+    const entriesState = currentEntriesMap.get(date) || '[]';
+
     try {
         await fetch(`${WORKER_URL}/notes`, {
             method: 'POST',
@@ -201,7 +209,7 @@ async function saveNoteToWorker(date, text) {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${authToken}`
             },
-            body: JSON.stringify({ date, text })
+            body: JSON.stringify({ date, text, entriesState })
         });
     } catch (err) {
         console.error('Failed to save note', err);
@@ -227,7 +235,7 @@ async function handleLogin() {
             loginModal.classList.add('hidden');
             passwordInput.value = '';
             updateAuthUi();
-            loadData();
+            loadData(); // Lädt jetzt die Daten INKLUSIVE Notizen neu
         } else {
             alert('Falsches Passwort!');
         }
