@@ -1,5 +1,5 @@
 // define api endpoint
-const WORKER_URL = 'https://berichtsheft.elias1731.workers.dev';
+const WORKER_URL = 'https://api.heyfordy.dev/bheft';
 
 // get dom elements
 const daysContainer = document.getElementById('daysContainer');
@@ -115,14 +115,10 @@ function renderData(data) {
         if (entries.length === 0) {
             entriesHtml = `<div class="bg-slate-900 p-3 rounded-lg text-sm text-slate-600 italic">Noch kein Eintrag</div>`;
         } else if (isSingle8h) {
-            // Ausnahme: nur ein 8h-Eintrag → nur Text + Tagesgesamtzeit (keine Einzelzeit)
-            entriesHtml = `
-                <div class="bg-slate-900 p-3 rounded-lg text-sm text-slate-300 whitespace-pre-wrap">
-                    ${escapeHtml(entries[0].text) || '<span class="text-slate-600 italic">Kein Text</span>'}
-                </div>
-            `;
+            // single 8h entry - text only, no per-entry time badge
+            entriesHtml = `<div class="bg-slate-900 p-3 rounded-lg text-sm text-slate-300 whitespace-pre-wrap">${escapeHtml(entries[0].text) || '<span class="text-slate-600 italic">Kein Text</span>'}</div>`;
         } else {
-            // Mehrere Einträge oder abweichende Zeit → jeden Eintrag einzeln mit Zeit anzeigen
+            // multiple entries or non-8h - show each with its time
             entriesHtml = entries.map(entry => `
                 <div class="bg-slate-900 p-3 rounded-lg text-sm text-slate-300 mb-2 last:mb-0">
                     <div class="flex justify-between items-start gap-2 mb-1">
