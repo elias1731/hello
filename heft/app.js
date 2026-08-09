@@ -24,8 +24,8 @@ const saveDebounceMap = new Map();
 // initialize auth token state
 let authToken = localStorage.getItem('auth_token') || null;
 
-// store current week offset (0 = current week, -1 = last week, etc.)
-let currentOffset = 0;
+// aktuelle Woche = offset 1 (entspricht /tw/1)
+let currentOffset = 1;
 
 // update UI based on authentication status
 function updateAuthUi() {
@@ -53,24 +53,19 @@ async function loadData() {
         const data = await res.json();
 
         if (data.days) {
-            // Erfolgreiche Daten lokal für Fallback sichern (Speichert das gesamte Objekt inkl. Metadaten)
+            // Erfolgreiche Daten lokal für Fallback sichern
             localStorage.setItem('cached_data', JSON.stringify(data));
             renderData(data);
         } else {
-            throw new Error('Ungültiges Datenformat');
+            throw new Error(data.error || 'Ungültiges Datenformat');
         }
     } catch (err) {
         // Fallback: Zeige letzte lokal gespeicherte Einträge an
         const cachedDataStr = localStorage.getItem('cached_data');
-        const cachedDaysStr = localStorage.getItem('cached_days'); // Support für altes Format
 
         if (cachedDataStr) {
             renderData(JSON.parse(cachedDataStr));
             console.warn('API nicht erreichbar. Lade letzten lokalen Stand.');
-        } else if (cachedDaysStr) {
-            const parsedDays = JSON.parse(cachedDaysStr);
-            renderData({ days: parsedDays, week: '?', from: 'Offline', to: 'Stand' });
-            console.warn('API nicht erreichbar. Lade letzten lokalen Stand (Altes Format).');
         } else {
             alert('Netzwerkfehler: Worker nicht erreichbar und kein Offline-Speicher vorhanden.');
             weekLabel.textContent = 'Fehler beim Laden';
@@ -86,12 +81,14 @@ function renderData(data) {
     daysContainer.innerHTML = '';
 
     // Update Header Infos
-    if (currentOffset === 0) {
+    if (currentOffset === 1) {
         weekLabel.textContent = `Aktuelle Woche (KW ${data.week || '?'})`;
         weekLabel.classList.add('text-blue-400');
         weekLabel.classList.remove('text-slate-200');
     } else {
-        const offsetText = currentOffset < 0 ? `${Math.abs(currentOffset)} zurück` : `${currentOffset} vor`;
+        const offsetText = currentOffset < 1
+            ? `${1 - currentOffset} zurück`
+            : `${currentOffset - 1} vor`;
         weekLabel.textContent = `KW ${data.week || '?'} (${offsetText})`;
         weekLabel.classList.remove('text-blue-400');
         weekLabel.classList.add('text-slate-200');
@@ -109,20 +106,45 @@ function renderData(data) {
         const card = document.createElement('div');
         card.className = 'bg-slate-800 rounded-xl p-4 shadow-lg border border-slate-700';
 
-        const apiText = Array.isArray(day.entries) ? day.entries.map(e => e.text).join('\n\n') : '';
+        const entries = Array.isArray(day.entries) ? day.entries : [];
+        const isSingle8h = entries.length === 1 &&
+            (entries[0].hours === '8h:00min' || entries[0].hours === '8h:0min');
+
+        let entriesHtml = '';
+
+        if (entries.length === 0) {
+            entriesHtml = `<div class="bg-slate-900 p-3 rounded-lg text-sm text-slate-600 italic">Noch kein Eintrag</div>`;
+        } else if (isSingle8h) {
+            // Ausnahme: nur ein 8h-Eintrag → nur Text + Tagesgesamtzeit (keine Einzelzeit)
+            entriesHtml = `
+                <div class="bg-slate-900 p-3 rounded-lg text-sm text-slate-300 whitespace-pre-wrap">
+                    ${escapeHtml(entries[0].text) || '<span class="text-slate-600 italic">Kein Text</span>'}
+                </div>
+            `;
+        } else {
+            // Mehrere Einträge oder abweichende Zeit → jeden Eintrag einzeln mit Zeit anzeigen
+            entriesHtml = entries.map(entry => `
+                <div class="bg-slate-900 p-3 rounded-lg text-sm text-slate-300 mb-2 last:mb-0">
+                    <div class="flex justify-between items-start gap-2 mb-1">
+                        <div class="whitespace-pre-wrap flex-1">${escapeHtml(entry.text) || '<span class="text-slate-600 italic">Kein Text</span>'}</div>
+                        <span class="text-xs bg-slate-700 text-slate-300 py-0.5 px-2 rounded-full whitespace-nowrap">${entry.hours || ''}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
 
         let notesSectionHtml = '';
         if (authToken) {
             const noteContent = day.note || '';
             notesSectionHtml = `
-                <div>
-                    <h3 class="text-xs uppercase text-slate-400 font-semibold mb-1"> Notizen</h3>
+                <div class="mt-4">
+                    <h3 class="text-xs uppercase text-slate-400 font-semibold mb-1">Notizen</h3>
                     <textarea 
                         class="w-full bg-slate-700 border-none rounded-lg p-3 text-sm text-white placeholder-slate-400 focus:ring-2 focus:ring-blue-500 outline-none resize-y" 
                         rows="3" 
                         placeholder="Notizen eingeben..."
                         data-date="${day.date}"
-                    >${noteContent}</textarea>
+                    >${escapeHtml(noteContent)}</textarea>
                 </div>
             `;
         }
@@ -130,12 +152,12 @@ function renderData(data) {
         card.innerHTML = `
             <div class="flex justify-between items-center mb-2">
                 <h2 class="text-lg font-bold text-white">${day.day || ''} ${day.date}</h2>
-                <span class="text-sm bg-blue-900 text-blue-200 py-1 px-3 rounded-full">${day.total || ''}</span>
+                <span class="text-sm bg-blue-900 text-blue-200 py-1 px-3 rounded-full">${day.total || '0h:00min'}</span>
             </div>
             
-            <div class="mb-4">
-                <h3 class="text-xs uppercase text-slate-400 font-semibold mb-1">  Einträge</h3>
-                <div class="bg-slate-900 p-3 rounded-lg text-sm text-slate-300 min-h-[40px] whitespace-pre-wrap">${apiText || '<span class="text-slate-600 italic">Noch kein Eintrag</span>'}</div>
+            <div class="mb-1">
+                <h3 class="text-xs uppercase text-slate-400 font-semibold mb-1">Einträge</h3>
+                ${entriesHtml}
             </div>
             ${notesSectionHtml}
         `;
@@ -160,6 +182,16 @@ function renderData(data) {
             });
         });
     }
+}
+
+// simple html escape
+function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
 }
 
 // save note to backend database
@@ -248,8 +280,8 @@ nextWeekBtn.addEventListener('click', () => {
 });
 
 resetWeekBtn.addEventListener('click', () => {
-    if(currentOffset !== 0) {
-        currentOffset = 0;
+    if (currentOffset !== 1) {
+        currentOffset = 1;
         loadData();
     }
 });
