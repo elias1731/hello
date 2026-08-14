@@ -26,8 +26,8 @@ const currentEntriesMap = new Map();
 // initialize auth token state
 let authToken = localStorage.getItem('auth_token') || null;
 
-// aktuelle Woche = offset 1 (entspricht /tw/1)
-let currentOffset = 1;
+// relative offset: 0 = real current week, -1 = previous, +1 = next ...
+let currentOffset = 0;
 
 // update UI based on authentication status
 function updateAuthUi() {
@@ -83,15 +83,15 @@ function renderData(data) {
     daysContainer.innerHTML = '';
     currentEntriesMap.clear();
 
-    // Update Header Infos
-    if (currentOffset === 1) {
+    // Update Header Infos (relative to real current week)
+    if (currentOffset === 0) {
         weekLabel.textContent = `Aktuelle Woche (KW ${data.week || '?'})`;
         weekLabel.classList.add('text-blue-400');
         weekLabel.classList.remove('text-slate-200');
     } else {
-        const offsetText = currentOffset < 1
-            ? `${1 - currentOffset} zurück`
-            : `${currentOffset - 1} vor`;
+        const offsetText = currentOffset < 0
+            ? `${-currentOffset} zurück`
+            : `${currentOffset} vor`;
         weekLabel.textContent = `KW ${data.week || '?'} (${offsetText})`;
         weekLabel.classList.remove('text-blue-400');
         weekLabel.classList.add('text-slate-200');
@@ -284,8 +284,8 @@ nextWeekBtn.addEventListener('click', () => {
 });
 
 resetWeekBtn.addEventListener('click', () => {
-    if (currentOffset !== 1) {
-        currentOffset = 1;
+    if (currentOffset !== 0) {
+        currentOffset = 0;
         loadData();
     }
 });
