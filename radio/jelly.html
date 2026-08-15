@@ -37,7 +37,7 @@
 		.jelly-item .title { margin-top: 10px; font-weight: 600; font-size: 0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 		.jelly-item .subtitle { color: #aaa; font-size: 0.85rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 		
-		.track-item { display: flex; align-items: center; padding: 12px; background: rgba(255,255,255,0.03); border-radius: 10px; cursor: pointer; transition: background 0.2s; }
+		.track-item { display: flex; align-items: center; padding: 12px; background: rgba(255,255,255,0.03); border-radius: 10px; cursor: pointer; transition: background 0.2s; gap: 8px; }
 		.track-item:hover { background: rgba(255,255,255,0.08); }
 		
 		.now-playing-info { flex: 1; min-width: 0; }
@@ -45,6 +45,10 @@
 
 		#search-container { transition: width 0.3s ease; overflow: hidden; width: 0; opacity: 0; }
 		#search-container.active { width: 220px; opacity: 1; }
+
+		.queue-actions { display: flex; gap: 10px; margin-bottom: 16px; }
+		.queue-actions button { flex: 1; padding: 10px; border-radius: 10px; border: none; background: rgba(255,255,255,0.08); color: white; font-weight: 600; cursor: pointer; }
+		.queue-actions button.clear { background: rgba(255,80,80,0.2); color: #ff6666; }
 
 		/* Mobile adjustments */
 		@media (max-width: 768px) {
@@ -133,7 +137,10 @@
 	<div id="queue-modal" class="modal" style="display:none;">
 		<div class="modal-content" style="max-width:500px;">
 			<button class="modal-close-btn-x" onclick="toggleQueue()"><i class="fa-solid fa-xmark"></i></button>
-			<h3 style="margin-bottom:20px;">Warteschlange</h3>
+			<h3 style="margin-bottom:12px;">Warteschlange</h3>
+			<div class="queue-actions">
+				<button onclick="clearQueue()" class="clear"><i class="fa-solid fa-trash"></i> Leeren</button>
+			</div>
 			<div id="queue-list" class="queue-list"></div>
 		</div>
 	</div>
@@ -143,6 +150,9 @@
 
 	<script>
 		const JF_SERVER = localStorage.getItem('radio_jf_server') || 'https://jelly.heyfordy.dev';
+		const DEVICE_ID = 'fordy-radio-jelly';
+		const CLIENT_NAME = 'FordyRadio';
+		const CLIENT_VERSION = '1.1';
 		let jfToken = localStorage.getItem('radio_jf_token') || '';
 		let jfUserId = localStorage.getItem('radio_jf_user') || '';
 		let queue = [];
@@ -150,9 +160,17 @@
 		let audio = document.getElementById('jelly-audio');
 		let isPlaying = false;
 		let playTimeout = null;
+		let playSessionId = null;
+		let progressInterval = null;
+		let ws = null;
+		let wsReconnectTimer = null;
 
 		if ('msAudioCategory' in audio) {
 			audio.msAudioCategory = 'Media';
+		}
+
+		function authHeader() {
+			return `MediaBrowser Client="${CLIENT_NAME}", Device="${CLIENT_NAME}", DeviceId="${DEVICE_ID}", Version="${CLIENT_VERSION}", Token="${jfToken}"`;
 		}
 
 		function getImageUrl(item, size = 400) {
@@ -174,9 +192,7 @@
 
 			// Background Fetch um Cache aktuell zu halten
 			const fetchPromise = fetch(`${JF_SERVER}${endpoint}`, {
-				headers: {
-					'X-Emby-Authorization': `MediaBrowser Client="FordyRadio", Device="FordyRadio", DeviceId="fordy-jelly-browser", Version="1.0", Token="${jfToken}"`
-				}
+				headers: { 'X-Emby-Authorization': authHeader() }
 			}).then(res => {
 				if (!res.ok) throw new Error('API error');
 				return res.json();
@@ -190,6 +206,178 @@
 
 			// Gib gecachte Daten sofort zurück falls vorhanden, sonst warte auf Netzwerk
 			return parsedCache ? parsedCache : await fetchPromise;
+		}
+
+		async function apiPost(endpoint, body) {
+			if (!jfToken) return null;
+			try {
+				const res = await fetch(`${JF_SERVER}${endpoint}`, {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+						'X-Emby-Authorization': authHeader()
+					},
+					body: body ? JSON.stringify(body) : undefined
+				});
+				return res.ok;
+			} catch(e) {
+				console.error(e);
+				return false;
+			}
+		}
+
+		function reportCapabilities() {
+			apiPost('/Sessions/Capabilities/Full', {
+				PlayableMediaTypes: ['Audio'],
+				SupportedCommands: [
+					'Play', 'PlayState', 'PlayNext', 'PlayMediaSource',
+					'Pause', 'Unpause', 'Stop', 'Seek',
+					'NextTrack', 'PreviousTrack',
+					'VolumeUp', 'VolumeDown', 'Mute', 'Unmute', 'SetVolume', 'ToggleMute'
+				],
+				SupportsMediaControl: true,
+				SupportsPersistentIdentifier: true
+			});
+		}
+
+		function generatePlaySessionId() {
+			return 'ps_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+		}
+
+		function buildProgressPayload(eventName) {
+			const track = queue[currentTrackIndex];
+			if (!track) return null;
+			const posTicks = Math.floor((audio.currentTime || 0) * 10000000);
+			return {
+				ItemId: track.Id,
+				MediaSourceId: track.Id,
+				PositionTicks: posTicks,
+				IsPaused: audio.paused,
+				IsMuted: audio.muted,
+				PlayMethod: 'DirectStream',
+				PlaySessionId: playSessionId,
+				CanSeek: true,
+				VolumeLevel: Math.round((audio.volume || 1) * 100),
+				EventName: eventName || 'TimeUpdate'
+			};
+		}
+
+		function reportPlaybackStart() {
+			const payload = buildProgressPayload('TimeUpdate');
+			if (!payload) return;
+			playSessionId = generatePlaySessionId();
+			payload.PlaySessionId = playSessionId;
+			apiPost('/Sessions/Playing', payload);
+		}
+
+		function reportPlaybackProgress(eventName) {
+			const payload = buildProgressPayload(eventName || 'TimeUpdate');
+			if (!payload) return;
+			apiPost('/Sessions/Playing/Progress', payload);
+		}
+
+		function reportPlaybackStopped() {
+			const payload = buildProgressPayload('TimeUpdate');
+			if (!payload) return;
+			apiPost('/Sessions/Playing/Stopped', payload);
+			playSessionId = null;
+		}
+
+		function startProgressReporter() {
+			stopProgressReporter();
+			progressInterval = setInterval(() => {
+				if (isPlaying && queue[currentTrackIndex]) reportPlaybackProgress('TimeUpdate');
+			}, 10000);
+		}
+
+		function stopProgressReporter() {
+			if (progressInterval) {
+				clearInterval(progressInterval);
+				progressInterval = null;
+			}
+		}
+
+		function connectWebSocket() {
+			if (!jfToken || ws) return;
+			const proto = JF_SERVER.startsWith('https') ? 'wss' : 'ws';
+			const base = JF_SERVER.replace(/^https?/, proto);
+			const url = `${base}/socket?api_key=${encodeURIComponent(jfToken)}&deviceId=${encodeURIComponent(DEVICE_ID)}`;
+			try {
+				ws = new WebSocket(url);
+				ws.onopen = () => {
+					ws.send(JSON.stringify({ MessageType: 'SessionsStart', Data: '0,1500' }));
+					reportCapabilities();
+				};
+				ws.onmessage = (ev) => {
+					try {
+						const msg = JSON.parse(ev.data);
+						handleWsMessage(msg);
+					} catch(e) {}
+				};
+				ws.onclose = () => {
+					ws = null;
+					if (wsReconnectTimer) clearTimeout(wsReconnectTimer);
+					wsReconnectTimer = setTimeout(connectWebSocket, 5000);
+				};
+				ws.onerror = () => { try { ws.close(); } catch(e) {} };
+			} catch(e) {
+				console.error('WS connect failed', e);
+			}
+		}
+
+		function handleWsMessage(msg) {
+			if (!msg || !msg.MessageType) return;
+			if (msg.MessageType === 'Playstate' && msg.Data) {
+				const cmd = msg.Data.Command;
+				const seekTicks = msg.Data.SeekPositionTicks;
+				switch (cmd) {
+					case 'Pause':
+						if (!audio.paused) togglePlay();
+						break;
+					case 'Unpause':
+						if (audio.paused) togglePlay();
+						break;
+					case 'PlayPause':
+						togglePlay();
+						break;
+					case 'Stop':
+						audio.pause();
+						isPlaying = false;
+						reportPlaybackStopped();
+						updateUI();
+						break;
+					case 'NextTrack':
+						nextTrack();
+						break;
+					case 'PreviousTrack':
+						prevTrack();
+						break;
+					case 'Seek':
+						if (seekTicks != null && audio.duration) {
+							audio.currentTime = seekTicks / 10000000;
+							reportPlaybackProgress('Seek');
+						}
+						break;
+				}
+			} else if (msg.MessageType === 'Play' && msg.Data) {
+				const itemIds = msg.Data.ItemIds || [];
+				const startIndex = msg.Data.StartIndex || 0;
+				if (itemIds.length) {
+					playItemsByIds(itemIds, startIndex, msg.Data.StartPositionTicks);
+				}
+			}
+		}
+
+		async function playItemsByIds(itemIds, startIndex = 0, startTicks = 0) {
+			const items = [];
+			for (const id of itemIds) {
+				const data = await apiGet(`/Users/${jfUserId}/Items/${id}`);
+				if (data) items.push(data);
+			}
+			if (!items.length) return;
+			queue = items;
+			currentTrackIndex = Math.min(startIndex, items.length - 1);
+			playCurrentTrack(false, startTicks ? startTicks / 10000000 : 0);
 		}
 
 		function toggleSidebar() {
@@ -289,12 +477,20 @@
 			
 			const year = album.ProductionYear ? ` • ${album.ProductionYear}` : '';
 			document.getElementById('content-header').innerHTML = `
-				<div style="display:flex; align-items:center; gap:20px;">
+				<div style="display:flex; align-items:center; gap:20px; flex-wrap:wrap;">
 					<img src="${getImageUrl(album, 300)}" style="width:120px; height:120px; border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,0.5); object-fit:cover;">
-					<div>
+					<div style="flex:1; min-width:180px;">
 						<h2 style="margin-bottom:8px;">${album.Name}</h2>
 						<div style="color:#aaa; font-size:0.95rem;">${album.AlbumArtist || 'Verschiedene'}</div>
 						<div style="color:#777; font-size:0.85rem; margin-top:4px;">${tracks.length} Songs${year}</div>
+						<div style="display:flex; gap:10px; margin-top:12px;">
+							<button class="round-btn" style="width:auto; padding:8px 14px; border-radius:10px;" onclick="playAlbumNow(this)" data-tracks='${JSON.stringify(tracks).replace(/'/g, "&#39;")}'>
+								<i class="fa-solid fa-play"></i> Abspielen
+							</button>
+							<button class="round-btn" style="width:auto; padding:8px 14px; border-radius:10px;" onclick="addAlbumToQueue(this)" data-tracks='${JSON.stringify(tracks).replace(/'/g, "&#39;")}'>
+								<i class="fa-solid fa-plus"></i> Zur Queue
+							</button>
+						</div>
 					</div>
 				</div>
 			`;
@@ -308,17 +504,48 @@
 						<div style="font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${track.Name}</div>
 						<div style="font-size:0.85rem; color:#aaa; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${track.Artists ? track.Artists.join(', ') : ''}</div>
 					</div>
+					<button class="round-btn secondary-ctrl" style="width:36px;height:36px;font-size:0.9rem;" onclick="event.stopPropagation(); addTrackToQueue(${index})" title="Zur Queue">
+						<i class="fa-solid fa-plus"></i>
+					</button>
 				`;
 				div.onclick = () => {
-					queue = tracks;
+					queue = tracks.slice();
 					currentTrackIndex = index;
 					playCurrentTrack();
 				};
+				div.dataset.trackIndex = index;
 				content.appendChild(div);
 			});
+
+			// store tracks for the album buttons
+			window._currentAlbumTracks = tracks;
 		}
 
-		function playCurrentTrack(restoreTime = false) {
+		function playAlbumNow(btn) {
+			const tracks = window._currentAlbumTracks || [];
+			if (!tracks.length) return;
+			queue = tracks.slice();
+			currentTrackIndex = 0;
+			playCurrentTrack();
+		}
+
+		function addAlbumToQueue(btn) {
+			const tracks = window._currentAlbumTracks || [];
+			if (!tracks.length) return;
+			queue = queue.concat(tracks);
+			localStorage.setItem('jf_queue', JSON.stringify(queue));
+			localStorage.setItem('jf_index', currentTrackIndex);
+		}
+
+		function addTrackToQueue(index) {
+			const tracks = window._currentAlbumTracks || [];
+			if (!tracks[index]) return;
+			queue.push(tracks[index]);
+			localStorage.setItem('jf_queue', JSON.stringify(queue));
+			localStorage.setItem('jf_index', currentTrackIndex);
+		}
+
+		function playCurrentTrack(restoreTime = false, startSeconds = 0) {
 			if (currentTrackIndex < 0 || !queue[currentTrackIndex]) return;
 			const track = queue[currentTrackIndex];
 			
@@ -328,24 +555,30 @@
 			// DEBOUNCE: Verhindert Server-Spam bei schnellem Vor/Zurück klicken
 			clearTimeout(playTimeout);
 			playTimeout = setTimeout(() => {
-				const streamUrl = `${JF_SERVER}/Audio/${track.Id}/stream.mp3?static=true&deviceId=fordy-jelly-browser`;
+				if (playSessionId) reportPlaybackStopped();
+
+				const streamUrl = `${JF_SERVER}/Audio/${track.Id}/stream.mp3?static=true&deviceId=${DEVICE_ID}`;
 				audio.src = streamUrl;
 				
-				if(restoreTime) {
+				if (restoreTime) {
 					const savedTime = parseFloat(localStorage.getItem('jf_time'));
-					if(savedTime) audio.currentTime = savedTime;
+					if (savedTime) audio.currentTime = savedTime;
+				} else if (startSeconds > 0) {
+					audio.currentTime = startSeconds;
 				}
 				
 				audio.play().then(() => {
 					isPlaying = true;
 					localStorage.setItem('last_played_context', 'jellyfin');
+					reportPlaybackStart();
+					startProgressReporter();
 					updateUI();
 					updateMediaSession();
 				}).catch(console.error);
 				
 				localStorage.setItem('jf_queue', JSON.stringify(queue));
 				localStorage.setItem('jf_index', currentTrackIndex);
-			}, 300); // Wartet 300ms nach dem letzten Klick, bevor Audio wirklich geladen wird
+			}, 300);
 		}
 
 		function togglePlay() {
@@ -353,9 +586,13 @@
 				audio.play();
 				isPlaying = true;
 				localStorage.setItem('last_played_context', 'jellyfin');
+				reportPlaybackProgress('Unpause');
+				startProgressReporter();
 			} else {
 				audio.pause();
 				isPlaying = false;
+				reportPlaybackProgress('Pause');
+				stopProgressReporter();
 			}
 			updateUI();
 			updateMediaSession();
@@ -379,6 +616,7 @@
 			if (audio.duration) {
 				audio.currentTime = (percent / 100) * audio.duration;
 				localStorage.setItem('jf_time', audio.currentTime);
+				reportPlaybackProgress('Seek');
 			}
 		}
 
@@ -391,6 +629,34 @@
 			document.getElementById('play-icon').className = isPlaying ? 'fa-solid fa-pause' : 'fa-solid fa-play';
 		}
 
+		function clearQueue() {
+			queue = [];
+			currentTrackIndex = -1;
+			audio.pause();
+			isPlaying = false;
+			if (playSessionId) reportPlaybackStopped();
+			stopProgressReporter();
+			localStorage.removeItem('jf_queue');
+			localStorage.removeItem('jf_index');
+			document.getElementById('player-title').textContent = 'Jellyfin bereit';
+			document.getElementById('player-artist').textContent = 'Wähle etwas zum Abspielen';
+			document.getElementById('play-icon').className = 'fa-solid fa-play';
+			toggleQueue();
+		}
+
+		function moveQueueItem(from, to) {
+			if (to < 0 || to >= queue.length) return;
+			const item = queue.splice(from, 1)[0];
+			queue.splice(to, 0, item);
+			if (currentTrackIndex === from) currentTrackIndex = to;
+			else if (from < currentTrackIndex && to >= currentTrackIndex) currentTrackIndex--;
+			else if (from > currentTrackIndex && to <= currentTrackIndex) currentTrackIndex++;
+			localStorage.setItem('jf_queue', JSON.stringify(queue));
+			localStorage.setItem('jf_index', currentTrackIndex);
+			toggleQueue();
+			toggleQueue();
+		}
+
 		function toggleQueue() {
 			const modal = document.getElementById('queue-modal');
 			const list = document.getElementById('queue-list');
@@ -400,9 +666,17 @@
 				div.className = 'track-item';
 				div.style.background = i === currentTrackIndex ? 'rgba(76,175,80,0.2)' : 'transparent';
 				div.innerHTML = `
-					<div style="flex:1;">
-						<div style="font-weight:600;">${track.Name}</div>
-						<div style="font-size:0.85rem; color:#aaa;">${track.Artists ? track.Artists.join(', ') : ''}</div>
+					<div style="flex:1; min-width:0;">
+						<div style="font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${track.Name}</div>
+						<div style="font-size:0.85rem; color:#aaa; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${track.Artists ? track.Artists.join(', ') : ''}</div>
+					</div>
+					<div style="display:flex; gap:6px;">
+						<button class="round-btn secondary-ctrl" style="width:32px;height:32px;font-size:0.8rem;" onclick="event.stopPropagation(); moveQueueItem(${i}, ${i-1})" title="Hoch">
+							<i class="fa-solid fa-chevron-up"></i>
+						</button>
+						<button class="round-btn secondary-ctrl" style="width:32px;height:32px;font-size:0.8rem;" onclick="event.stopPropagation(); moveQueueItem(${i}, ${i+1})" title="Runter">
+							<i class="fa-solid fa-chevron-down"></i>
+						</button>
 					</div>
 				`;
 				div.onclick = () => {
@@ -416,7 +690,9 @@
 		}
 
 		function goBack() {
-			window.location.href = 'index.html?noredirect=true';
+			if (confirm('Zurück zum Radio wechseln?')) {
+				window.location.href = 'index.html?noredirect=true';
+			}
 		}
 
 		audio.addEventListener('timeupdate', () => {
@@ -428,7 +704,18 @@
 		});
 
 		audio.addEventListener('ended', () => {
+			if (playSessionId) reportPlaybackStopped();
 			nextTrack();
+		});
+
+		audio.addEventListener('pause', () => {
+			isPlaying = false;
+			updateUI();
+		});
+
+		audio.addEventListener('play', () => {
+			isPlaying = true;
+			updateUI();
 		});
 
 		document.addEventListener('keydown', e => {
@@ -518,6 +805,10 @@
 			// SMTC Listener binden
 			initSMTC();
 			
+			// WebSocket + capabilities for remote control / cast
+			connectWebSocket();
+			reportCapabilities();
+			
 			// Requirement 1: Alben als Startkategorie
 			loadAlbums();
 			
@@ -547,6 +838,11 @@
 				navigator.mediaSession.setActionHandler('previoustrack', prevTrack);
 			}
 		};
+
+		window.addEventListener('beforeunload', () => {
+			if (playSessionId) reportPlaybackStopped();
+			if (ws) try { ws.close(); } catch(e) {}
+		});
 	</script>
 </body>
 </html>
