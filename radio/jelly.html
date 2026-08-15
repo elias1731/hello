@@ -150,9 +150,14 @@
 
 	<script>
 		const JF_SERVER = localStorage.getItem('radio_jf_server') || 'https://jelly.heyfordy.dev';
-		const DEVICE_ID = 'fordy-radio-jelly';
 		const CLIENT_NAME = 'FordyRadio';
-		const CLIENT_VERSION = '1.1';
+		const CLIENT_VERSION = '1.2';
+		let DEVICE_NAME = localStorage.getItem('radio_jf_device_name') || 'FordyRadio';
+		let DEVICE_ID = localStorage.getItem('radio_jf_device_id') || '';
+		if (!DEVICE_ID) {
+			DEVICE_ID = 'fordy-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10);
+			localStorage.setItem('radio_jf_device_id', DEVICE_ID);
+		}
 		let jfToken = localStorage.getItem('radio_jf_token') || '';
 		let jfUserId = localStorage.getItem('radio_jf_user') || '';
 		let queue = [];
@@ -164,13 +169,14 @@
 		let progressInterval = null;
 		let ws = null;
 		let wsReconnectTimer = null;
+		let keepAliveTimer = null;
 
 		if ('msAudioCategory' in audio) {
 			audio.msAudioCategory = 'Media';
 		}
 
 		function authHeader() {
-			return `MediaBrowser Client="${CLIENT_NAME}", Device="${CLIENT_NAME}", DeviceId="${DEVICE_ID}", Version="${CLIENT_VERSION}", Token="${jfToken}"`;
+			return `MediaBrowser Client="${CLIENT_NAME}", Device="${DEVICE_NAME}", DeviceId="${DEVICE_ID}", Version="${CLIENT_VERSION}", Token="${jfToken}"`;
 		}
 
 		function getImageUrl(item, size = 400) {
@@ -227,13 +233,15 @@
 		}
 
 		function reportCapabilities() {
+			// full capabilities so the session is marked as remotely controllable
 			apiPost('/Sessions/Capabilities/Full', {
 				PlayableMediaTypes: ['Audio'],
 				SupportedCommands: [
 					'Play', 'PlayState', 'PlayNext', 'PlayMediaSource',
 					'Pause', 'Unpause', 'Stop', 'Seek',
 					'NextTrack', 'PreviousTrack',
-					'VolumeUp', 'VolumeDown', 'Mute', 'Unmute', 'SetVolume', 'ToggleMute'
+					'VolumeUp', 'VolumeDown', 'Mute', 'Unmute', 'SetVolume', 'ToggleMute',
+					'DisplayMessage'
 				],
 				SupportsMediaControl: true,
 				SupportsPersistentIdentifier: true
@@ -268,6 +276,7 @@
 			playSessionId = generatePlaySessionId();
 			payload.PlaySessionId = playSessionId;
 			apiPost('/Sessions/Playing', payload);
+			reportCapabilities();
 		}
 
 		function reportPlaybackProgress(eventName) {
@@ -287,7 +296,7 @@
 			stopProgressReporter();
 			progressInterval = setInterval(() => {
 				if (isPlaying && queue[currentTrackIndex]) reportPlaybackProgress('TimeUpdate');
-			}, 10000);
+			}, 8000);
 		}
 
 		function stopProgressReporter() {
@@ -298,15 +307,24 @@
 		}
 
 		function connectWebSocket() {
-			if (!jfToken || ws) return;
+			if (!jfToken) return;
+			if (ws && (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)) return;
+
 			const proto = JF_SERVER.startsWith('https') ? 'wss' : 'ws';
 			const base = JF_SERVER.replace(/^https?/, proto);
 			const url = `${base}/socket?api_key=${encodeURIComponent(jfToken)}&deviceId=${encodeURIComponent(DEVICE_ID)}`;
 			try {
 				ws = new WebSocket(url);
 				ws.onopen = () => {
+					// start session updates + capabilities so remote control works
 					ws.send(JSON.stringify({ MessageType: 'SessionsStart', Data: '0,1500' }));
 					reportCapabilities();
+					if (keepAliveTimer) clearInterval(keepAliveTimer);
+					keepAliveTimer = setInterval(() => {
+						if (ws && ws.readyState === WebSocket.OPEN) {
+							ws.send(JSON.stringify({ MessageType: 'KeepAlive' }));
+						}
+					}, 30000);
 				};
 				ws.onmessage = (ev) => {
 					try {
@@ -316,8 +334,9 @@
 				};
 				ws.onclose = () => {
 					ws = null;
+					if (keepAliveTimer) { clearInterval(keepAliveTimer); keepAliveTimer = null; }
 					if (wsReconnectTimer) clearTimeout(wsReconnectTimer);
-					wsReconnectTimer = setTimeout(connectWebSocket, 5000);
+					wsReconnectTimer = setTimeout(connectWebSocket, 4000);
 				};
 				ws.onerror = () => { try { ws.close(); } catch(e) {} };
 			} catch(e) {
@@ -344,6 +363,7 @@
 						audio.pause();
 						isPlaying = false;
 						reportPlaybackStopped();
+						stopProgressReporter();
 						updateUI();
 						break;
 					case 'NextTrack':
@@ -364,6 +384,11 @@
 				const startIndex = msg.Data.StartIndex || 0;
 				if (itemIds.length) {
 					playItemsByIds(itemIds, startIndex, msg.Data.StartPositionTicks);
+				}
+			} else if (msg.MessageType === 'GeneralCommand' && msg.Data) {
+				const name = msg.Data.Name;
+				if (name === 'DisplayMessage' && msg.Data.Arguments) {
+					// optional: could show a toast, ignore for now
 				}
 			}
 		}
@@ -484,10 +509,10 @@
 						<div style="color:#aaa; font-size:0.95rem;">${album.AlbumArtist || 'Verschiedene'}</div>
 						<div style="color:#777; font-size:0.85rem; margin-top:4px;">${tracks.length} Songs${year}</div>
 						<div style="display:flex; gap:10px; margin-top:12px;">
-							<button class="round-btn" style="width:auto; padding:8px 14px; border-radius:10px;" onclick="playAlbumNow(this)" data-tracks='${JSON.stringify(tracks).replace(/'/g, "&#39;")}'>
+							<button class="round-btn" style="width:auto; padding:8px 14px; border-radius:10px;" onclick="playAlbumNow()">
 								<i class="fa-solid fa-play"></i> Abspielen
 							</button>
-							<button class="round-btn" style="width:auto; padding:8px 14px; border-radius:10px;" onclick="addAlbumToQueue(this)" data-tracks='${JSON.stringify(tracks).replace(/'/g, "&#39;")}'>
+							<button class="round-btn" style="width:auto; padding:8px 14px; border-radius:10px;" onclick="addAlbumToQueue()">
 								<i class="fa-solid fa-plus"></i> Zur Queue
 							</button>
 						</div>
@@ -513,15 +538,13 @@
 					currentTrackIndex = index;
 					playCurrentTrack();
 				};
-				div.dataset.trackIndex = index;
 				content.appendChild(div);
 			});
 
-			// store tracks for the album buttons
 			window._currentAlbumTracks = tracks;
 		}
 
-		function playAlbumNow(btn) {
+		function playAlbumNow() {
 			const tracks = window._currentAlbumTracks || [];
 			if (!tracks.length) return;
 			queue = tracks.slice();
@@ -529,7 +552,7 @@
 			playCurrentTrack();
 		}
 
-		function addAlbumToQueue(btn) {
+		function addAlbumToQueue() {
 			const tracks = window._currentAlbumTracks || [];
 			if (!tracks.length) return;
 			queue = queue.concat(tracks);
@@ -690,9 +713,7 @@
 		}
 
 		function goBack() {
-			if (confirm('Zurück zum Radio wechseln?')) {
-				window.location.href = 'index.html?noredirect=true';
-			}
+			window.location.href = 'index.html?noredirect=true';
 		}
 
 		audio.addEventListener('timeupdate', () => {
@@ -842,6 +863,7 @@
 		window.addEventListener('beforeunload', () => {
 			if (playSessionId) reportPlaybackStopped();
 			if (ws) try { ws.close(); } catch(e) {}
+			if (keepAliveTimer) clearInterval(keepAliveTimer);
 		});
 	</script>
 </body>

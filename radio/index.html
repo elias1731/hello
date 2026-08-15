@@ -121,6 +121,7 @@
 				<input type="text" id="jf-server" placeholder="Server URL" value="https://jelly.heyfordy.dev">
 				<input type="text" id="jf-username" placeholder="Benutzername">
 				<input type="password" id="jf-password" placeholder="Passwort">
+				<input type="text" id="jf-device-name" placeholder="Gerätename (z.B. Laptop Wohnzimmer)">
 				<button onclick="saveJellyfinConfig()" class="modal-btn save">Speichern & Login</button>
 				<div id="jf-status" style="margin-top:8px; font-size:0.85rem;"></div>
 			</div>
@@ -182,6 +183,17 @@
 		let jfPassword = localStorage.getItem('radio_jf_password') || '';
 		let jfToken = localStorage.getItem('radio_jf_token') || '';
 		let jfUserId = localStorage.getItem('radio_jf_user') || '';
+		let jfDeviceName = localStorage.getItem('radio_jf_device_name') || 'FordyRadio';
+		let jfDeviceId = localStorage.getItem('radio_jf_device_id') || '';
+
+		function ensureDeviceId() {
+			if (!jfDeviceId) {
+				jfDeviceId = 'fordy-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10);
+				localStorage.setItem('radio_jf_device_id', jfDeviceId);
+			}
+			return jfDeviceId;
+		}
+		ensureDeviceId();
 
 		// Audio element references
 		const audio = document.getElementById('audio-el');
@@ -380,10 +392,13 @@
 			jfServer = serverInput || 'https://jelly.heyfordy.dev';
 			jfUsername = document.getElementById('jf-username').value.trim();
 			jfPassword = document.getElementById('jf-password').value.trim();
+			jfDeviceName = (document.getElementById('jf-device-name').value.trim() || 'FordyRadio');
 
 			localStorage.setItem('radio_jf_server', jfServer);
 			localStorage.setItem('radio_jf_username', jfUsername);
 			localStorage.setItem('radio_jf_password', jfPassword);
+			localStorage.setItem('radio_jf_device_name', jfDeviceName);
+			ensureDeviceId();
 
 			const statusEl = document.getElementById('jf-status');
 			statusEl.textContent = 'Login wird versucht...';
@@ -416,7 +431,7 @@
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
-					'X-Emby-Authorization': `MediaBrowser Client="FordyRadio", Device="FordyRadio", DeviceId="fordy-radio-browser", Version="1.0"`
+					'X-Emby-Authorization': `MediaBrowser Client="FordyRadio", Device="${jfDeviceName}", DeviceId="${ensureDeviceId()}", Version="1.1"`
 				},
 				body: JSON.stringify({ Username: jfUsername, Pw: jfPassword })
 			});
@@ -754,6 +769,7 @@
 			renderManagerList(); 
 			document.getElementById('jf-server').value = jfServer;
 			document.getElementById('jf-username').value = jfUsername;
+			document.getElementById('jf-device-name').value = jfDeviceName;
 			document.getElementById('manager-modal').style.display = 'flex'; 
 		}
 		
