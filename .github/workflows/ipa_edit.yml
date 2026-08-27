@@ -30,8 +30,6 @@ env:
 jobs:
   build:
     runs-on: macos-latest
-    env:
-      THEOS: ${{ github.workspace }}/theos
 
     steps:
       - uses: actions/checkout@v4
@@ -83,41 +81,14 @@ jobs:
 
       - name: Download SwiftProtobuf
         run: |
-          wget https://github.com/whoeevee/swift-protobuf/releases/download/${{ env.SWIFTPROTOBUF_VERSION }}/org.swift.protobuf.swiftprotobuf_${{ env.SWIFTPROTOBUF_VERSION }}_iphoneos-arm.deb
           wget https://github.com/whoeevee/swift-protobuf/releases/download/${{ env.SWIFTPROTOBUF_VERSION }}/org.swift.protobuf.swiftprotobuf_${{ env.SWIFTPROTOBUF_VERSION }}_iphoneos-arm64.deb
-          echo "SWIFTPROTOBUF_ROOTFUL=org.swift.protobuf.swiftprotobuf_${{ env.SWIFTPROTOBUF_VERSION }}_iphoneos-arm.deb" >> $GITHUB_ENV
-          echo "SWIFTPROTOBUF_ROOTLESS=org.swift.protobuf.swiftprotobuf_${{ env.SWIFTPROTOBUF_VERSION }}_iphoneos-arm64.deb" >> $GITHUB_ENV
+          echo "SWIFTPROTOBUF_DEB=org.swift.protobuf.swiftprotobuf_${{ env.SWIFTPROTOBUF_VERSION }}_iphoneos-arm64.deb" >> $GITHUB_ENV
 
-      - name: Setup insert-dylib
+      - name: Run Cyan with injection
         run: |
-          git clone https://github.com/Tyilo/insert_dylib.git
-          xcrun clang -x c -arch arm64 ./insert_dylib/insert_dylib/main.c -I/usr/include/ -o insert-dylib
-          sudo mv insert-dylib /usr/local/bin/
-          sudo chmod +x /usr/local/bin/insert-dylib
-
-      - name: Setup ivinject
-        run: |
-          git clone https://github.com/whoeevee/ivinject.git
-          cp -r ./ivinject/KnownFrameworks ~/.ivinject
-          wget https://github.com/whoeevee/ivinject/releases/download/first/ivinject-arm64
-          sudo mv ivinject-arm64 /usr/local/bin/
-          sudo chmod +x /usr/local/bin/ivinject-arm64
-
-      - name: Setup ipapatch
-        run: |
-          wget https://github.com/asdfzxcvbn/ipapatch/releases/download/v2.1.0/ipapatch.macos-arm64
-          sudo mv ipapatch.macos-arm64 /usr/local/bin/ipapatch
-          sudo chmod +x /usr/local/bin/ipapatch
-
-      - name: Prepare App
-        run: |
-          ivinject-arm64 app.ipa prepared.ipa \
-            -i "$SWIFTPROTOBUF_ROOTFUL" \
-            -s - -d --level Optimal
-
-      - name: Run Cyan
-        run: |
-          Cyan -i "prepared.ipa" -o "${{ env.out_name }}.ipa" ${{ env.cyan_args }} ${{ env.app_icon }} -u -w
+          Cyan -i "app.ipa" -o "${{ env.out_name }}.ipa" \
+            -f "$SWIFTPROTOBUF_DEB" \
+            ${{ env.cyan_args }} ${{ env.app_icon }} -u -w -s
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
