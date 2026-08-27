@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AltStudio To SideStore</title>
+    <style>
+        :root {
+            --bg-color: #121212;
+            --surface-color: #1e1e1e;
+            --primary-color: #FE9402; /* Adaptiert vom Repo tintColor */
+            --primary-hover: #e08302;
+            --text-color: #e0e0e0;
+            --text-muted: #888888;
+            --success-color: #48ff77;
+            --error-color: #ff4a4a;
+            --border-radius: 16px;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            background: var(--surface-color);
+            padding: 2.5rem 2rem;
+            border-radius: var(--border-radius);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            text-align: center;
+            max-width: 420px;
+            width: 100%;
+        }
+
+        h1 {
+            margin-top: 0;
+            font-size: 1.5rem;
+            color: var(--primary-color);
+            letter-spacing: 0.5px;
+        }
+
+        p.subtitle {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-bottom: 2rem;
+            line-height: 1.5;
+        }
+
+        .drop-zone {
+            border: 2px dashed var(--text-muted);
+            border-radius: 12px;
+            padding: 3rem 1rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-bottom: 1.5rem;
+            background-color: rgba(255, 255, 255, 0.02);
+        }
+
+        .drop-zone.hover {
+            border-color: var(--primary-color);
+            background-color: rgba(254, 148, 2, 0.05);
+        }
+
+        .drop-zone p {
+            margin: 0 0 8px 0;
+            color: var(--text-color);
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .drop-zone span {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        button {
+            background-color: var(--primary-color);
+            color: #fff;
+            border: none;
+            padding: 14px 20px;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 10px;
+            cursor: pointer;
+            width: 100%;
+            transition: background 0.2s ease, transform 0.1s ease;
+            display: none; /* Versteckt bis Datei geladen wurde */
+        }
+
+        button:hover {
+            background-color: var(--primary-hover);
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        #status {
+            margin-top: 1rem;
+            font-size: 0.9rem;
+            font-weight: 500;
+            min-height: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>AltStudio ➔ SideStore</h1>
+        <p class="subtitle">Entfernt inkompatible AltStore PAL-Werte (wie <i>marketplaceID</i> & <i>patreonURL</i>) und repariert null-Werte, um die Repo SideStore-kompatibel zu machen.</p>
+
+        <div class="drop-zone" id="dropZone">
+            <p>apps.json hier ablegen</p>
+            <span>oder klicken, um eine Datei auszuwählen</span>
+            <input type="file" id="fileInput" accept=".json">
+        </div>
+
+        <button id="downloadBtn">Bereinigte Repo herunterladen</button>
+        <div id="status"></div>
+    </div>
+
+    <script>
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const statusDiv = document.getElementById('status');
+
+        let processedJSON = null;
+        let originalFileName = 'apps.json';
+
+        // Drag & Drop Styling
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropZone.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                dropZone.classList.add('hover');
+            }, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                dropZone.classList.remove('hover');
+            }, false);
+        });
+
+        // Datei annehmen (Drop oder Klick)
+        dropZone.addEventListener('drop', (e) => {
+            const files = e.dataTransfer.files;
+            if (files.length) handleFile(files[0]);
+        });
+
+        dropZone.addEventListener('click', () => fileInput.click());
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length) handleFile(e.target.files[0]);
+        });
+
+        // Dateiverarbeitung
+        function handleFile(file) {
+            if (!file.name.toLowerCase().endsWith('.json')) {
+                showStatus('❌ Bitte eine gültige .json Datei hochladen.', 'error');
+                downloadBtn.style.display = 'none';
+                return;
+            }
+
+            originalFileName = file.name;
+            const reader = new FileReader();
+
+            reader.onload = (e) => {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    processData(data);
+                } catch (err) {
+                    showStatus('❌ Fehler: Die JSON-Datei ist ungültig oder beschädigt.', 'error');
+                    downloadBtn.style.display = 'none';
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // Bereinigungs-Logik
+        function processData(data) {
+            let removedCount = 0;
+
+            // 1. Globale PAL-Werte entfernen
+            if (data.patreonURL !== undefined) {
+                delete data.patreonURL;
+                removedCount++;
+            }
+
+            // 2. App-spezifische PAL-Werte und erzwungene Null-Werte entfernen
+            if (Array.isArray(data.apps)) {
+                data.apps.forEach(app => {
+                    if (app.marketplaceID !== undefined) {
+                        delete app.marketplaceID;
+                        removedCount++;
+                    }
+                    if (app.patreon !== undefined) {
+                        delete app.patreon;
+                        removedCount++;
+                    }
+
+                    // AltStudio setzt leere Werte auf null, was JSON-Parser (wie von SideStore) stören kann
+                    if (Array.isArray(app.versions)) {
+                        app.versions.forEach(ver => {
+                            if (ver.buildVersion === null) {
+                                delete ver.buildVersion;
+                                removedCount++;
+                            }
+                            if (ver.minOSVersion === null) {
+                                delete ver.minOSVersion;
+                                removedCount++;
+                            }
+                        });
+                    }
+                });
+            }
+
+            // JSON formatieren (2 Leerzeichen Einrückung für perfekte Lesbarkeit)
+            processedJSON = JSON.stringify(data, null, 2);
+
+            showStatus(`✅ Bereinigt! ${removedCount} inkompatible Tags/Werte entfernt.`, 'success');
+            downloadBtn.style.display = 'block';
+        }
+
+        // Download-Logik
+        downloadBtn.addEventListener('click', () => {
+            if (!processedJSON) return;
+
+            const blob = new Blob([processedJSON], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+
+            // Dateinamen anpassen (z.B. apps.json -> apps_sidestore.json)
+            let newName = originalFileName;
+            if (newName.endsWith('.json')) {
+                newName = newName.replace('.json', '_sidestore.json');
+            } else {
+                newName += '_sidestore.json';
+            }
+
+            a.href = url;
+            a.download = newName;
+            document.body.appendChild(a);
+            a.click();
+            
+            // Aufräumen
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        });
+
+        function showStatus(text, type) {
+            statusDiv.textContent = text;
+            if (type === 'error') {
+                statusDiv.style.color = 'var(--error-color)';
+            } else if (type === 'success') {
+                statusDiv.style.color = 'var(--success-color)';
+            } else {
+                statusDiv.style.color = 'var(--text-color)';
+            }
+        }
+    </script>
+</body>
+</html>
