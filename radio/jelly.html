@@ -50,11 +50,59 @@
 		.queue-actions button { flex: 1; padding: 10px; border-radius: 10px; border: none; background: rgba(255,255,255,0.08); color: white; font-weight: 600; cursor: pointer; }
 		.queue-actions button.clear { background: rgba(255,80,80,0.2); color: #ff6666; }
 
-		/* Mobile adjustments */
+		.jelly-content { padding-bottom: 120px; }
+		.jelly-sidebar .switch-container { border: 1px solid transparent; }
+		.jelly-sidebar .switch-container.nav-active {
+			background: rgba(76, 175, 80, 0.18);
+			border-color: rgba(76, 175, 80, 0.35);
+		}
+		.disc-header {
+			font-size: 0.8rem;
+			font-weight: 700;
+			letter-spacing: 1.5px;
+			text-transform: uppercase;
+			color: var(--accent);
+			padding: 14px 12px 4px;
+			opacity: 0.9;
+		}
+
+		/* Mobile: two category tabs, not a broken slide-out */
 		@media (max-width: 768px) {
-			.menu-btn { display: flex; }
-			.jelly-sidebar { position: absolute; top: 0; left: 0; height: 100%; z-index: 150; transform: translateX(-100%); width: 250px; box-shadow: 5px 0 25px rgba(0,0,0,0.5); }
-			.jelly-sidebar.open { transform: translateX(0); }
+			.menu-btn { display: none !important; }
+			.jelly-main { flex-direction: column; }
+			.jelly-sidebar {
+				position: relative !important;
+				top: auto;
+				left: auto;
+				transform: none !important;
+				width: 100% !important;
+				height: auto !important;
+				max-height: none;
+				overflow-x: auto;
+				overflow-y: hidden;
+				padding: 10px 12px !important;
+				border-right: none;
+				border-bottom: 1px solid rgba(255,255,255,0.08);
+				display: flex;
+				flex-shrink: 0;
+				box-shadow: none !important;
+				z-index: 1;
+			}
+			.jelly-sidebar.open { transform: none !important; }
+			.jelly-sidebar > div {
+				display: flex;
+				gap: 8px;
+				padding: 0 !important;
+				flex-wrap: nowrap;
+				width: 100%;
+			}
+			.jelly-sidebar .switch-container {
+				flex: 1;
+				margin: 0;
+				justify-content: center;
+				padding: 12px 14px;
+				white-space: nowrap;
+			}
 			
 			.jelly-player { flex-direction: column; padding: 10px 15px; gap: 10px; }
 			.player-info-row { width: 100%; flex: unset; }
@@ -64,6 +112,7 @@
 			
 			#search-container.active { width: 160px; }
 			.jelly-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 15px; }
+			.jelly-content { padding-bottom: 190px; }
 		}
 	</style>
 </head>
@@ -90,17 +139,11 @@
 		<div class="jelly-main">
 			<div class="jelly-sidebar" id="app-sidebar">
 				<div style="padding:0 20px 20px;">
-					<div class="switch-container" onclick="loadAlbums()" style="cursor:pointer;">
+					<div class="switch-container nav-active" id="nav-albums" onclick="loadAlbums()" style="cursor:pointer;">
 						<i class="fa-solid fa-compact-disc"></i> <span style="margin-left:12px;">Alben</span>
 					</div>
-					<div class="switch-container" onclick="loadArtists()" style="cursor:pointer;">
-						<i class="fa-solid fa-user"></i> <span style="margin-left:12px;">Künstler</span>
-					</div>
-					<div class="switch-container" onclick="loadPlaylists()" style="cursor:pointer;">
-						<i class="fa-solid fa-list-ul"></i> <span style="margin-left:12px;">Playlists</span>
-					</div>
-					<div class="switch-container" onclick="loadLibraries()" style="cursor:pointer;">
-						<i class="fa-solid fa-music"></i> <span style="margin-left:12px;">Bibliotheken</span>
+					<div class="switch-container" id="nav-videos" onclick="loadMusicVideos()" style="cursor:pointer;">
+						<i class="fa-solid fa-film"></i> <span style="margin-left:12px;">Musikvideos</span>
 					</div>
 				</div>
 			</div>
@@ -179,6 +222,47 @@
 			return `MediaBrowser Client="${CLIENT_NAME}", Device="${DEVICE_NAME}", DeviceId="${DEVICE_ID}", Version="${CLIENT_VERSION}", Token="${jfToken}"`;
 		}
 
+		function authHeaders(extra) {
+			return Object.assign({
+				'Authorization': authHeader(),
+				'X-Emby-Authorization': authHeader(),
+				'X-Emby-Token': jfToken
+			}, extra || {});
+		}
+
+		function setActiveNav(id) {
+			document.querySelectorAll('.jelly-sidebar .switch-container').forEach(el => el.classList.remove('nav-active'));
+			const el = document.getElementById(id);
+			if (el) el.classList.add('nav-active');
+		}
+
+		function sortByName(items) {
+			return (items || []).slice().sort((a, b) => {
+				const left = (a.SortName || a.Name || '').toString();
+				const right = (b.SortName || b.Name || '').toString();
+				return left.localeCompare(right, 'de', { sensitivity: 'base', numeric: true });
+			});
+		}
+
+		function sortAlbumTracks(tracks) {
+			return (tracks || []).slice().sort((a, b) => {
+				const discA = a.ParentIndexNumber || 1;
+				const discB = b.ParentIndexNumber || 1;
+				if (discA !== discB) return discA - discB;
+				const idxA = a.IndexNumber || 0;
+				const idxB = b.IndexNumber || 0;
+				if (idxA !== idxB) return idxA - idxB;
+				return (a.SortName || a.Name || '').toString().localeCompare((b.SortName || b.Name || '').toString(), 'de', { sensitivity: 'base', numeric: true });
+			});
+		}
+
+		function ensurePlaylistIds(items) {
+			return (items || []).map((item, i) => {
+				if (!item.PlaylistItemId) item.PlaylistItemId = item.Id + '-' + i;
+				return item;
+			});
+		}
+
 		function getImageUrl(item, size = 400) {
 			if (!item.ImageTags || !item.ImageTags.Primary) return 'https://heyfordy.dev/radio/assets/jelly.png';
 			return `${JF_SERVER}/Items/${item.Id}/Images/Primary?maxHeight=${size}&tag=${item.ImageTags.Primary}&quality=90`;
@@ -198,7 +282,7 @@
 
 			// Background Fetch um Cache aktuell zu halten
 			const fetchPromise = fetch(`${JF_SERVER}${endpoint}`, {
-				headers: { 'X-Emby-Authorization': authHeader() }
+				headers: authHeaders()
 			}).then(res => {
 				if (!res.ok) throw new Error('API error');
 				return res.json();
@@ -219,10 +303,7 @@
 			try {
 				const res = await fetch(`${JF_SERVER}${endpoint}`, {
 					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json',
-						'X-Emby-Authorization': authHeader()
-					},
+					headers: authHeaders({ 'Content-Type': 'application/json' }),
 					body: body ? JSON.stringify(body) : undefined
 				});
 				return res.ok;
@@ -232,20 +313,41 @@
 			}
 		}
 
+		const JF_SUPPORTED_COMMANDS = [
+			'MoveUp', 'MoveDown', 'MoveLeft', 'MoveRight', 'Select', 'Back',
+			'GoHome', 'GoToSearch', 'GoToSettings',
+			'VolumeUp', 'VolumeDown', 'Mute', 'Unmute', 'SetVolume', 'ToggleMute',
+			'DisplayMessage', 'SetRepeatMode', 'SetShuffleQueue', 'SetPlaybackOrder',
+			'Play', 'PlayState', 'PlayNext', 'PlayMediaSource'
+		];
+
 		function reportCapabilities() {
-			// full capabilities so the session is marked as remotely controllable
-			apiPost('/Sessions/Capabilities/Full', {
-				PlayableMediaTypes: ['Audio'],
-				SupportedCommands: [
-					'Play', 'PlayState', 'PlayNext', 'PlayMediaSource',
-					'Pause', 'Unpause', 'Stop', 'Seek',
-					'NextTrack', 'PreviousTrack',
-					'VolumeUp', 'VolumeDown', 'Mute', 'Unmute', 'SetVolume', 'ToggleMute',
-					'DisplayMessage'
-				],
+			// Valid GeneralCommandType values only — invalid names (Pause/Seek/NextTrack)
+			// make the whole POST fail, so the session never appears in the Cast menu.
+			const payload = {
+				PlayableMediaTypes: ['Audio', 'Video'],
+				SupportedCommands: JF_SUPPORTED_COMMANDS,
 				SupportsMediaControl: true,
-				SupportsPersistentIdentifier: true
-			});
+				SupportsPersistentIdentifier: true,
+				DeviceProfile: {
+					Name: DEVICE_NAME,
+					MaxStreamingBitrate: 140000000,
+					DirectPlayProfiles: [
+						{ Type: 'Audio', Container: 'mp3,aac,flac,wav,ogg,opus,m4a,webma' }
+					],
+					TranscodingProfiles: [
+						{ Type: 'Audio', Container: 'mp3', AudioCodec: 'mp3', Protocol: 'http', Context: 'Streaming' }
+					]
+				}
+			};
+			apiPost('/Sessions/Capabilities/Full', payload);
+			const qs = [
+				'playableMediaTypes=Audio,Video',
+				'supportsMediaControl=true',
+				'supportsPersistentIdentifier=true',
+				'supportedCommands=' + encodeURIComponent(JF_SUPPORTED_COMMANDS.join(','))
+			].join('&');
+			apiPost('/Sessions/Capabilities?' + qs, null);
 		}
 
 		function generatePlaySessionId() {
@@ -258,7 +360,8 @@
 			const posTicks = Math.floor((audio.currentTime || 0) * 10000000);
 			return {
 				ItemId: track.Id,
-				MediaSourceId: track.Id,
+				MediaSourceId: track.MediaSources && track.MediaSources[0] ? track.MediaSources[0].Id : track.Id,
+				PlaylistItemId: track.PlaylistItemId || track.Id,
 				PositionTicks: posTicks,
 				IsPaused: audio.paused,
 				IsMuted: audio.muted,
@@ -266,7 +369,14 @@
 				PlaySessionId: playSessionId,
 				CanSeek: true,
 				VolumeLevel: Math.round((audio.volume || 1) * 100),
-				EventName: eventName || 'TimeUpdate'
+				PlaybackRate: 1,
+				RepeatMode: 'RepeatNone',
+				ShuffleMode: 'Sorted',
+				EventName: eventName || 'TimeUpdate',
+				NowPlayingQueue: queue.map((t, i) => ({
+					Id: t.Id,
+					PlaylistItemId: t.PlaylistItemId || t.Id || String(i)
+				}))
 			};
 		}
 
@@ -312,19 +422,19 @@
 
 			const proto = JF_SERVER.startsWith('https') ? 'wss' : 'ws';
 			const base = JF_SERVER.replace(/^https?/, proto);
-			const url = `${base}/socket?api_key=${encodeURIComponent(jfToken)}&deviceId=${encodeURIComponent(DEVICE_ID)}`;
+			const url = `${base}/socket?api_key=${encodeURIComponent(jfToken)}&ApiKey=${encodeURIComponent(jfToken)}&deviceId=${encodeURIComponent(DEVICE_ID)}`;
 			try {
 				ws = new WebSocket(url);
 				ws.onopen = () => {
-					// start session updates + capabilities so remote control works
 					ws.send(JSON.stringify({ MessageType: 'SessionsStart', Data: '0,1500' }));
+					ws.send(JSON.stringify({ MessageType: 'KeepAlive' }));
 					reportCapabilities();
 					if (keepAliveTimer) clearInterval(keepAliveTimer);
 					keepAliveTimer = setInterval(() => {
 						if (ws && ws.readyState === WebSocket.OPEN) {
 							ws.send(JSON.stringify({ MessageType: 'KeepAlive' }));
 						}
-					}, 30000);
+					}, 15000);
 				};
 				ws.onmessage = (ev) => {
 					try {
@@ -344,65 +454,178 @@
 			}
 		}
 
-		function handleWsMessage(msg) {
-			if (!msg || !msg.MessageType) return;
-			if (msg.MessageType === 'Playstate' && msg.Data) {
-				const cmd = msg.Data.Command;
-				const seekTicks = msg.Data.SeekPositionTicks;
-				switch (cmd) {
-					case 'Pause':
-						if (!audio.paused) togglePlay();
-						break;
-					case 'Unpause':
-						if (audio.paused) togglePlay();
-						break;
-					case 'PlayPause':
-						togglePlay();
-						break;
-					case 'Stop':
-						audio.pause();
-						isPlaying = false;
-						reportPlaybackStopped();
-						stopProgressReporter();
-						updateUI();
-						break;
-					case 'NextTrack':
-						nextTrack();
-						break;
-					case 'PreviousTrack':
-						prevTrack();
-						break;
-					case 'Seek':
-						if (seekTicks != null && audio.duration) {
-							audio.currentTime = seekTicks / 10000000;
-							reportPlaybackProgress('Seek');
-						}
-						break;
-				}
-			} else if (msg.MessageType === 'Play' && msg.Data) {
-				const itemIds = msg.Data.ItemIds || [];
-				const startIndex = msg.Data.StartIndex || 0;
-				if (itemIds.length) {
-					playItemsByIds(itemIds, startIndex, msg.Data.StartPositionTicks);
-				}
-			} else if (msg.MessageType === 'GeneralCommand' && msg.Data) {
-				const name = msg.Data.Name;
-				if (name === 'DisplayMessage' && msg.Data.Arguments) {
-					// optional: could show a toast, ignore for now
-				}
+		function sendWs(type, data) {
+			if (!ws || ws.readyState !== WebSocket.OPEN) return;
+			const msg = { MessageType: type };
+			if (data !== undefined) msg.Data = data;
+			ws.send(JSON.stringify(msg));
+		}
+
+		function handlePlaystateCommand(cmd, seekTicks) {
+			switch (cmd) {
+				case 'Pause':
+					if (!audio.paused) togglePlay();
+					break;
+				case 'Unpause':
+					if (audio.paused) togglePlay();
+					break;
+				case 'PlayPause':
+					togglePlay();
+					break;
+				case 'Stop':
+					audio.pause();
+					isPlaying = false;
+					reportPlaybackStopped();
+					stopProgressReporter();
+					updateUI();
+					break;
+				case 'NextTrack':
+					nextTrack();
+					break;
+				case 'PreviousTrack':
+					prevTrack();
+					break;
+				case 'Seek':
+					if (seekTicks != null && audio.duration) {
+						audio.currentTime = seekTicks / 10000000;
+						reportPlaybackProgress('Seek');
+					}
+					break;
+				case 'Rewind':
+					audio.currentTime = Math.max(0, (audio.currentTime || 0) - 10);
+					reportPlaybackProgress('Seek');
+					break;
+				case 'FastForward':
+					if (audio.duration) audio.currentTime = Math.min(audio.duration, (audio.currentTime || 0) + 10);
+					reportPlaybackProgress('Seek');
+					break;
 			}
 		}
 
-		async function playItemsByIds(itemIds, startIndex = 0, startTicks = 0) {
-			const items = [];
-			for (const id of itemIds) {
-				const data = await apiGet(`/Users/${jfUserId}/Items/${id}`);
-				if (data) items.push(data);
+		function handleGeneralCommand(data) {
+			const name = data.Name || data.Command;
+			const args = data.Arguments || {};
+			switch (name) {
+				case 'VolumeUp':
+					audio.volume = Math.min(1, (audio.volume || 1) + 0.05);
+					reportPlaybackProgress('VolumeChange');
+					break;
+				case 'VolumeDown':
+					audio.volume = Math.max(0, (audio.volume || 1) - 0.05);
+					reportPlaybackProgress('VolumeChange');
+					break;
+				case 'Mute':
+					audio.muted = true;
+					reportPlaybackProgress('VolumeChange');
+					break;
+				case 'Unmute':
+					audio.muted = false;
+					reportPlaybackProgress('VolumeChange');
+					break;
+				case 'ToggleMute':
+					audio.muted = !audio.muted;
+					reportPlaybackProgress('VolumeChange');
+					break;
+				case 'SetVolume':
+					if (args.Volume != null) {
+						audio.volume = Math.max(0, Math.min(100, Number(args.Volume))) / 100;
+						reportPlaybackProgress('VolumeChange');
+					}
+					break;
 			}
-			if (!items.length) return;
-			queue = items;
-			currentTrackIndex = Math.min(startIndex, items.length - 1);
+		}
+
+		function handleWsMessage(msg) {
+			if (!msg || !msg.MessageType) return;
+			const type = msg.MessageType;
+			if (type === 'ForceKeepAlive') {
+				sendWs('KeepAlive');
+				const timeoutSec = Number(msg.Data) || 30;
+				if (keepAliveTimer) clearInterval(keepAliveTimer);
+				keepAliveTimer = setInterval(() => sendWs('KeepAlive'), Math.max(5000, timeoutSec * 500));
+				return;
+			}
+			if (type === 'KeepAlive') return;
+			if ((type === 'Playstate' || type === 'PlayState') && msg.Data) {
+				handlePlaystateCommand(msg.Data.Command, msg.Data.SeekPositionTicks);
+			} else if (type === 'Play' && msg.Data) {
+				const itemIds = msg.Data.ItemIds || [];
+				const startIndex = msg.Data.StartIndex || 0;
+				if (itemIds.length) {
+					playItemsByIds(itemIds, startIndex, msg.Data.StartPositionTicks, msg.Data.PlayCommand);
+				}
+			} else if (type === 'GeneralCommand' && msg.Data) {
+				handleGeneralCommand(msg.Data);
+			}
+		}
+
+		async function expandToPlayable(item) {
+			if (!item) return [];
+			if (item.Type === 'Audio' || item.Type === 'MusicVideo' || item.MediaType === 'Audio') {
+				return [item];
+			}
+			let url = `/Users/${jfUserId}/Items?ParentId=${item.Id}&IncludeItemTypes=Audio,MusicVideo&Recursive=true&SortBy=ParentIndexNumber,IndexNumber,SortName&SortOrder=Ascending&Fields=ParentIndexNumber,IndexNumber,MediaSources`;
+			if (item.Type === 'MusicArtist' || item.Type === 'Person') {
+				url = `/Users/${jfUserId}/Items?ArtistIds=${item.Id}&IncludeItemTypes=Audio&Recursive=true&SortBy=Album,ParentIndexNumber,IndexNumber,SortName&SortOrder=Ascending&Fields=ParentIndexNumber,IndexNumber,MediaSources`;
+			}
+			const data = await apiGet(url);
+			return data && data.Items ? sortAlbumTracks(data.Items) : [];
+		}
+
+		async function playItemsByIds(itemIds, startIndex = 0, startTicks = 0, playCommand = 'PlayNow') {
+			if (!itemIds || !itemIds.length) return;
+			const data = await apiGet(`/Users/${jfUserId}/Items?Ids=${itemIds.join(',')}&Fields=MediaSources,ParentIndexNumber,IndexNumber`);
+			let fetched = (data && data.Items) ? data.Items : [];
+			const byId = new Map(fetched.map(i => [i.Id, i]));
+			const ordered = itemIds.map(id => byId.get(id)).filter(Boolean);
+			const expanded = [];
+			for (const item of ordered) {
+				const kids = await expandToPlayable(item);
+				expanded.push.apply(expanded, kids);
+			}
+			if (!expanded.length) return;
+
+			const cmd = playCommand || 'PlayNow';
+			if (cmd === 'PlayLast') {
+				queue = ensurePlaylistIds(queue.concat(expanded));
+				localStorage.setItem('jf_queue', JSON.stringify(queue));
+				if (currentTrackIndex < 0) {
+					currentTrackIndex = 0;
+					playCurrentTrack(false, startTicks ? startTicks / 10000000 : 0);
+				}
+				return;
+			}
+			if (cmd === 'PlayNext') {
+				const insertAt = Math.max(currentTrackIndex + 1, 0);
+				queue = ensurePlaylistIds(queue.slice(0, insertAt).concat(expanded, queue.slice(insertAt)));
+				localStorage.setItem('jf_queue', JSON.stringify(queue));
+				if (currentTrackIndex < 0) {
+					currentTrackIndex = 0;
+					playCurrentTrack(false, startTicks ? startTicks / 10000000 : 0);
+				}
+				return;
+			}
+			let list = expanded;
+			if (cmd === 'PlayShuffle') {
+				list = expanded.slice();
+				for (let i = list.length - 1; i > 0; i--) {
+					const j = Math.floor(Math.random() * (i + 1));
+					const tmp = list[i]; list[i] = list[j]; list[j] = tmp;
+				}
+			}
+			queue = ensurePlaylistIds(list);
+			currentTrackIndex = Math.min(startIndex, queue.length - 1);
 			playCurrentTrack(false, startTicks ? startTicks / 10000000 : 0);
+		}
+
+		async function search() {
+			const input = document.getElementById('search-input');
+			const q = (input && input.value ? input.value : '').trim();
+			if (!q) return;
+			closeSidebar();
+			const data = await apiGet(`/Users/${jfUserId}/Items?SearchTerm=${encodeURIComponent(q)}&IncludeItemTypes=MusicAlbum,MusicVideo,Audio&Recursive=true&SortBy=SortName&SortOrder=Ascending&Limit=80`);
+			if (data && data.Items) data.Items = sortByName(data.Items);
+			renderGridItems(data, 'Suche: ' + q);
 		}
 
 		function toggleSidebar() {
@@ -421,10 +644,20 @@
 
 		async function loadAlbums(libraryId = null) {
 			closeSidebar();
-			let url = `/Users/${jfUserId}/Items?IncludeItemTypes=MusicAlbum&Recursive=true&SortBy=SortName&SortOrder=Ascending`;
+			setActiveNav('nav-albums');
+			let url = `/Users/${jfUserId}/Items?IncludeItemTypes=MusicAlbum&Recursive=true&SortBy=SortName&SortOrder=Ascending&Fields=SortName,PrimaryImageAspectRatio`;
 			if (libraryId) url += `&ParentId=${libraryId}`;
 			const data = await apiGet(url);
+			if (data && data.Items) data.Items = sortByName(data.Items);
 			renderGridItems(data, 'Alben');
+		}
+
+		async function loadMusicVideos() {
+			closeSidebar();
+			setActiveNav('nav-videos');
+			const data = await apiGet(`/Users/${jfUserId}/Items?IncludeItemTypes=MusicVideo&Recursive=true&SortBy=SortName&SortOrder=Ascending&Fields=SortName,PrimaryImageAspectRatio,Artists`);
+			if (data && data.Items) data.Items = sortByName(data.Items);
+			renderGridItems(data, 'Musikvideos');
 		}
 
 		async function loadLibraries() {
@@ -481,16 +714,17 @@
 
 		async function openItem(item) {
 			if (item.Type === 'MusicAlbum' || item.Type === 'Playlist') {
-				const tracks = await apiGet(`/Users/${jfUserId}/Items?parentId=${item.Id}&IncludeItemTypes=Audio&SortBy=IndexNumber`);
+				const tracks = await apiGet(`/Users/${jfUserId}/Items?ParentId=${item.Id}&IncludeItemTypes=Audio&Recursive=true&SortBy=ParentIndexNumber,IndexNumber,SortName&SortOrder=Ascending&Fields=ParentIndexNumber,IndexNumber,SortName,Artists,MediaSources`);
 				if (tracks && tracks.Items && tracks.Items.length) {
-					renderAlbumTracks(item, tracks.Items);
+					renderAlbumTracks(item, sortAlbumTracks(tracks.Items));
 				}
-			} else if (item.Type === 'Audio') {
-				queue = [item];
+			} else if (item.Type === 'Audio' || item.Type === 'MusicVideo') {
+				queue = ensurePlaylistIds([item]);
 				currentTrackIndex = 0;
 				playCurrentTrack();
 			} else if (item.Type === 'Artist') {
-				const albums = await apiGet(`/Users/${jfUserId}/Items?IncludeItemTypes=MusicAlbum&Recursive=true&ArtistIds=${item.Id}`);
+				const albums = await apiGet(`/Users/${jfUserId}/Items?IncludeItemTypes=MusicAlbum&Recursive=true&ArtistIds=${item.Id}&SortBy=SortName&SortOrder=Ascending`);
+				if (albums && albums.Items) albums.Items = sortByName(albums.Items);
 				renderGridItems(albums, item.Name + ' - Alben');
 			}
 		}
@@ -520,7 +754,24 @@
 				</div>
 			`;
 
+			tracks = sortAlbumTracks(tracks);
+			const discIds = [];
+			tracks.forEach(t => {
+				const d = t.ParentIndexNumber || 1;
+				if (discIds.indexOf(d) === -1) discIds.push(d);
+			});
+			const multiDisc = discIds.length > 1;
+			let lastDisc = null;
+
 			tracks.forEach((track, index) => {
+				const disc = track.ParentIndexNumber || 1;
+				if (multiDisc && disc !== lastDisc) {
+					lastDisc = disc;
+					const header = document.createElement('div');
+					header.className = 'disc-header';
+					header.textContent = 'Disc ' + disc;
+					content.appendChild(header);
+				}
 				const div = document.createElement('div');
 				div.className = 'track-item';
 				div.innerHTML = `
@@ -534,7 +785,7 @@
 					</button>
 				`;
 				div.onclick = () => {
-					queue = tracks.slice();
+					queue = ensurePlaylistIds(tracks.slice());
 					currentTrackIndex = index;
 					playCurrentTrack();
 				};
@@ -547,7 +798,7 @@
 		function playAlbumNow() {
 			const tracks = window._currentAlbumTracks || [];
 			if (!tracks.length) return;
-			queue = tracks.slice();
+			queue = ensurePlaylistIds(sortAlbumTracks(tracks.slice()));
 			currentTrackIndex = 0;
 			playCurrentTrack();
 		}
@@ -555,7 +806,7 @@
 		function addAlbumToQueue() {
 			const tracks = window._currentAlbumTracks || [];
 			if (!tracks.length) return;
-			queue = queue.concat(tracks);
+			queue = ensurePlaylistIds(queue.concat(sortAlbumTracks(tracks)));
 			localStorage.setItem('jf_queue', JSON.stringify(queue));
 			localStorage.setItem('jf_index', currentTrackIndex);
 		}
@@ -580,8 +831,11 @@
 			playTimeout = setTimeout(() => {
 				if (playSessionId) reportPlaybackStopped();
 
-				const streamUrl = `${JF_SERVER}/Audio/${track.Id}/stream.mp3?static=true&deviceId=${DEVICE_ID}`;
-				audio.src = streamUrl;
+				const isVideo = track.Type === 'MusicVideo' || track.MediaType === 'Video';
+				const streamPath = isVideo
+					? `/Videos/${track.Id}/stream?static=true&deviceId=${encodeURIComponent(DEVICE_ID)}&api_key=${encodeURIComponent(jfToken)}`
+					: `/Audio/${track.Id}/stream.mp3?static=true&deviceId=${encodeURIComponent(DEVICE_ID)}&api_key=${encodeURIComponent(jfToken)}`;
+				audio.src = `${JF_SERVER}${streamPath}`;
 				
 				if (restoreTime) {
 					const savedTime = parseFloat(localStorage.getItem('jf_time'));
@@ -826,11 +1080,11 @@
 			// SMTC Listener binden
 			initSMTC();
 			
-			// WebSocket + capabilities for remote control / cast
-			connectWebSocket();
+			// Session first, then WebSocket — device shows in Jellyfin Cast menu
 			reportCapabilities();
+			connectWebSocket();
+			setInterval(() => { if (jfToken) reportCapabilities(); }, 60000);
 			
-			// Requirement 1: Alben als Startkategorie
 			loadAlbums();
 			
 			const savedQueue = localStorage.getItem('jf_queue');

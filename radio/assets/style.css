@@ -443,9 +443,22 @@ input[type="text"]:focus, input[type="password"]:focus {
 
 @media (max-width: 768px) {
     .jelly-main { flex-direction: column; }
-    .jelly-sidebar { width: 100%; border-right: none; border-bottom: 1px solid rgba(255,255,255,0.08); display: flex; padding: 10px; overflow-x: auto; flex-shrink: 0; }
-    .jelly-sidebar > div { display: flex; gap: 10px; padding: 0 !important; flex-wrap: nowrap; width: max-content; }
-    .jelly-sidebar .switch-container { flex: 0 0 auto; margin: 0; padding: 10px 15px; }
+    .jelly-sidebar {
+        position: relative;
+        transform: none;
+        width: 100%;
+        height: auto;
+        border-right: none;
+        border-bottom: 1px solid rgba(255,255,255,0.08);
+        display: flex;
+        padding: 10px 12px;
+        overflow-x: auto;
+        overflow-y: hidden;
+        flex-shrink: 0;
+        box-shadow: none;
+    }
+    .jelly-sidebar > div { display: flex; gap: 8px; padding: 0 !important; flex-wrap: nowrap; width: 100%; }
+    .jelly-sidebar .switch-container { flex: 1; margin: 0; padding: 12px 15px; justify-content: center; }
     
     .jelly-player { padding: 10px; flex-wrap: wrap; gap: 10px; justify-content: center; }
     .now-playing-info { text-align: center; }
