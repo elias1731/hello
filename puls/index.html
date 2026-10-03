@@ -5,12 +5,10 @@
     <link rel="icon" type="image/png" href="https://heyfordy.dev/puls/splash_screens/icon.png">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <meta name="theme-color" content="#00aeff">
+    <meta name="theme-color" content="#0f1014">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-title" content="𝓟𝓾𝓵𝓼 🧡" />
-    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="stylesheet" href="./style.css" type="text/css">
     <link rel="apple-touch-icon" href="./splash_screens/icon.png" />
@@ -38,7 +36,7 @@
     <link rel="apple-touch-startup-image" media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="./splash_screens/iPhone_13_mini__iPhone_12_mini__iPhone_11_Pro__iPhone_XS__iPhone_X_portrait.png">
     <link rel="apple-touch-startup-image" media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="./splash_screens/iPhone_8__iPhone_7__iPhone_6s__iPhone_6__4.7__iPhone_SE_portrait.png">
     <link rel="apple-touch-startup-image" media="screen and (device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)" href="./splash_screens/4__iPhone_SE__iPod_touch_5th_generation_and_later_landscape.png">
-    <link compliments-startup-image" media="screen and (device-width: 810px) and (device-height: 1080px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)" href="./splash_screens/10.2__iPad_landscape.png">
+    <link rel="apple-touch-startup-image" media="screen and (device-width: 810px) and (device-height: 1080px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)" href="./splash_screens/10.2__iPad_landscape.png">
     <link rel="apple-touch-startup-image" media="screen and (device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)" href="./splash_screens/iPhone_8_Plus__iPhone_7_Plus__iPhone_6s_Plus__iPhone_6_Plus_landscape.png">
     <link rel="apple-touch-startup-image" media="screen and (device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)" href="./splash_screens/iPhone_16_Plus__iPhone_15_Pro_Max__iPhone_15_Plus__iPhone_14_Pro_Max_landscape.png">
     <link rel="apple-touch-startup-image" media="screen and (device-width: 440px) and (device-height: 956px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)" href="./splash_screens/iPhone_17_Pro_Max__iPhone_16_Pro_Max_landscape.png">
@@ -66,18 +64,24 @@
 
     <main>
         <div class="container" id="ui">
+            <div class="restore-banner" id="restoreBanner">
+                <div>Letzte Session gefunden: <strong id="restoreInfo"></strong></div>
+                <div class="restore-actions">
+                    <button id="btn-restore" onclick="restoreSession()">Weiterfahren</button>
+                    <button id="btn-discard" onclick="discardSession()" style="background:#444">Verwerfen</button>
+                </div>
+            </div>
+
             <div class="stats-grid">
                 <div class="stat-card">
                     <div id="heart">🩶</div>
                     <div id="status">Waiting for data</div>
                     <div class="label">Puls</div>
                 </div>
-
                 <div class="stat-card">
                     <div class="value" id="speed">0.0</div>
                     <div class="label">km/h</div>
                 </div>
-
                 <div class="stat-card">
                     <div class="value" id="distance">0.00</div>
                     <div class="label">km</div>
@@ -89,69 +93,191 @@
                 <button id="btn-pause" onclick="pauseTracking()" disabled>Pause</button>
                 <button id="btn-stop" onclick="stopTracking()" disabled>Stop</button>
             </div>
+
+            <div class="spotify-card" id="spotifyCard">
+                <img class="cover" id="spotCover" src="https://repo.heyfordy.dev/assets/spot.png" alt="cover">
+                <div class="spotify-meta">
+                    <div class="now">Now Playing</div>
+                    <div class="track" id="spotTrack">—</div>
+                    <div class="artist" id="spotArtist">—</div>
+                </div>
+                <img class="spotify-logo" src="https://repo.heyfordy.dev/assets/spot.png" alt="spotify">
+            </div>
+
+            <div class="live-graph-card" id="liveGraphCard">
+                <h3>Live Puls (30s Samples)</h3>
+                <canvas id="livePulseGraph" width="600" height="110"></canvas>
+            </div>
+
+            <div class="section-title">Letzte Aufzeichnungen</div>
+            <div class="history-card" id="historyCard">
+                <div class="history-empty" id="historyEmpty">Noch keine Sessions gespeichert.</div>
+                <div id="historyList"></div>
+            </div>
         </div>
     </main>
 
     <script>
+        // state
         let wakeLock = null;
         let watchId = null;
         let lastCoord = null;
         let totalDistance = 0;
-        let trackingState = 'idle';
+        let currentSpeed = 0;
+        let currentHr = 0;
+        let trackingState = 'idle'; // idle | running | paused
+        let samples = [];           // {t, hr, speed, dist}
+        let sessionStart = null;
+        let lastSampleAt = 0;
+        let sampleTimer = null;
 
-        // Fetch live heart rate data from API
-        async function update() {
+        const STORAGE_CURRENT = 'puls_current_session';
+        const STORAGE_HISTORY = 'puls_history';
+        const MAX_HISTORY = 12;
+
+        // --- persistence helpers ---
+        function saveCurrent() {
+            const payload = {
+                totalDistance,
+                currentSpeed,
+                currentHr,
+                trackingState,
+                samples,
+                sessionStart,
+                lastUpdate: Date.now()
+            };
+            try { localStorage.setItem(STORAGE_CURRENT, JSON.stringify(payload)); } catch(e) {}
+        }
+
+        function loadCurrent() {
             try {
-                const res = await fetch('https://api.heyfordy.dev/puls-elias/live'); 
+                const raw = localStorage.getItem(STORAGE_CURRENT);
+                return raw ? JSON.parse(raw) : null;
+            } catch(e) { return null; }
+        }
+
+        function clearCurrent() {
+            try { localStorage.removeItem(STORAGE_CURRENT); } catch(e) {}
+        }
+
+        function getHistory() {
+            try {
+                const raw = localStorage.getItem(STORAGE_HISTORY);
+                return raw ? JSON.parse(raw) : [];
+            } catch(e) { return []; }
+        }
+
+        function pushToHistory(session) {
+            const hist = getHistory();
+            hist.unshift(session);
+            if (hist.length > MAX_HISTORY) hist.length = MAX_HISTORY;
+            try { localStorage.setItem(STORAGE_HISTORY, JSON.stringify(hist)); } catch(e) {}
+        }
+
+        // --- restore on load ---
+        function checkRestore() {
+            const saved = loadCurrent();
+            if (!saved || saved.trackingState === 'idle') return;
+            if (saved.totalDistance < 5 && (!saved.samples || saved.samples.length < 1)) {
+                clearCurrent();
+                return;
+            }
+            const km = (saved.totalDistance / 1000).toFixed(2);
+            const ageMin = Math.round((Date.now() - (saved.lastUpdate || 0)) / 60000);
+            document.getElementById('restoreInfo').textContent =
+                `${km} km · ${saved.samples?.length || 0} Samples · vor ${ageMin} min`;
+            document.getElementById('restoreBanner').style.display = 'block';
+        }
+
+        function restoreSession() {
+            const saved = loadCurrent();
+            if (!saved) return;
+            totalDistance = saved.totalDistance || 0;
+            currentSpeed = saved.currentSpeed || 0;
+            currentHr = saved.currentHr || 0;
+            samples = saved.samples || [];
+            sessionStart = saved.sessionStart || Date.now();
+            trackingState = 'paused';
+            document.getElementById('distance').innerText = (totalDistance / 1000).toFixed(2);
+            document.getElementById('speed').innerText = currentSpeed.toFixed(1);
+            document.getElementById('restoreBanner').style.display = 'none';
+            updateButtons();
+            drawLiveGraph();
+            saveCurrent();
+        }
+
+        function discardSession() {
+            clearCurrent();
+            totalDistance = 0;
+            samples = [];
+            sessionStart = null;
+            trackingState = 'idle';
+            document.getElementById('distance').innerText = '0.00';
+            document.getElementById('speed').innerText = '0.0';
+            document.getElementById('restoreBanner').style.display = 'none';
+            updateButtons();
+            drawLiveGraph();
+        }
+
+        // --- heart rate ---
+        async function updateHr() {
+            try {
+                const res = await fetch('https://api.heyfordy.dev/puls-elias/live');
                 const data = await res.json();
-                
                 const ui = document.getElementById('ui');
                 const heart = document.getElementById('heart');
                 const status = document.getElementById('status');
-                
+
                 if (data.connected) {
                     ui.classList.add('connected');
                     heart.innerText = '❤️';
-                    status.innerText = data.heartRate + ' BPM';
-                    const speed = (60 / data.heartRate) + 's';
-                    heart.style.setProperty('--pulse-speed', speed);
+                    currentHr = data.heartRate || 0;
+                    status.innerText = currentHr + ' BPM';
+                    const spd = (60 / Math.max(currentHr, 40)) + 's';
+                    heart.style.setProperty('--pulse-speed', spd);
                 } else {
                     ui.classList.remove('connected');
                     heart.innerText = '🩶';
                     status.innerText = 'Waiting for data';
+                    currentHr = 0;
                 }
+                if (trackingState === 'running' || trackingState === 'paused') saveCurrent();
             } catch(e) {
-                console.error("Fetch failed", e);
+                console.error('HR fetch failed', e);
             }
         }
 
-        // Request screen wake lock to keep display active
+        // --- spotify ---
+        async function updateSpotify() {
+            try {
+                const res = await fetch('https://api.heyfordy.dev/radio');
+                const data = await res.json();
+                const spot = data.spotify;
+                if (!spot) return;
+                document.getElementById('spotTrack').textContent = spot.track || '—';
+                document.getElementById('spotArtist').textContent = spot.artist || '—';
+                const cover = document.getElementById('spotCover');
+                if (spot.cover) cover.src = spot.cover;
+                else cover.src = spot.logo || 'https://repo.heyfordy.dev/assets/spot.png';
+            } catch(e) {
+                console.error('Spotify fetch failed', e);
+            }
+        }
+
+        // --- wake lock ---
         async function requestWakeLock() {
             if ('wakeLock' in navigator) {
-                try {
-                    wakeLock = await navigator.wakeLock.request('screen');
-                } catch (err) {
-                    console.error("Wake lock failed", err);
-                }
+                try { wakeLock = await navigator.wakeLock.request('screen'); } catch(err) {}
             }
         }
-
-        // Release screen wake lock
         function releaseWakeLock() {
-            if (wakeLock) {
-                wakeLock.release();
-                wakeLock = null;
-            }
+            if (wakeLock) { wakeLock.release(); wakeLock = null; }
         }
-
-        // Re-acquire wake lock if application visibility changes
         document.addEventListener('visibilitychange', async () => {
-            if (wakeLock !== null && document.visibilityState === 'visible') {
-                await requestWakeLock();
-            }
+            if (wakeLock !== null && document.visibilityState === 'visible') await requestWakeLock();
         });
 
-        // Calculate distance using haversine formula
+        // --- distance ---
         function getDistance(lat1, lon1, lat2, lon2) {
             const R = 6371000;
             const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -163,71 +289,229 @@
             return R * c;
         }
 
-        // Update disabled states of tracking interface buttons
         function updateButtons() {
             document.getElementById('btn-start').disabled = trackingState === 'running';
             document.getElementById('btn-pause').disabled = trackingState !== 'running';
             document.getElementById('btn-stop').disabled = trackingState === 'idle';
         }
 
-        // Begin geolocation tracking and enable wake lock
+        // sample every 30s while running
+        function takeSample() {
+            if (trackingState !== 'running') return;
+            const now = Date.now();
+            samples.push({
+                t: now,
+                hr: currentHr,
+                speed: currentSpeed,
+                dist: totalDistance
+            });
+            lastSampleAt = now;
+            drawLiveGraph();
+            saveCurrent();
+        }
+
+        function startSampleTimer() {
+            stopSampleTimer();
+            sampleTimer = setInterval(takeSample, 30000);
+            if (samples.length === 0) takeSample();
+        }
+        function stopSampleTimer() {
+            if (sampleTimer) { clearInterval(sampleTimer); sampleTimer = null; }
+        }
+
+        // tracking controls
         async function startTracking() {
             if (trackingState === 'idle') {
                 totalDistance = 0;
+                samples = [];
+                sessionStart = Date.now();
+                lastSampleAt = 0;
                 document.getElementById('distance').innerText = '0.00';
+                document.getElementById('restoreBanner').style.display = 'none';
             }
             trackingState = 'running';
             updateButtons();
             await requestWakeLock();
             lastCoord = null;
+            startSampleTimer();
 
             if (navigator.geolocation) {
                 watchId = navigator.geolocation.watchPosition(position => {
                     if (trackingState !== 'running') return;
-                    
                     const speedMps = position.coords.speed || 0;
-                    document.getElementById('speed').innerText = (speedMps * 3.6).toFixed(1);
+                    currentSpeed = speedMps * 3.6;
+                    document.getElementById('speed').innerText = currentSpeed.toFixed(1);
 
                     if (lastCoord) {
                         const d = getDistance(lastCoord.latitude, lastCoord.longitude, position.coords.latitude, position.coords.longitude);
-                        if (position.coords.accuracy < 30) {
-                            totalDistance += d;
-                        }
+                        if (position.coords.accuracy < 30) totalDistance += d;
                     }
                     lastCoord = { latitude: position.coords.latitude, longitude: position.coords.longitude };
                     document.getElementById('distance').innerText = (totalDistance / 1000).toFixed(2);
-                }, err => console.error(err), { enableHighAccuracy: true });
+                    saveCurrent();
+                }, err => console.error(err), { enableHighAccuracy: true, maximumAge: 2000 });
             }
+            saveCurrent();
         }
 
-        // Pause current tracking operation
         function pauseTracking() {
             trackingState = 'paused';
             updateButtons();
             releaseWakeLock();
-            if (watchId) {
-                navigator.geolocation.clearWatch(watchId);
-                watchId = null;
-            }
+            stopSampleTimer();
+            if (watchId) { navigator.geolocation.clearWatch(watchId); watchId = null; }
             lastCoord = null;
             document.getElementById('speed').innerText = '0.0';
+            currentSpeed = 0;
+            saveCurrent();
         }
 
-        // Terminate tracking operation and reset state
         function stopTracking() {
+            if (samples.length > 0 || totalDistance > 10) {
+                const end = Date.now();
+                const durationMs = end - (sessionStart || end);
+                const hrs = samples.map(s => s.hr).filter(h => h > 0);
+                const avgHr = hrs.length ? Math.round(hrs.reduce((a,b)=>a+b,0) / hrs.length) : 0;
+                const maxHr = hrs.length ? Math.max(...hrs) : 0;
+                pushToHistory({
+                    id: end,
+                    start: sessionStart,
+                    end,
+                    durationMs,
+                    totalDistance,
+                    avgHr,
+                    maxHr,
+                    samples: samples.slice()
+                });
+                renderHistory();
+            }
             trackingState = 'idle';
             updateButtons();
             releaseWakeLock();
-            if (watchId) {
-                navigator.geolocation.clearWatch(watchId);
-                watchId = null;
-            }
+            stopSampleTimer();
+            if (watchId) { navigator.geolocation.clearWatch(watchId); watchId = null; }
             lastCoord = null;
+            currentSpeed = 0;
             document.getElementById('speed').innerText = '0.0';
+            clearCurrent();
+            samples = [];
+            sessionStart = null;
+            drawLiveGraph();
         }
 
-        setInterval(update, 5000);
-        update();
+        // --- graphs ---
+        function drawLineChart(canvas, values, color) {
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const dpr = window.devicePixelRatio || 1;
+            const w = canvas.clientWidth || canvas.width;
+            const h = canvas.clientHeight || canvas.height;
+            canvas.width = w * dpr;
+            canvas.height = h * dpr;
+            ctx.scale(dpr, dpr);
+            ctx.clearRect(0, 0, w, h);
+
+            if (!values || values.length < 2) {
+                ctx.fillStyle = '#555';
+                ctx.font = '12px system-ui';
+                ctx.textAlign = 'center';
+                ctx.fillText('noch zu wenig Daten', w / 2, h / 2 + 4);
+                return;
+            }
+
+            const min = Math.min(...values) * 0.95;
+            const max = Math.max(...values) * 1.05 || 1;
+            const range = max - min || 1;
+            const padX = 6, padY = 8;
+            const usableW = w - padX * 2;
+            const usableH = h - padY * 2;
+
+            ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+            ctx.lineWidth = 1;
+            for (let i = 0; i < 3; i++) {
+                const y = padY + (usableH / 2) * i;
+                ctx.beginPath(); ctx.moveTo(padX, y); ctx.lineTo(w - padX, y); ctx.stroke();
+            }
+
+            ctx.beginPath();
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 2.2;
+            ctx.lineJoin = 'round';
+            ctx.lineCap = 'round';
+            values.forEach((v, i) => {
+                const x = padX + (i / (values.length - 1)) * usableW;
+                const y = padY + usableH - ((v - min) / range) * usableH;
+                if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+            });
+            ctx.stroke();
+
+            const lastX = padX + usableW;
+            ctx.lineTo(lastX, h - padY);
+            ctx.lineTo(padX, h - padY);
+            ctx.closePath();
+            const grad = ctx.createLinearGradient(0, 0, 0, h);
+            grad.addColorStop(0, color + '44');
+            grad.addColorStop(1, color + '00');
+            ctx.fillStyle = grad;
+            ctx.fill();
+        }
+
+        function drawLiveGraph() {
+            const canvas = document.getElementById('livePulseGraph');
+            const hrs = samples.map(s => s.hr).filter(h => h > 0);
+            drawLineChart(canvas, hrs, '#ff5252');
+        }
+
+        function renderHistory() {
+            const hist = getHistory();
+            const list = document.getElementById('historyList');
+            const empty = document.getElementById('historyEmpty');
+            list.innerHTML = '';
+            if (!hist.length) {
+                empty.style.display = 'block';
+                return;
+            }
+            empty.style.display = 'none';
+
+            hist.forEach((s, idx) => {
+                const item = document.createElement('div');
+                item.className = 'session-item';
+                const date = new Date(s.start || s.end);
+                const dateStr = date.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' });
+                const km = (s.totalDistance / 1000).toFixed(2);
+                const mins = Math.round((s.durationMs || 0) / 60000);
+                const hrs = (s.samples || []).map(x => x.hr).filter(h => h > 0);
+
+                item.innerHTML = `
+                    <div class="session-head">
+                        <span class="session-date">${dateStr}</span>
+                        <span class="session-stats">
+                            <span>${km} km</span>
+                            <span>${mins} min</span>
+                            <span>⌀ ${s.avgHr || '–'} bpm</span>
+                        </span>
+                    </div>
+                    <div class="graph-wrap"><canvas id="histGraph${idx}"></canvas></div>
+                `;
+                list.appendChild(item);
+                requestAnimationFrame(() => {
+                    const c = document.getElementById('histGraph' + idx);
+                    drawLineChart(c, hrs, '#ff9a2e');
+                });
+            });
+        }
+
+        // boot
+        checkRestore();
+        renderHistory();
+        drawLiveGraph();
+        setInterval(updateHr, 4000);
+        updateHr();
+        setInterval(updateSpotify, 15000);
+        updateSpotify();
+
+        window.addEventListener('pagehide', saveCurrent);
+        window.addEventListener('beforeunload', saveCurrent);
     </script>
 </body>
 </html>
