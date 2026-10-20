@@ -26,7 +26,7 @@
 	<header>
 		<div class="header-brand">
 			<i class="fa-solid fa-radio" style="margin-right: 12px; color: white;"></i>
-			<span class="rainbow-text">» 𝓱𝓮𝔂𝓕𝓸𝓻𝓭𝔂.dev 𝗥𝗮𝗱𝗶𝗼</span>
+			<span class="rainbow-text" id="rainbow-title">» 𝓕𝓸𝓻𝓭𝔂•Radio</span>
 		</div>
 		
 		<div style="display: flex; gap: 12px;">
@@ -217,9 +217,102 @@
 		// Dummy audio stream base64 data
 		const dummyAudioSrc = "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA";
 		let airplayLastTitle = "";
-		let currentCoverUrl = ""; 
+		let currentCoverUrl = "";
+		let rememberedStreamUrl = null; // resolved stream URL with session id after first play
+		let hangTimeout = null;
+		let isHangFallback = false;
+		const imageCache = new Map(); // url -> HTMLImageElement (preloaded)
+
+		function isAndroidDevice() {
+			return /Android/i.test(navigator.userAgent || '');
+		}
+
+		function applyRainbowTitle() {
+			const el = document.getElementById('rainbow-title');
+			if (!el) return;
+			el.textContent = isAndroidDevice() ? 'FordyRadio' : '» 𝓕𝓸𝓻𝓭𝔂•Radio';
+		}
+
+		function preloadImage(url) {
+			if (!url || url.startsWith('data:')) return Promise.resolve(url);
+			if (imageCache.has(url)) return Promise.resolve(url);
+			return new Promise((resolve) => {
+				const img = new Image();
+				img.crossOrigin = 'anonymous';
+				img.onload = () => { imageCache.set(url, img); resolve(url); };
+				img.onerror = () => resolve(url);
+				img.src = url;
+			});
+		}
+
+		function clearHangWatch() {
+			if (hangTimeout) { clearTimeout(hangTimeout); hangTimeout = null; }
+		}
+
+		function armHangWatch() {
+			clearHangWatch();
+			if (userPaused || currentStationIndex === -1) return;
+			const s = stations[currentStationIndex];
+			if (s && s.apiId === 'airplay') return;
+			hangTimeout = setTimeout(() => {
+				if (userPaused || audio.paused) return;
+				// still waiting / stalled without progress
+				if (audio.readyState < 3 || audio.networkState === 2) {
+					enterHangFallback();
+				}
+			}, 12000);
+		}
+
+		function enterHangFallback() {
+			if (isHangFallback || userPaused || currentStationIndex === -1) return;
+			isHangFallback = true;
+			const s = stations[currentStationIndex];
+			const name = s.displayName || s.name;
+			try {
+				if (audio.src && !audio.src.startsWith('data:') && audio.src !== window.location.href) {
+					rememberedStreamUrl = audio.currentSrc || audio.src;
+				}
+			} catch(e) {}
+			audio.loop = true;
+			audio.src = dummyAudioSrc;
+			audio.play().catch(() => {});
+			updateStatus('loading');
+			document.getElementById('player-title').innerText = name;
+			document.getElementById('player-artist').innerText = 'Wird geladen…';
+			if ('mediaSession' in navigator) {
+				navigator.mediaSession.metadata = new MediaMetadata({
+					title: name,
+					artist: 'Wird geladen…',
+					album: 'heyFordy.dev Radio',
+					artwork: [{ src: s.logo || './assets/app.png', sizes: '512x512', type: 'image/png' }]
+				});
+				navigator.mediaSession.playbackState = 'playing';
+			}
+			// try recover after a short delay
+			setTimeout(() => {
+				if (userPaused || currentStationIndex === -1) return;
+				recoverFromHang();
+			}, 4000);
+		}
+
+		function recoverFromHang() {
+			if (currentStationIndex === -1 || userPaused) return;
+			const s = stations[currentStationIndex];
+			isHangFallback = false;
+			audio.loop = false;
+			const url = rememberedStreamUrl || s.url;
+			audio.src = url;
+			audio.play().then(() => {
+				updateStatus('playing');
+				armHangWatch();
+			}).catch(() => {
+				updatePlayBtn(false);
+				updateStatus('error');
+			});
+		}
 
 		// Initialize interface toggles
+		applyRainbowTitle();
 		document.getElementById('disable-meta-toggle').checked = disableMeta;
 		document.getElementById('bt-mode-toggle').checked = isBtActive;
 		
@@ -260,9 +353,32 @@
 		}
 
 		// Audio event listeners
-		audio.addEventListener('playing', () => { updateStatus("playing"); updatePlayBtn(true); });
+		audio.addEventListener('playing', () => {
+			isHangFallback = false;
+			clearHangWatch();
+			updateStatus("playing");
+			updatePlayBtn(true);
+			// remember resolved stream URL (often contains session id after redirects)
+			try {
+				if (audio.currentSrc && !audio.currentSrc.startsWith('data:') && audio.currentSrc !== window.location.href) {
+					rememberedStreamUrl = audio.currentSrc;
+				}
+			} catch(e) {}
+			armHangWatch();
+		});
+
+		audio.addEventListener('timeupdate', () => {
+			if (!audio.paused && !isHangFallback) {
+				clearHangWatch();
+				armHangWatch();
+			}
+		});
+
+		audio.addEventListener('waiting', () => { armHangWatch(); });
+		audio.addEventListener('stalled', () => { armHangWatch(); });
 		
 		audio.addEventListener('pause', () => { 
+			clearHangWatch();
 			updatePlayBtn(false); 
 			updateStatus("stopped"); 
 			if (typeof Windows !== 'undefined') {
@@ -275,6 +391,10 @@
 			if(!audio.src || audio.src === window.location.href || audio.src.startsWith('data:')) return;
 			if (currentStationIndex !== -1 && stations[currentStationIndex].apiId === 'airplay') {
 				handleAirplayData(stations[currentStationIndex], { isPlaying: false });
+				return;
+			}
+			if (!userPaused && currentStationIndex !== -1) {
+				enterHangFallback();
 				return;
 			}
 			updateStatus("error"); updatePlayBtn(false); 
@@ -338,6 +458,9 @@
 		function playStation(index) {
 			currentStationIndex = index;
 			userPaused = false;
+			isHangFallback = false;
+			clearHangWatch();
+			rememberedStreamUrl = null; // new station => fresh resolve
 			localStorage.setItem('radio_last_index', index);
 			localStorage.setItem('last_played_context', 'radio');
 			const s = stations[index];
@@ -365,7 +488,8 @@
 			document.getElementById('player-artist').innerText = "𝓕𝓸𝓻𝓭𝔂•𝗥𝗮𝗱𝗶𝗼";
 			document.getElementById('player-station-name').style.display = 'none';
 			
-			changeCover(s.logo || './assets/app.png');
+			const logoUrl = s.logo || './assets/app.png';
+			preloadImage(logoUrl).then(() => changeCover(logoUrl));
 			startMediaSessionRotation(s, null, null, null);
 			
 			document.querySelectorAll('.station-item').forEach((el) => {
@@ -444,17 +568,39 @@
 			if (currentStationIndex === -1) return;
 			if (audio.paused) {
 				userPaused = false;
-				if (stations[currentStationIndex].apiId === 'airplay' && audio.src.startsWith('data:')) {
-					audio.src = stations[currentStationIndex].url;
+				isHangFallback = false;
+				clearHangWatch();
+				const s = stations[currentStationIndex];
+				if (s.apiId === 'airplay' && audio.src.startsWith('data:')) {
+					audio.src = s.url;
 					audio.loop = false;
+				} else if (!audio.src || audio.src.startsWith('data:') || audio.src === window.location.href) {
+					// resume with remembered direct stream link if available
+					audio.loop = false;
+					audio.src = rememberedStreamUrl || s.url;
+				} else {
+					// restart with remembered direct link (keeps session id) instead of original playlist url
+					audio.loop = false;
+					const resumeUrl = rememberedStreamUrl || audio.currentSrc || audio.src || s.url;
+					audio.src = resumeUrl;
 				}
 				audio.play().then(() => {
 					updatePlayBtn(true);
 					updateStatus("playing");
-					startMetaFetcher(stations[currentStationIndex]);
+					startMetaFetcher(s);
+					armHangWatch();
 				}).catch(() => updatePlayBtn(false));
 			} else {
 				userPaused = true;
+				clearHangWatch();
+				// remember current direct stream link before pause
+				try {
+					if (audio.currentSrc && !audio.currentSrc.startsWith('data:') && audio.currentSrc !== window.location.href) {
+						rememberedStreamUrl = audio.currentSrc;
+					} else if (audio.src && !audio.src.startsWith('data:')) {
+						rememberedStreamUrl = audio.src;
+					}
+				} catch(e) {}
 				audio.pause();
 				updatePlayBtn(false);
 				updateStatus("stopped");
@@ -635,28 +781,36 @@
 		// Update album cover and system media session state
 		function updateCoverAndSession(coverUrl, title, sessionArtist, showOverlay, overlayLogoUrl, station) {
 			const finalCover = coverUrl || './assets/app.png';
-			changeCover(finalCover);
+			preloadImage(finalCover).then(() => changeCover(finalCover));
 			const overlayEl = document.getElementById('player-overlay-logo');
 			if (showOverlay && overlayLogoUrl && coverUrl !== overlayLogoUrl) {
-				overlayEl.src = overlayLogoUrl;
-				overlayEl.style.display = 'block';
-				overlayEl.style.transform = 'scale(1.5)';
+				preloadImage(overlayLogoUrl).then(() => {
+					if (overlayEl.src !== overlayLogoUrl) overlayEl.src = overlayLogoUrl;
+					overlayEl.style.display = 'block';
+					overlayEl.style.transform = 'scale(1.5)';
+				});
 			} else { hideOverlayLogo(); }
 			setTimeout(extractAndApplyColor, 700);
 			startMediaSessionRotation(station, title, sessionArtist, finalCover);
 		}
 
-		// Change artwork image with smooth fade transition
+		// Change artwork image with smooth fade transition (cached logos / covers)
 		function changeCover(newSrc) {
+			if (!newSrc) newSrc = './assets/app.png';
 			if (currentCoverUrl === newSrc) return; 
 			currentCoverUrl = newSrc;
 			const img = document.getElementById('player-img');
 			img.style.opacity = 0;
 			setTimeout(() => {
+				const apply = (src) => { img.src = src; img.style.opacity = 1; };
+				if (imageCache.has(newSrc)) {
+					apply(newSrc);
+					return;
+				}
 				const temp = new Image();
+				temp.onload = () => { imageCache.set(newSrc, temp); apply(newSrc); };
+				temp.onerror = () => { apply('./assets/app.png'); };
 				temp.src = newSrc;
-				temp.onload = () => { img.src = newSrc; img.style.opacity = 1; };
-				temp.onerror = () => { img.src = './assets/app.png'; img.style.opacity = 1; };
 			}, 300);
 		}
 
@@ -698,18 +852,24 @@
 			if (currentStationIndex === -1) return;
 			const station = stations[currentStationIndex];
 			const dispTitle = activeTrackTitle ? activeTrackTitle : station.displayName;
-			const dispArtist = activeTrackTitle ? activeTrackArtist : "Fordy-FM";
+			const dispArtist = activeTrackTitle ? activeTrackArtist : "FordyRadio";
 			const dispCover = activeCoverUrl; 
 			const logoCover = station.logo || './assets/app.png';
 			let t, a, c, al = "heyFordy.dev Radio";
 
-			if (audio.paused) { t = station.displayName; a = "Fordy-FM"; c = logoCover; }
+			if (isHangFallback) {
+				t = station.displayName || station.name;
+				a = "Wird geladen…";
+				c = logoCover;
+			} else if (audio.paused) { t = station.displayName; a = "FordyRadio"; c = logoCover; }
 			else if (audio.muted) { t = "Stummgeschaltet"; a = station.displayName; c = logoCover; }
 			else if (isBtActive) { t = dispTitle; a = dispArtist; c = isTrackInfoPhase ? dispCover : logoCover; }
 			else {
 				if (isTrackInfoPhase) { t = dispTitle; a = dispArtist; c = dispCover; }
-				else { t = station.displayName; a = "Fordy-FM"; c = logoCover; }
+				else { t = station.displayName; a = "FordyRadio"; c = logoCover; }
 			}
+			// logos / covers are already cached – avoid re-fetch churn on rotation
+			preloadImage(c);
 			updateMediaSessionNative(t, a, al, c);
 		}
 
