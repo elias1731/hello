@@ -189,6 +189,7 @@
 	</div>
 
 	<audio id="jelly-audio" preload="metadata" msAudioCategory="Media"></audio>
+	<audio id="preload-audio" preload="auto"></audio>
 	<audio id="silent-audio" loop preload="none" src="data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA=="></audio>
 
 	<script>
@@ -213,6 +214,9 @@
 		let ws = null;
 		let wsReconnectTimer = null;
 		let keepAliveTimer = null;
+		let preloadAudio = document.getElementById('preload-audio');
+		let preloadedTrackId = null;
+		let mediaHandlersBound = false;
 
 		if ('msAudioCategory' in audio) {
 			audio.msAudioCategory = 'Media';
@@ -556,6 +560,52 @@
 				}
 			} else if (type === 'GeneralCommand' && msg.Data) {
 				handleGeneralCommand(msg.Data);
+			} else if (type === 'Sessions' && Array.isArray(msg.Data)) {
+				syncQueueFromSessions(msg.Data);
+			}
+		}
+
+		function queueIdsMatch(a, b) {
+			if (!a || !b || a.length !== b.length) return false;
+			for (let i = 0; i < a.length; i++) {
+				const idA = typeof a[i] === 'string' ? a[i] : (a[i].Id || a[i].id);
+				const idB = typeof b[i] === 'string' ? b[i] : (b[i].Id || b[i].id);
+				if (idA !== idB) return false;
+			}
+			return true;
+		}
+
+		async function syncQueueFromSessions(sessions) {
+			if (!sessions || !sessions.length) return;
+			const mine = sessions.find(s => s.DeviceId === DEVICE_ID || (s.DeviceName === DEVICE_NAME && s.Client === CLIENT_NAME));
+			if (!mine || !mine.NowPlayingQueue || !mine.NowPlayingQueue.length) return;
+			const remoteIds = mine.NowPlayingQueue.map(q => q.Id).filter(Boolean);
+			const localIds = queue.map(t => t.Id);
+			if (queueIdsMatch(remoteIds, localIds)) {
+				if (mine.PlaylistIndex != null && mine.PlaylistIndex !== currentTrackIndex && mine.PlaylistIndex >= 0 && mine.PlaylistIndex < queue.length) {
+					// index only change without full play command is rare; ignore to avoid jumps
+				}
+				return;
+			}
+			// Remote queue differs — pull full items and replace local queue, keep playback if same current track
+			const data = await apiGet(`/Users/${jfUserId}/Items?Ids=${remoteIds.join(',')}&Fields=MediaSources,ParentIndexNumber,IndexNumber,Artists,Album`);
+			if (!data || !data.Items || !data.Items.length) return;
+			const byId = new Map(data.Items.map(i => [i.Id, i]));
+			const ordered = remoteIds.map(id => byId.get(id)).filter(Boolean);
+			if (!ordered.length) return;
+			const currentId = queue[currentTrackIndex] ? queue[currentTrackIndex].Id : null;
+			queue = ensurePlaylistIds(ordered);
+			let newIndex = remoteIds.indexOf(currentId);
+			if (newIndex < 0) newIndex = (mine.PlaylistIndex != null) ? mine.PlaylistIndex : 0;
+			newIndex = Math.max(0, Math.min(newIndex, queue.length - 1));
+			const sameTrack = currentId && queue[newIndex] && queue[newIndex].Id === currentId;
+			currentTrackIndex = newIndex;
+			persistQueue();
+			if (!sameTrack) {
+				playCurrentTrack();
+			} else {
+				updateUI();
+				updateMediaSession();
 			}
 		}
 
@@ -588,20 +638,26 @@
 			const cmd = playCommand || 'PlayNow';
 			if (cmd === 'PlayLast') {
 				queue = ensurePlaylistIds(queue.concat(expanded));
-				localStorage.setItem('jf_queue', JSON.stringify(queue));
+				persistQueue();
 				if (currentTrackIndex < 0) {
 					currentTrackIndex = 0;
 					playCurrentTrack(false, startTicks ? startTicks / 10000000 : 0);
+				} else {
+					updateUI();
+					updateMediaSession();
 				}
 				return;
 			}
 			if (cmd === 'PlayNext') {
 				const insertAt = Math.max(currentTrackIndex + 1, 0);
 				queue = ensurePlaylistIds(queue.slice(0, insertAt).concat(expanded, queue.slice(insertAt)));
-				localStorage.setItem('jf_queue', JSON.stringify(queue));
+				persistQueue();
 				if (currentTrackIndex < 0) {
 					currentTrackIndex = 0;
 					playCurrentTrack(false, startTicks ? startTicks / 10000000 : 0);
+				} else {
+					updateUI();
+					updateMediaSession();
 				}
 				return;
 			}
@@ -614,7 +670,8 @@
 				}
 			}
 			queue = ensurePlaylistIds(list);
-			currentTrackIndex = Math.min(startIndex, queue.length - 1);
+			currentTrackIndex = Math.min(Math.max(0, startIndex), queue.length - 1);
+			persistQueue();
 			playCurrentTrack(false, startTicks ? startTicks / 10000000 : 0);
 		}
 
@@ -807,22 +864,36 @@
 			const tracks = window._currentAlbumTracks || [];
 			if (!tracks.length) return;
 			queue = ensurePlaylistIds(queue.concat(sortAlbumTracks(tracks)));
-			localStorage.setItem('jf_queue', JSON.stringify(queue));
-			localStorage.setItem('jf_index', currentTrackIndex);
+			persistQueue();
 		}
 
 		function addTrackToQueue(index) {
 			const tracks = window._currentAlbumTracks || [];
 			if (!tracks[index]) return;
-			queue.push(tracks[index]);
+			queue = ensurePlaylistIds(queue.concat([tracks[index]]));
+			persistQueue();
+		}
+
+		function streamUrlFor(track) {
+			if (!track) return '';
+			const isVideo = track.Type === 'MusicVideo' || track.MediaType === 'Video';
+			const streamPath = isVideo
+				? `/Videos/${track.Id}/stream?static=true&deviceId=${encodeURIComponent(DEVICE_ID)}&api_key=${encodeURIComponent(jfToken)}`
+				: `/Audio/${track.Id}/stream.mp3?static=true&deviceId=${encodeURIComponent(DEVICE_ID)}&api_key=${encodeURIComponent(jfToken)}`;
+			return `${JF_SERVER}${streamPath}`;
+		}
+
+		function persistQueue() {
 			localStorage.setItem('jf_queue', JSON.stringify(queue));
-			localStorage.setItem('jf_index', currentTrackIndex);
+			localStorage.setItem('jf_index', String(currentTrackIndex));
 		}
 
 		function playCurrentTrack(restoreTime = false, startSeconds = 0) {
 			if (currentTrackIndex < 0 || !queue[currentTrackIndex]) return;
 			const track = queue[currentTrackIndex];
-			
+			preloadedTrackId = null;
+			try { preloadAudio.removeAttribute('src'); preloadAudio.load(); } catch(e) {}
+
 			// UI SOFORT updaten für schnelles flüssiges Skippen
 			updateUI();
 			
@@ -831,11 +902,7 @@
 			playTimeout = setTimeout(() => {
 				if (playSessionId) reportPlaybackStopped();
 
-				const isVideo = track.Type === 'MusicVideo' || track.MediaType === 'Video';
-				const streamPath = isVideo
-					? `/Videos/${track.Id}/stream?static=true&deviceId=${encodeURIComponent(DEVICE_ID)}&api_key=${encodeURIComponent(jfToken)}`
-					: `/Audio/${track.Id}/stream.mp3?static=true&deviceId=${encodeURIComponent(DEVICE_ID)}&api_key=${encodeURIComponent(jfToken)}`;
-				audio.src = `${JF_SERVER}${streamPath}`;
+				audio.src = streamUrlFor(track);
 				
 				if (restoreTime) {
 					const savedTime = parseFloat(localStorage.getItem('jf_time'));
@@ -851,11 +918,23 @@
 					startProgressReporter();
 					updateUI();
 					updateMediaSession();
+					maybePrefetchNext();
 				}).catch(console.error);
 				
-				localStorage.setItem('jf_queue', JSON.stringify(queue));
-				localStorage.setItem('jf_index', currentTrackIndex);
+				persistQueue();
 			}, 300);
+		}
+
+		function maybePrefetchNext() {
+			const next = queue[currentTrackIndex + 1];
+			if (!next || preloadedTrackId === next.Id) return;
+			const url = streamUrlFor(next);
+			if (!url) return;
+			try {
+				preloadAudio.src = url;
+				preloadAudio.load();
+				preloadedTrackId = next.Id;
+			} catch(e) {}
 		}
 
 		function togglePlay() {
@@ -883,6 +962,12 @@
 		}
 
 		function prevTrack() {
+			if (audio.currentTime > 3) {
+				audio.currentTime = 0;
+				reportPlaybackProgress('Seek');
+				updateMediaSession();
+				return;
+			}
 			if (currentTrackIndex > 0) {
 				currentTrackIndex--;
 				playCurrentTrack();
@@ -928,8 +1013,7 @@
 			if (currentTrackIndex === from) currentTrackIndex = to;
 			else if (from < currentTrackIndex && to >= currentTrackIndex) currentTrackIndex--;
 			else if (from > currentTrackIndex && to <= currentTrackIndex) currentTrackIndex++;
-			localStorage.setItem('jf_queue', JSON.stringify(queue));
-			localStorage.setItem('jf_index', currentTrackIndex);
+			persistQueue();
 			toggleQueue();
 			toggleQueue();
 		}
@@ -975,6 +1059,16 @@
 				const percent = (audio.currentTime / audio.duration) * 100;
 				document.getElementById('progress-bar').value = percent;
 				localStorage.setItem('jf_time', audio.currentTime);
+				if (audio.duration - audio.currentTime < 20) maybePrefetchNext();
+				if ('mediaSession' in navigator && navigator.mediaSession.setPositionState) {
+					try {
+						navigator.mediaSession.setPositionState({
+							duration: audio.duration,
+							playbackRate: audio.playbackRate || 1,
+							position: Math.min(audio.currentTime, audio.duration)
+						});
+					} catch(e) {}
+				}
 			}
 		});
 
@@ -1038,6 +1132,21 @@
 			}
 		}
 
+		function bindMediaSessionHandlers() {
+			if (!('mediaSession' in navigator)) return;
+			const ms = navigator.mediaSession;
+			// Re-bind every time so lockscreen keeps prev/next instead of only ±10s
+			try { ms.setActionHandler('play', () => { if (audio.paused) togglePlay(); }); } catch(e) {}
+			try { ms.setActionHandler('pause', () => { if (!audio.paused) togglePlay(); }); } catch(e) {}
+			try { ms.setActionHandler('nexttrack', () => nextTrack()); } catch(e) {}
+			try { ms.setActionHandler('previoustrack', () => prevTrack()); } catch(e) {}
+			// Explicitly clear seek handlers so OS prefers track skip buttons
+			try { ms.setActionHandler('seekbackward', null); } catch(e) {}
+			try { ms.setActionHandler('seekforward', null); } catch(e) {}
+			try { ms.setActionHandler('seekto', null); } catch(e) {}
+			mediaHandlersBound = true;
+		}
+
 		function updateMediaSession() {
 			const track = queue[currentTrackIndex];
 			if (!track) return;
@@ -1047,9 +1156,23 @@
 					title: track.Name,
 					artist: track.Artists ? track.Artists.join(', ') : 'Unknown',
 					album: track.Album || "Jellyfin",
-					artwork: [{ src: getImageUrl(track, 512), sizes: '512x512' }]
+					artwork: [
+						{ src: getImageUrl(track, 96), sizes: '96x96' },
+						{ src: getImageUrl(track, 256), sizes: '256x256' },
+						{ src: getImageUrl(track, 512), sizes: '512x512' }
+					]
 				});
 				navigator.mediaSession.playbackState = isPlaying ? 'playing' : 'paused';
+				bindMediaSessionHandlers();
+				if (navigator.mediaSession.setPositionState && audio.duration && isFinite(audio.duration)) {
+					try {
+						navigator.mediaSession.setPositionState({
+							duration: audio.duration,
+							playbackRate: audio.playbackRate || 1,
+							position: Math.min(audio.currentTime || 0, audio.duration)
+						});
+					} catch(e) {}
+				}
 			}
 
 			if (typeof Windows !== 'undefined') {
@@ -1106,12 +1229,7 @@
 				if (silent.paused) silent.play().catch(()=>{});
 			}, {once: true});
 			
-			if ('mediaSession' in navigator) {
-				navigator.mediaSession.setActionHandler('play', () => { if (audio.paused) togglePlay(); });
-				navigator.mediaSession.setActionHandler('pause', () => { if (!audio.paused) togglePlay(); });
-				navigator.mediaSession.setActionHandler('nexttrack', nextTrack);
-				navigator.mediaSession.setActionHandler('previoustrack', prevTrack);
-			}
+			bindMediaSessionHandlers();
 		};
 
 		window.addEventListener('beforeunload', () => {
