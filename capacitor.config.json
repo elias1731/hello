@@ -1,6 +1,9 @@
 {
-    "appId": "dev.heyfordy.radio",
-    "appName": "Fordy-FM",
-    "webDir": "radio",
-    "bundledWebRuntime": false
+  "appId": "dev.heyfordy.radio",
+  "appName": "FordyRadio",
+  "webDir": "radio",
+  "bundledWebRuntime": false,
+  "android": {
+    "allowMixedContent": true
   }
+}

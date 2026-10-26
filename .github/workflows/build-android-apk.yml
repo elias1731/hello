@@ -1,0 +1,425 @@
+name: "[📻FordyRadio] Build Android APK + Android Auto"
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "radio/**"
+      - "capacitor.config.json"
+      - "package.json"
+      - "android-auto/**"
+      - ".github/workflows/build-android-apk.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "21"
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Capacitor deps
+        run: |
+          npm install
+          npm install @capacitor/android@^8.3.0 --save
+
+      - name: Extract stations for Android Auto
+        run: |
+          node -e '
+            const fs = require("fs");
+            const html = fs.readFileSync("radio/index.html", "utf8");
+            const m = html.match(/const defaultStations = (\[[\s\S]*?\]);/);
+            if (!m) { console.error("defaultStations not found"); process.exit(1); }
+            // eslint-disable-next-line no-eval
+            const stations = eval("(" + m[1] + ")");
+            const clean = stations.map(s => ({
+              id: s.apiId,
+              name: s.displayName || s.name,
+              url: s.url,
+              logo: (s.logo || "").startsWith("http") ? s.logo : ("https://heyfordy.dev/radio/" + (s.logo || "assets/app.png").replace(/^\.\//, ""))
+            }));
+            fs.mkdirSync("android-auto", { recursive: true });
+            fs.writeFileSync("android-auto/stations.json", JSON.stringify(clean, null, 2));
+            console.log("stations:", clean.length);
+          '
+
+      - name: Prepare Capacitor Android project
+        run: |
+          cat > capacitor.config.json << 'EOF'
+          {
+            "appId": "dev.heyfordy.radio",
+            "appName": "FordyRadio",
+            "webDir": "radio",
+            "bundledWebRuntime": false,
+            "android": {
+              "allowMixedContent": true
+            }
+          }
+          EOF
+
+          if [ ! -d android ]; then
+            npx cap add android
+          else
+            npx cap sync android
+          fi
+
+      - name: Inject Android Auto native bits
+        run: |
+          APP=android/app/src/main
+          PKG_PATH=$APP/java/dev/heyfordy/radio
+          RES=$APP/res
+          mkdir -p "$PKG_PATH" "$RES/xml" "$RES/values" "$APP/assets"
+
+          cp android-auto/stations.json "$APP/assets/stations.json"
+
+          cat > "$RES/xml/automotive_app_desc.xml" << 'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <automotiveApp>
+              <uses name="media"/>
+          </automotiveApp>
+          EOF
+
+          cat > "$RES/values/strings.xml" << 'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <resources>
+              <string name="app_name">FordyRadio</string>
+              <string name="media_notification_channel">FordyRadio Playback</string>
+          </resources>
+          EOF
+
+          cat > "$PKG_PATH/RadioMediaService.kt" << 'EOF'
+          package dev.heyfordy.radio
+
+          import android.app.Notification
+          import android.app.NotificationChannel
+          import android.app.NotificationManager
+          import android.app.PendingIntent
+          import android.net.Uri
+          import android.os.Bundle
+          import android.support.v4.media.MediaBrowserCompat
+          import android.support.v4.media.MediaDescriptionCompat
+          import android.support.v4.media.MediaMetadataCompat
+          import android.support.v4.media.session.MediaSessionCompat
+          import android.support.v4.media.session.PlaybackStateCompat
+          import androidx.core.app.NotificationCompat
+          import androidx.media.MediaBrowserServiceCompat
+          import androidx.media.session.MediaButtonReceiver
+          import androidx.media3.common.MediaItem
+          import androidx.media3.common.Player
+          import androidx.media3.exoplayer.ExoPlayer
+          import org.json.JSONArray
+
+          class RadioMediaService : MediaBrowserServiceCompat() {
+
+              data class Station(val id: String, val name: String, val url: String, val logo: String)
+
+              private lateinit var session: MediaSessionCompat
+              private var player: ExoPlayer? = null
+              private var stations: List<Station> = emptyList()
+              private var currentIndex = -1
+
+              override fun onCreate() {
+                  super.onCreate()
+                  stations = loadStations()
+                  session = MediaSessionCompat(this, "FordyRadio").apply {
+                      setFlags(
+                          MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS or
+                          MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS
+                      )
+                      setCallback(object : MediaSessionCompat.Callback() {
+                          override fun onPlay() { playCurrent() }
+                          override fun onPause() { pause() }
+                          override fun onStop() { stopPlayback() }
+                          override fun onSkipToNext() { skip(+1) }
+                          override fun onSkipToPrevious() { skip(-1) }
+                          override fun onPlayFromMediaId(mediaId: String?, extras: Bundle?) {
+                              val idx = stations.indexOfFirst { it.id == mediaId }
+                              if (idx >= 0) playIndex(idx)
+                          }
+                      })
+                      isActive = true
+                  }
+                  sessionToken = session.sessionToken
+                  createChannel()
+              }
+
+              private fun loadStations(): List<Station> {
+                  return try {
+                      val json = assets.open("stations.json").bufferedReader().use { it.readText() }
+                      val arr = JSONArray(json)
+                      (0 until arr.length()).map { i ->
+                          val o = arr.getJSONObject(i)
+                          Station(o.getString("id"), o.getString("name"), o.getString("url"), o.optString("logo", ""))
+                      }
+                  } catch (e: Exception) {
+                      emptyList()
+                  }
+              }
+
+              override fun onGetRoot(clientPackageName: String, clientUid: Int, rootHints: Bundle?): BrowserRoot {
+                  return BrowserRoot("root", null)
+              }
+
+              override fun onLoadChildren(parentId: String, result: Result<MutableList<MediaBrowserCompat.MediaItem>>) {
+                  if (parentId != "root") {
+                      result.sendResult(mutableListOf())
+                      return
+                  }
+                  val items = stations.map { s ->
+                      val desc = MediaDescriptionCompat.Builder()
+                          .setMediaId(s.id)
+                          .setTitle(s.name)
+                          .setSubtitle("FordyRadio")
+                          .setMediaUri(Uri.parse(s.url))
+                          .build()
+                      MediaBrowserCompat.MediaItem(desc, MediaBrowserCompat.MediaItem.FLAG_PLAYABLE)
+                  }.toMutableList()
+                  result.sendResult(items)
+              }
+
+              private fun ensurePlayer() {
+                  if (player != null) return
+                  player = ExoPlayer.Builder(this).build().also { p ->
+                      p.addListener(object : Player.Listener {
+                          override fun onIsPlayingChanged(isPlaying: Boolean) {
+                              updateState(if (isPlaying) PlaybackStateCompat.STATE_PLAYING else PlaybackStateCompat.STATE_PAUSED)
+                          }
+                      })
+                  }
+              }
+
+              private fun playIndex(index: Int) {
+                  if (index !in stations.indices) return
+                  currentIndex = index
+                  ensurePlayer()
+                  val s = stations[index]
+                  player?.setMediaItem(MediaItem.fromUri(s.url))
+                  player?.prepare()
+                  player?.play()
+                  updateMetadata(s)
+                  updateState(PlaybackStateCompat.STATE_PLAYING)
+                  startForeground(42, buildNotification(s, true))
+              }
+
+              private fun playCurrent() {
+                  if (currentIndex < 0 && stations.isNotEmpty()) playIndex(0)
+                  else {
+                      player?.play()
+                      updateState(PlaybackStateCompat.STATE_PLAYING)
+                      stations.getOrNull(currentIndex)?.let {
+                          startForeground(42, buildNotification(it, true))
+                      }
+                  }
+              }
+
+              private fun pause() {
+                  player?.pause()
+                  updateState(PlaybackStateCompat.STATE_PAUSED)
+                  stations.getOrNull(currentIndex)?.let {
+                      val nm = getSystemService(NotificationManager::class.java)
+                      nm.notify(42, buildNotification(it, false))
+                  }
+              }
+
+              private fun stopPlayback() {
+                  player?.stop()
+                  updateState(PlaybackStateCompat.STATE_STOPPED)
+                  stopForeground(STOP_FOREGROUND_REMOVE)
+              }
+
+              private fun skip(delta: Int) {
+                  if (stations.isEmpty()) return
+                  val next = if (currentIndex < 0) 0 else (currentIndex + delta + stations.size) % stations.size
+                  playIndex(next)
+              }
+
+              private fun updateMetadata(s: Station) {
+                  val meta = MediaMetadataCompat.Builder()
+                      .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, s.id)
+                      .putString(MediaMetadataCompat.METADATA_KEY_TITLE, s.name)
+                      .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, "FordyRadio")
+                      .putString(MediaMetadataCompat.METADATA_KEY_ALBUM, "heyFordy.dev Radio")
+                      .build()
+                  session.setMetadata(meta)
+              }
+
+              private fun updateState(state: Int) {
+                  val actions = PlaybackStateCompat.ACTION_PLAY or
+                      PlaybackStateCompat.ACTION_PAUSE or
+                      PlaybackStateCompat.ACTION_STOP or
+                      PlaybackStateCompat.ACTION_SKIP_TO_NEXT or
+                      PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS or
+                      PlaybackStateCompat.ACTION_PLAY_FROM_MEDIA_ID
+                  session.setPlaybackState(
+                      PlaybackStateCompat.Builder()
+                          .setActions(actions)
+                          .setState(state, 0, 1f)
+                          .build()
+                  )
+              }
+
+              private fun createChannel() {
+                  val ch = NotificationChannel(
+                      "fordyradio_playback",
+                      getString(R.string.media_notification_channel),
+                      NotificationManager.IMPORTANCE_LOW
+                  )
+                  getSystemService(NotificationManager::class.java).createNotificationChannel(ch)
+              }
+
+              private fun buildNotification(s: Station, playing: Boolean): Notification {
+                  val open = packageManager.getLaunchIntentForPackage(packageName)
+                  val contentPi = PendingIntent.getActivity(
+                      this, 0, open, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                  )
+                  val playPauseAction = if (playing) {
+                      NotificationCompat.Action(
+                          android.R.drawable.ic_media_pause, "Pause",
+                          MediaButtonReceiver.buildMediaButtonPendingIntent(this, PlaybackStateCompat.ACTION_PAUSE)
+                      )
+                  } else {
+                      NotificationCompat.Action(
+                          android.R.drawable.ic_media_play, "Play",
+                          MediaButtonReceiver.buildMediaButtonPendingIntent(this, PlaybackStateCompat.ACTION_PLAY)
+                      )
+                  }
+                  return NotificationCompat.Builder(this, "fordyradio_playback")
+                      .setContentTitle(s.name)
+                      .setContentText("FordyRadio")
+                      .setSmallIcon(android.R.drawable.ic_media_play)
+                      .setContentIntent(contentPi)
+                      .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+                      .setOnlyAlertOnce(true)
+                      .addAction(playPauseAction)
+                      .setStyle(
+                          androidx.media.app.NotificationCompat.MediaStyle()
+                              .setMediaSession(session.sessionToken)
+                              .setShowActionsInCompactView(0)
+                      )
+                      .build()
+              }
+
+              override fun onDestroy() {
+                  player?.release()
+                  session.release()
+                  super.onDestroy()
+              }
+          }
+          EOF
+
+          MANIFEST=$APP/AndroidManifest.xml
+          python3 - << 'PY'
+          from pathlib import Path
+          import re
+          p = Path("android/app/src/main/AndroidManifest.xml")
+          t = p.read_text()
+          if "RadioMediaService" not in t:
+              perms = """
+              <uses-permission android:name="android.permission.INTERNET" />
+              <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+              <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
+              <uses-permission android:name="android.permission.WAKE_LOCK" />
+              """
+              if "android.permission.INTERNET" not in t:
+                  t = re.sub(r"(<manifest[^>]*>)", r"\1\n" + perms, t, count=1)
+
+              service = """
+                      <service
+                          android:name=".RadioMediaService"
+                          android:exported="true"
+                          android:foregroundServiceType="mediaPlayback">
+                          <intent-filter>
+                              <action android:name="android.media.browse.MediaBrowserService" />
+                          </intent-filter>
+                      </service>
+                      <receiver android:name="androidx.media.session.MediaButtonReceiver" android:exported="true">
+                          <intent-filter>
+                              <action android:name="android.intent.action.MEDIA_BUTTON" />
+                          </intent-filter>
+                      </receiver>
+                      <meta-data
+                          android:name="com.google.android.gms.car.application"
+                          android:resource="@xml/automotive_app_desc" />
+                      <meta-data
+                          android:name="com.google.android.gms.car.notification.SmallIcon"
+                          android:resource="@mipmap/ic_launcher" />
+              """
+              t = t.replace("</application>", service + "\n    </application>")
+              p.write_text(t)
+              print("manifest patched")
+          else:
+              print("manifest already patched")
+          PY
+
+          GRADLE=android/app/build.gradle
+          if [ -f "$GRADLE" ] && ! grep -q "media3-exoplayer" "$GRADLE"; then
+            sed -i '/dependencies {/a\    implementation "androidx.media3:media3-exoplayer:1.5.1"\n    implementation "androidx.media3:media3-session:1.5.1"\n    implementation "androidx.media:media:1.7.0"' "$GRADLE"
+          fi
+          # Capacitor 8 often uses build.gradle.kts
+          GRADLE_KTS=android/app/build.gradle.kts
+          if [ -f "$GRADLE_KTS" ] && ! grep -q "media3-exoplayer" "$GRADLE_KTS"; then
+            sed -i '/dependencies {/a\    implementation("androidx.media3:media3-exoplayer:1.5.1")\n    implementation("androidx.media3:media3-session:1.5.1")\n    implementation("androidx.media:media:1.7.0")' "$GRADLE_KTS"
+          fi
+
+          if [ -f android/app/src/main/AndroidManifest.xml ]; then
+            sed -i 's/android:usesCleartextTraffic="false"/android:usesCleartextTraffic="true"/' android/app/src/main/AndroidManifest.xml || true
+            if ! grep -q 'usesCleartextTraffic' android/app/src/main/AndroidManifest.xml; then
+              sed -i 's/<application /<application android:usesCleartextTraffic="true" /' android/app/src/main/AndroidManifest.xml
+            fi
+          fi
+
+          npx cap sync android
+
+      - name: Build debug APK
+        working-directory: android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon
+
+      - name: Locate APK
+        id: apk
+        run: |
+          APK=$(find android/app/build/outputs/apk -name "*.apk" | head -n1)
+          echo "path=$APK" >> $GITHUB_OUTPUT
+          ls -la "$APK"
+          cp "$APK" FordyRadio.apk
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: FordyRadio-apk
+          path: FordyRadio.apk
+          if-no-files-found: error
+
+      - name: Create / update prerelease
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: fordyradio-android
+          name: "FordyRadio | Android APK (Android Auto)"
+          prerelease: true
+          files: FordyRadio.apk
+          body: |
+            Sideloadable debug APK of the radio PWA.
+            Android Auto: stations as browsable list in the media browser.
+            Phone UI: WebView PWA from `radio/`.
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
