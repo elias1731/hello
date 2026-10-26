@@ -592,24 +592,46 @@
 			deviceReportInterval = setInterval(() => reportDeviceStatus(false), 5000);
 		}
 
+		// Resolve relative station logos to absolute heyfordy.dev URLs
+		function resolveLogoUrl(logo) {
+			if (!logo) return null;
+			if (logo.startsWith('http://') || logo.startsWith('https://')) return logo;
+			if (logo.startsWith('./')) logo = logo.slice(2);
+			else if (logo.startsWith('/')) logo = logo.slice(1);
+			return 'https://heyfordy.dev/radio/' + logo;
+		}
+
 		// Build and POST current playback status
 		async function reportDeviceStatus(force) {
 			if (!deviceName || !deviceSecret) return;
 			const station = (currentStationIndex >= 0) ? stations[currentStationIndex] : null;
-			const isPlaying = !!(station && !userPaused && audio && !audio.paused && audio.src && !audio.src.startsWith('data:'));
+			// still "playing" while a station is selected and user did not pause
+			// (covers hang-fallback dummy audio / brief stalls)
+			const isPlaying = !!(station && !userPaused);
+			const logoAbs = isPlaying && station ? resolveLogoUrl(station.logo) : null;
+			let coverAbs = null;
+			if (isPlaying) {
+				const rawCover = activeCoverUrl || (station && station.logo) || null;
+				coverAbs = resolveLogoUrl(rawCover);
+			}
 			const payload = {
 				device: deviceName,
 				secret: deviceSecret,
 				playing: isPlaying,
 				station: isPlaying && station ? (station.displayName || station.name || null) : null,
-				logo: isPlaying && station ? (station.logo || null) : null,
+				logo: logoAbs,
 				track: isPlaying ? (activeTrackTitle || null) : null,
 				artist: isPlaying ? (activeTrackArtist || null) : null,
-				cover: isPlaying ? (activeCoverUrl || (station && station.logo) || null) : null
+				cover: coverAbs
 			};
 			const serialized = JSON.stringify(payload);
-			if (!force && serialized === lastReportedPayload) return;
-			lastReportedPayload = serialized;
+			// always heartbeat when playing so worker TTL (10s) never expires
+			if (!force && !isPlaying && serialized === lastReportedPayload) return;
+			if (!force && isPlaying && serialized === lastReportedPayload) {
+				// same payload but still send a lightweight heartbeat every interval
+			} else {
+				lastReportedPayload = serialized;
+			}
 			try {
 				await fetch('https://api.heyfordy.dev/radio2', {
 					method: 'POST',
