@@ -36,6 +36,18 @@ jobs:
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
+        with:
+          # "tools" is obsolete and fails on current sdkmanager
+          packages: platform-tools
+          accept-android-sdk-licenses: true
+
+      - name: Install Android build packages
+        run: |
+          # ubuntu runners already ship ANDROID_HOME with platforms; ensure build-tools + platform
+          yes | sdkmanager --licenses >/dev/null || true
+          sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0"
+          echo "ANDROID_HOME=$ANDROID_HOME" >> $GITHUB_ENV
+          echo "ANDROID_SDK_ROOT=$ANDROID_HOME" >> $GITHUB_ENV
 
       - name: Install Capacitor deps
         run: |
