@@ -4,7 +4,9 @@
   "description": "Persönlicher Linktree - Github Edition 2024",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "cap:sync": "npx cap sync android",
+    "cap:open": "npx cap open android"
   },
   "repository": {
     "type": "git",
@@ -19,6 +21,7 @@
   },
   "homepage": "https://github.com/elias1731/hello#readme",
   "dependencies": {
+    "@capacitor/android": "^8.3.0",
     "@capacitor/cli": "^8.3.0",
     "@capacitor/core": "^8.3.0",
     "@capacitor/ios": "^8.3.0"

@@ -891,8 +891,6 @@
 		function playCurrentTrack(restoreTime = false, startSeconds = 0) {
 			if (currentTrackIndex < 0 || !queue[currentTrackIndex]) return;
 			const track = queue[currentTrackIndex];
-			preloadedTrackId = null;
-			try { preloadAudio.removeAttribute('src'); preloadAudio.load(); } catch(e) {}
 
 			// UI SOFORT updaten für schnelles flüssiges Skippen
 			updateUI();
@@ -900,9 +898,21 @@
 			// DEBOUNCE: Verhindert Server-Spam bei schnellem Vor/Zurück klicken
 			clearTimeout(playTimeout);
 			playTimeout = setTimeout(() => {
+				seamlessLock = false;
 				if (playSessionId) reportPlaybackStopped();
 
-				audio.src = streamUrlFor(track);
+				// Prefer preloaded element when it already holds this track
+				if (preloadedTrackId === track.Id && preloadAudio.src) {
+					const old = audio;
+					audio = preloadAudio;
+					preloadAudio = old;
+					preloadedTrackId = null;
+					try { preloadAudio.pause(); preloadAudio.removeAttribute('src'); preloadAudio.load(); } catch(e) {}
+				} else {
+					preloadedTrackId = null;
+					try { preloadAudio.removeAttribute('src'); preloadAudio.load(); } catch(e) {}
+					audio.src = streamUrlFor(track);
+				}
 				
 				if (restoreTime) {
 					const savedTime = parseFloat(localStorage.getItem('jf_time'));
@@ -922,7 +932,7 @@
 				}).catch(console.error);
 				
 				persistQueue();
-			}, 300);
+			}, 180);
 		}
 
 		function maybePrefetchNext() {
@@ -933,8 +943,50 @@
 			try {
 				preloadAudio.src = url;
 				preloadAudio.load();
+				// nudge buffer a bit without audible play
+				preloadAudio.muted = true;
+				const p = preloadAudio.play();
+				if (p && p.then) {
+					p.then(() => {
+						try { preloadAudio.pause(); preloadAudio.currentTime = 0; } catch(e) {}
+						preloadAudio.muted = false;
+					}).catch(() => { preloadAudio.muted = false; });
+				} else {
+					preloadAudio.muted = false;
+				}
 				preloadedTrackId = next.Id;
 			} catch(e) {}
+		}
+
+		// Near end of track: ensure next is warm; on very end we swap for gapless feel
+		let seamlessLock = false;
+		function armSeamlessSwap() {
+			if (seamlessLock) return;
+			if (!audio || !audio.duration || !isFinite(audio.duration)) return;
+			const remaining = audio.duration - audio.currentTime;
+			if (remaining < 2.5) maybePrefetchNext();
+			if (remaining > 0.25) return;
+			const next = queue[currentTrackIndex + 1];
+			if (!next || preloadedTrackId !== next.Id || !preloadAudio.src) return;
+			seamlessLock = true;
+			// soft handoff
+			currentTrackIndex++;
+			const old = audio;
+			audio = preloadAudio;
+			preloadAudio = old;
+			preloadedTrackId = null;
+			try { old.pause(); old.removeAttribute('src'); old.load(); } catch(e) {}
+			try { audio.currentTime = 0; } catch(e) {}
+			audio.play().then(() => {
+				isPlaying = true;
+				if (playSessionId) reportPlaybackStopped();
+				reportPlaybackStart();
+				updateUI();
+				updateMediaSession();
+				persistQueue();
+				maybePrefetchNext();
+				seamlessLock = false;
+			}).catch(() => { seamlessLock = false; });
 		}
 
 		function togglePlay() {
@@ -1054,46 +1106,80 @@
 			window.location.href = 'index.html?noredirect=true';
 		}
 
-		audio.addEventListener('timeupdate', () => {
-			if (audio.duration) {
-				const percent = (audio.currentTime / audio.duration) * 100;
-				document.getElementById('progress-bar').value = percent;
-				localStorage.setItem('jf_time', audio.currentTime);
-				if (audio.duration - audio.currentTime < 20) maybePrefetchNext();
-				if ('mediaSession' in navigator && navigator.mediaSession.setPositionState) {
-					try {
-						navigator.mediaSession.setPositionState({
-							duration: audio.duration,
-							playbackRate: audio.playbackRate || 1,
-							position: Math.min(audio.currentTime, audio.duration)
-						});
-					} catch(e) {}
-				}
+		function onAudioTimeUpdate() {
+			if (!audio || !audio.duration) return;
+			const percent = (audio.currentTime / audio.duration) * 100;
+			const bar = document.getElementById('progress-bar');
+			if (bar) bar.value = percent;
+			localStorage.setItem('jf_time', audio.currentTime);
+			if (audio.duration - audio.currentTime < 20) maybePrefetchNext();
+			armSeamlessSwap();
+			if ('mediaSession' in navigator && navigator.mediaSession.setPositionState) {
+				try {
+					navigator.mediaSession.setPositionState({
+						duration: audio.duration,
+						playbackRate: audio.playbackRate || 1,
+						position: Math.min(audio.currentTime, audio.duration)
+					});
+				} catch(e) {}
 			}
-		});
+		}
 
-		audio.addEventListener('ended', () => {
+		function onAudioEnded() {
+			// fallback if seamless swap did not fire
+			if (seamlessLock) return;
 			if (playSessionId) reportPlaybackStopped();
 			nextTrack();
-		});
+		}
 
-		audio.addEventListener('pause', () => {
+		function onAudioPause() {
 			isPlaying = false;
 			updateUI();
-		});
+		}
 
-		audio.addEventListener('play', () => {
+		function onAudioPlay() {
 			isPlaying = true;
 			updateUI();
-		});
+		}
+
+		function bindAudioElement(el) {
+			if (!el || el._jellyBound) return;
+			el.addEventListener('timeupdate', onAudioTimeUpdate);
+			el.addEventListener('ended', onAudioEnded);
+			el.addEventListener('pause', onAudioPause);
+			el.addEventListener('play', onAudioPlay);
+			el._jellyBound = true;
+			if ('msAudioCategory' in el) el.msAudioCategory = 'Media';
+		}
+
+		bindAudioElement(audio);
+		bindAudioElement(preloadAudio);
 
 		document.addEventListener('keydown', e => {
-			if (e.key === ' ' && document.activeElement.tagName !== 'INPUT') {
+			const qModal = document.getElementById('queue-modal');
+			if (qModal && qModal.style.display === 'flex') return;
+			if (document.activeElement && document.activeElement.tagName === 'INPUT') return;
+
+			if (e.key === 'ArrowUp') {
+				e.preventDefault();
+				goBack();
+				return;
+			}
+			if (e.key === ' ' ) {
 				e.preventDefault();
 				togglePlay();
+				return;
 			}
-			if (e.key === 'ArrowRight') nextTrack();
-			if (e.key === 'ArrowLeft') prevTrack();
+			if (e.key === 'ArrowRight') {
+				e.preventDefault();
+				nextTrack();
+				return;
+			}
+			if (e.key === 'ArrowLeft') {
+				e.preventDefault();
+				prevTrack();
+				return;
+			}
 		});
 
 		// NEU: Initialisierung der SMTC Buttons für Xbox/UWP

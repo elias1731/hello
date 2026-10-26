@@ -421,6 +421,17 @@
 			let btTarget = urlParams.get('bt');
 			let action = urlParams.get('action');
 
+			// hash deep links: #play=rockland or #play=rockland&bt=on
+			const hash = (window.location.hash || '').replace(/^#/, '');
+			if (hash) {
+				const hashParams = new URLSearchParams(hash.includes('=') ? hash : '');
+				if (!playTarget) playTarget = hashParams.get('play');
+				if (!btTarget) btTarget = hashParams.get('bt');
+				if (!playTarget && /^play=/i.test(hash)) {
+					playTarget = decodeURIComponent(hash.replace(/^play=/i, '').split(/[&?]/)[0]);
+				}
+			}
+
 			if (action && action.startsWith('fordyradio://')) {
 				let parts = action.replace('fordyradio://', '').split(/[/?]+/);
 				if (parts[0] === 'play') playTarget = parts[1];
@@ -1098,23 +1109,31 @@
 		// Global window click listener to close modal
 		window.onclick = (e) => { if (e.target.className === 'modal') closeManager(); }
 
-		// Keydown event listener for keyboard controls
+		// Xbox D-Pad / keyboard controls (ignored while settings modal is open)
 		document.addEventListener('keydown', (e) => {
+			const modal = document.getElementById('manager-modal');
+			if (modal && modal.style.display === 'flex') return;
 			if (!audio) return;
-			if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') { e.preventDefault(); e.key === 'ArrowLeft' ? skipPrev() : skipNext(); }
-			if (e.key === ' ' || e.key === 'Enter') {
-				const activeEl = document.activeElement;
-				if (!activeEl.matches('input, button, [role="button"]')) { e.preventDefault(); togglePlay(); }
+
+			if (e.key === 'ArrowUp') {
+				e.preventDefault();
+				window.location.href = 'jelly.html';
+				return;
 			}
-			if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
-				const activeEl = document.activeElement;
-				if (!activeEl.matches('input')) { e.preventDefault(); audio.volume = Math.max(0, Math.min(1, audio.volume + (e.key === 'ArrowUp' ? 0.1 : -0.1))); }
+			if (e.key === 'ArrowDown') {
+				e.preventDefault();
+				togglePlay();
+				return;
 			}
-			if (e.key === 'Tab') {
-				const controls = Array.from(document.querySelectorAll('.round-btn, .play-btn'));
-				let idx = controls.findIndex(btn => btn === document.activeElement);
-				idx = (e.shiftKey ? (idx - 1 + controls.length) : (idx + 1)) % controls.length;
-				e.preventDefault(); controls[idx].focus();
+			if (e.key === 'ArrowLeft') {
+				e.preventDefault();
+				skipPrev();
+				return;
+			}
+			if (e.key === 'ArrowRight') {
+				e.preventDefault();
+				skipNext();
+				return;
 			}
 		});
 
