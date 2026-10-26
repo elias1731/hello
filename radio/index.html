@@ -126,6 +126,14 @@
 				<div id="jf-status" style="margin-top:8px; font-size:0.85rem;"></div>
 			</div>
 
+			<div style="background: rgba(255,255,255,0.03); padding: 20px; border-radius: 20px; margin-bottom: 20px;">
+				<h4 style="margin-bottom: 15px;">Status Report Login</h4>
+				<input type="text" id="device-name" placeholder="Gerätename">
+				<input type="password" id="device-secret" placeholder="Secret">
+				<button onclick="saveDeviceLogin()" class="modal-btn save">Speichern</button>
+				<div id="device-status" style="margin-top:8px; font-size:0.85rem;"></div>
+			</div>
+
 			<div style="background: rgba(255,255,255,0.03); padding: 20px; border-radius: 20px;">
 				<h4 style="margin-bottom: 15px;">Sender manuell hinzufügen</h4>
 				<div class="tab-content active" style="display:block;">
@@ -185,6 +193,12 @@
 		let jfUserId = localStorage.getItem('radio_jf_user') || '';
 		let jfDeviceName = localStorage.getItem('radio_jf_device_name') || 'FordyRadio';
 		let jfDeviceId = localStorage.getItem('radio_jf_device_id') || '';
+
+		// Device status reporting (radio2)
+		let deviceName = localStorage.getItem('radio_device_name') || '';
+		let deviceSecret = localStorage.getItem('radio_device_secret') || '';
+		let deviceReportInterval = null;
+		let lastReportedPayload = '';
 
 		function ensureDeviceId() {
 			if (!jfDeviceId) {
@@ -464,6 +478,7 @@
 			localStorage.setItem('radio_last_index', index);
 			localStorage.setItem('last_played_context', 'radio');
 			const s = stations[index];
+			setTimeout(() => reportDeviceStatus(true), 500);
 			
 			toggleFooter(false);
 			updateStatus("loading");
@@ -545,6 +560,64 @@
 			} catch(e) {
 				statusEl.style.color = '#ff6666';
 				statusEl.textContent = 'Fehler beim Login';
+			}
+		}
+
+		// Save device name + secret for radio2 status reporting
+		function saveDeviceLogin() {
+			const nameEl = document.getElementById('device-name');
+			const secretEl = document.getElementById('device-secret');
+			const statusEl = document.getElementById('device-status');
+			const name = (nameEl.value || '').trim();
+			const secret = (secretEl.value || '').trim();
+			if (!name || !secret) {
+				statusEl.style.color = '#ff6666';
+				statusEl.textContent = 'Gerätename und Secret erforderlich';
+				return;
+			}
+			deviceName = name;
+			deviceSecret = secret;
+			localStorage.setItem('radio_device_name', deviceName);
+			localStorage.setItem('radio_device_secret', deviceSecret);
+			statusEl.style.color = '#4caf50';
+			statusEl.textContent = 'Gespeichert – Status wird gemeldet';
+			startDeviceReporting();
+			reportDeviceStatus(true);
+		}
+
+		// Start / stop periodic status reports to /radio2
+		function startDeviceReporting() {
+			if (deviceReportInterval) clearInterval(deviceReportInterval);
+			if (!deviceName || !deviceSecret) return;
+			deviceReportInterval = setInterval(() => reportDeviceStatus(false), 5000);
+		}
+
+		// Build and POST current playback status
+		async function reportDeviceStatus(force) {
+			if (!deviceName || !deviceSecret) return;
+			const station = (currentStationIndex >= 0) ? stations[currentStationIndex] : null;
+			const isPlaying = !!(station && !userPaused && audio && !audio.paused && audio.src && !audio.src.startsWith('data:'));
+			const payload = {
+				device: deviceName,
+				secret: deviceSecret,
+				playing: isPlaying,
+				station: isPlaying && station ? (station.displayName || station.name || null) : null,
+				logo: isPlaying && station ? (station.logo || null) : null,
+				track: isPlaying ? (activeTrackTitle || null) : null,
+				artist: isPlaying ? (activeTrackArtist || null) : null,
+				cover: isPlaying ? (activeCoverUrl || (station && station.logo) || null) : null
+			};
+			const serialized = JSON.stringify(payload);
+			if (!force && serialized === lastReportedPayload) return;
+			lastReportedPayload = serialized;
+			try {
+				await fetch('https://api.heyfordy.dev/radio2', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: serialized
+				});
+			} catch (e) {
+				console.error('Device status report failed:', e);
 			}
 		}
 
@@ -838,6 +911,7 @@
 			activeTrackTitle = trackTitle || "";
 			activeTrackArtist = trackArtist || "";
 			activeCoverUrl = coverUrl || station.logo || './assets/app.png';
+			reportDeviceStatus(false);
 			if (mediaRotationInterval) clearInterval(mediaRotationInterval);
 			isTrackInfoPhase = true;
 			renderMediaSessionState();
@@ -925,7 +999,12 @@
 		}
 
 		// Open station manager modal dialog
-		function openManager() { 
+		function openManager() {
+			const dn = document.getElementById('device-name');
+			const ds = document.getElementById('device-secret');
+			if (dn) dn.value = deviceName || '';
+			if (ds) ds.value = deviceSecret || '';
+ 
 			renderManagerList(); 
 			document.getElementById('jf-server').value = jfServer;
 			document.getElementById('jf-username').value = jfUsername;
@@ -1026,6 +1105,19 @@
 			} catch(e) {}
 			return null;
 		}
+	
+		// Init device status reporting if credentials exist
+		if (deviceName && deviceSecret) {
+			startDeviceReporting();
+			// small delay so initial station can settle
+			setTimeout(() => reportDeviceStatus(true), 2000);
+		}
+
+		// Also report on visibility / page leave (best effort)
+		document.addEventListener('visibilitychange', () => {
+			if (document.visibilityState === 'hidden') reportDeviceStatus(true);
+		});
+
 	</script>
 </body>
 </html>
