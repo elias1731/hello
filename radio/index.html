@@ -421,6 +421,17 @@
 			let btTarget = urlParams.get('bt');
 			let action = urlParams.get('action');
 
+			// hash deep links: #play=rockland or #play=rockland&bt=on
+			const hash = (window.location.hash || '').replace(/^#/, '');
+			if (hash) {
+				const hashParams = new URLSearchParams(hash.includes('=') ? hash : '');
+				if (!playTarget) playTarget = hashParams.get('play');
+				if (!btTarget) btTarget = hashParams.get('bt');
+				if (!playTarget && /^play=/i.test(hash)) {
+					playTarget = decodeURIComponent(hash.replace(/^play=/i, '').split(/[&?]/)[0]);
+				}
+			}
+
 			if (action && action.startsWith('fordyradio://')) {
 				let parts = action.replace('fordyradio://', '').split(/[/?]+/);
 				if (parts[0] === 'play') playTarget = parts[1];
