@@ -154,10 +154,10 @@
 	<script>
 		const defaultStations = [
 			{ isDefault: true, name: "Sunshine LiVE", displayName: "SUNSHINE LiVE", apiId: "sunshine-live", url: "https://stream.sunshine-live.de/premium/mp3-192/tunein/", logo: "./assets/sunshine.png" },
-			{ isDefault: true, name: "Sunshine LiVE • 90s", displayName: "SUNSHINE 90s", apiId: "sunshine-90s", url: "http://stream.sunshine-live.de/90er/mp3-192/tunein/", logo: "./assets/sunshine-90s.png" },
-			{ isDefault: true, name: "Sunshine Eurodance", displayName: "SUNSHINE E.DANCE", apiId: "sunshine-eurodance", url: "http://stream.sunshine-live.de/eurodance/mp3-192/tunein/", logo: "./assets/sunshine-eurodance.png" },
+			{ isDefault: true, name: "Sunshine LiVE • 90s", displayName: "SUNSHINE 90s", apiId: "sunshine-90s", url: "https://stream.sunshine-live.de/90er/mp3-192/tunein/", logo: "./assets/sunshine-90s.png" },
+			{ isDefault: true, name: "Sunshine Eurodance", displayName: "SUNSHINE E.DANCE", apiId: "sunshine-eurodance", url: "https://stream.sunshine-live.de/eurodance/mp3-192/tunein/", logo: "./assets/sunshine-eurodance.png" },
 			{ isDefault: true, name: "RADiO BOB! • National", displayName: "RADiO BOB!", apiId: "radio-bob", url: "https://streams.radiobob.de/bob-national/mp3-192/alexa-bob/", logo: "./assets/radio-bob.png" },
-			{ isDefault: true, name: "Rockland Radio • Trier", displayName: "Rockland Trier", apiId: "rockland", url: "https://streams.rockland.de/trier/mp3-192/skill/", logo: "./assets/rockland.png" },
+			{ isDefault: true, name: "Rockland Radio • Trier", displayName: "Rockland", apiId: "rockland", url: "https://streams.rockland.de/trier/mp3-192/skill/", logo: "./assets/rockland.png" },
 			{ isDefault: true, name: "Antenne Trier", displayName: "Antenne Trier", apiId: "antenne-trier", url: "https://stream.radiogroup.de/antenne-trier/mp3-192/", logo: "https://heyfordy.dev/radio/assets/antenne-trier.png" },
 			{ isDefault: true, name: "ROCK ANTENNE", displayName: "ROCK ANTENNE", apiId: "rockantenne", url: "https://stream.rockantenne.de/rockantenne/stream/mp3?aw_0_1st.playerid=tunein.com", logo: "./assets/rockantenne.png" },
 			{ isDefault: true, name: "Eldoradio Lëtzebuerg", displayName: "E L D O", apiId: "eldoradio", url: "https://sc.bce.lu/eldo", logo: "./assets/eldo.lu.png" },
@@ -314,7 +314,7 @@
 			const s = stations[currentStationIndex];
 			isHangFallback = false;
 			audio.loop = false;
-			const url = rememberedStreamUrl || s.url;
+			const url = secureUrl(rememberedStreamUrl || s.url);
 			audio.src = url;
 			audio.play().then(() => {
 				updateStatus('playing');
@@ -531,7 +531,7 @@
 				audio.play().then(() => startMetaFetcher(s)).catch(() => { updatePlayBtn(false); updateStatus("ready"); });
 			} else {
 				audio.loop = false;
-				audio.src = s.url;
+				audio.src = secureUrl(s.url);
 				audio.play().then(() => startMetaFetcher(s)).catch(() => { updatePlayBtn(false); updateStatus("ready"); });
 			}
 		}
@@ -606,10 +606,18 @@
 		// Resolve relative station logos to absolute heyfordy.dev URLs
 		function resolveLogoUrl(logo) {
 			if (!logo) return null;
-			if (logo.startsWith('http://') || logo.startsWith('https://')) return logo;
+			// upgrade plain http to https to avoid mixed-content warnings
+			if (logo.startsWith('http://')) logo = 'https://' + logo.slice(7);
+			if (logo.startsWith('https://')) return logo;
 			if (logo.startsWith('./')) logo = logo.slice(2);
 			else if (logo.startsWith('/')) logo = logo.slice(1);
 			return 'https://heyfordy.dev/radio/' + logo;
+		}
+
+		function secureUrl(url) {
+			if (!url || typeof url !== 'string') return url;
+			if (url.startsWith('http://')) return 'https://' + url.slice(7);
+			return url;
 		}
 
 		// Build and POST current playback status
@@ -678,16 +686,16 @@
 				clearHangWatch();
 				const s = stations[currentStationIndex];
 				if (s.apiId === 'airplay' && audio.src.startsWith('data:')) {
-					audio.src = s.url;
+					audio.src = secureUrl(s.url);
 					audio.loop = false;
 				} else if (!audio.src || audio.src.startsWith('data:') || audio.src === window.location.href) {
 					// resume with remembered direct stream link if available
 					audio.loop = false;
-					audio.src = rememberedStreamUrl || s.url;
+					audio.src = secureUrl(rememberedStreamUrl || s.url);
 				} else {
 					// restart with remembered direct link (keeps session id) instead of original playlist url
 					audio.loop = false;
-					const resumeUrl = rememberedStreamUrl || audio.currentSrc || audio.src || s.url;
+					const resumeUrl = secureUrl(rememberedStreamUrl || audio.currentSrc || audio.src || s.url);
 					audio.src = resumeUrl;
 				}
 				audio.play().then(() => {
@@ -818,7 +826,7 @@
 				if (userPaused) return;
 				if (audio.src.startsWith('data:') || audio.src === window.location.href || audio.paused) {
 					audio.loop = false;
-					audio.src = station.url;
+					audio.src = secureUrl(station.url);
 					try { await audio.play(); } catch(e){}
 				}
 				const trackTitle = data.title || "Unbekannter Titel";

@@ -892,92 +892,139 @@
 			if (currentTrackIndex < 0 || !queue[currentTrackIndex]) return;
 			const track = queue[currentTrackIndex];
 
-			// UI SOFORT updaten für schnelles flüssiges Skippen
+			// UI immediately for snappy feel
 			updateUI();
-			
-			// DEBOUNCE: Verhindert Server-Spam bei schnellem Vor/Zurück klicken
+
+			// debounce rapid skip clicks
 			clearTimeout(playTimeout);
 			playTimeout = setTimeout(() => {
 				seamlessLock = false;
 				if (playSessionId) reportPlaybackStopped();
 
-				// Prefer preloaded element when it already holds this track
-				if (preloadedTrackId === track.Id && preloadAudio.src) {
+				// Prefer already-preloaded element when it matches the desired track
+				if (preloadedTrackId === track.Id && preloadAudio && preloadAudio.src) {
 					const old = audio;
 					audio = preloadAudio;
 					preloadAudio = old;
 					preloadedTrackId = null;
-					try { preloadAudio.pause(); preloadAudio.removeAttribute('src'); preloadAudio.load(); } catch(e) {}
+					try { audio.muted = false; } catch(e) {}
+					// clean previous element a bit later so the handoff stays smooth
+					setTimeout(() => {
+						try {
+							if (preloadAudio && preloadAudio !== audio) {
+								preloadAudio.pause();
+								preloadAudio.removeAttribute('src');
+								preloadAudio.load();
+							}
+						} catch(e) {}
+					}, 600);
 				} else {
+					// normal path – always set src on the active element
 					preloadedTrackId = null;
-					try { preloadAudio.removeAttribute('src'); preloadAudio.load(); } catch(e) {}
-					audio.src = streamUrlFor(track);
+					try {
+						if (preloadAudio) {
+							preloadAudio.pause();
+							preloadAudio.removeAttribute('src');
+							preloadAudio.load();
+						}
+					} catch(e) {}
+					const url = streamUrlFor(track);
+					if (!url) {
+						console.error('No stream URL for track', track);
+						return;
+					}
+					// force a clean load
+					try { audio.pause(); } catch(e) {}
+					audio.src = url;
+					audio.load();
 				}
-				
+
 				if (restoreTime) {
 					const savedTime = parseFloat(localStorage.getItem('jf_time'));
-					if (savedTime) audio.currentTime = savedTime;
+					if (savedTime && isFinite(savedTime)) audio.currentTime = savedTime;
 				} else if (startSeconds > 0) {
 					audio.currentTime = startSeconds;
 				}
-				
-				audio.play().then(() => {
+
+				const p = audio.play();
+				if (p && p.then) {
+					p.then(() => {
+						isPlaying = true;
+						localStorage.setItem('last_played_context', 'jellyfin');
+						reportPlaybackStart();
+						startProgressReporter();
+						updateUI();
+						updateMediaSession();
+						maybePrefetchNext();
+					}).catch(err => {
+						console.error('play() failed', err);
+						isPlaying = false;
+						updateUI();
+					});
+				} else {
 					isPlaying = true;
-					localStorage.setItem('last_played_context', 'jellyfin');
 					reportPlaybackStart();
 					startProgressReporter();
 					updateUI();
 					updateMediaSession();
 					maybePrefetchNext();
-				}).catch(console.error);
-				
+				}
+
 				persistQueue();
-			}, 180);
+			}, 120);
 		}
 
 		function maybePrefetchNext() {
 			const next = queue[currentTrackIndex + 1];
 			if (!next || preloadedTrackId === next.Id) return;
 			const url = streamUrlFor(next);
-			if (!url) return;
+			if (!url || !preloadAudio) return;
 			try {
+				// only prepare the standby element – never call play() on it
+				// (play/pause on a second audio steals focus on Xbox/Edge)
+				preloadAudio.muted = true;
+				preloadAudio.preload = 'auto';
 				preloadAudio.src = url;
 				preloadAudio.load();
-				// nudge buffer a bit without audible play
-				preloadAudio.muted = true;
-				const p = preloadAudio.play();
-				if (p && p.then) {
-					p.then(() => {
-						try { preloadAudio.pause(); preloadAudio.currentTime = 0; } catch(e) {}
-						preloadAudio.muted = false;
-					}).catch(() => { preloadAudio.muted = false; });
-				} else {
-					preloadAudio.muted = false;
-				}
 				preloadedTrackId = next.Id;
-			} catch(e) {}
+			} catch(e) {
+				preloadedTrackId = null;
+			}
 		}
 
-		// Near end of track: ensure next is warm; on very end we swap for gapless feel
+		// Near end of track: warm next, then do a soft handoff when almost finished
 		let seamlessLock = false;
 		function armSeamlessSwap() {
 			if (seamlessLock) return;
 			if (!audio || !audio.duration || !isFinite(audio.duration)) return;
 			const remaining = audio.duration - audio.currentTime;
-			if (remaining < 2.5) maybePrefetchNext();
-			if (remaining > 0.25) return;
+			if (remaining < 25) maybePrefetchNext();
+			// only attempt handoff very close to the end and only when preload looks ready
+			if (remaining > 0.4) return;
 			const next = queue[currentTrackIndex + 1];
-			if (!next || preloadedTrackId !== next.Id || !preloadAudio.src) return;
+			if (!next || preloadedTrackId !== next.Id || !preloadAudio || !preloadAudio.src) return;
+			// require at least some data buffered
+			if (preloadAudio.readyState < 2) return; // HAVE_CURRENT_DATA
+
 			seamlessLock = true;
-			// soft handoff
 			currentTrackIndex++;
 			const old = audio;
 			audio = preloadAudio;
 			preloadAudio = old;
 			preloadedTrackId = null;
-			try { old.pause(); old.removeAttribute('src'); old.load(); } catch(e) {}
-			try { audio.currentTime = 0; } catch(e) {}
-			audio.play().then(() => {
+
+			try {
+				audio.muted = false;
+				if (audio.currentTime > 0.15) audio.currentTime = 0;
+			} catch(e) {}
+
+			const playPromise = audio.play();
+			const finish = () => {
+				try {
+					old.pause();
+					old.removeAttribute('src');
+					old.load();
+				} catch(e) {}
 				isPlaying = true;
 				if (playSessionId) reportPlaybackStopped();
 				reportPlaybackStart();
@@ -986,7 +1033,23 @@
 				persistQueue();
 				maybePrefetchNext();
 				seamlessLock = false;
-			}).catch(() => { seamlessLock = false; });
+			};
+
+			if (playPromise && playPromise.then) {
+				playPromise.then(finish).catch(() => {
+					// restore previous main element and fall back to normal next
+					audio = old;
+					preloadAudio = (old.id === 'jelly-audio')
+						? document.getElementById('preload-audio')
+						: document.getElementById('jelly-audio');
+					seamlessLock = false;
+					preloadedTrackId = null;
+					// currentTrackIndex already advanced – just load normally
+					playCurrentTrack();
+				});
+			} else {
+				finish();
+			}
 		}
 
 		function togglePlay() {
@@ -1106,7 +1169,9 @@
 			window.location.href = 'index.html?noredirect=true';
 		}
 
-		function onAudioTimeUpdate() {
+		function onAudioTimeUpdate(e) {
+			// ignore events from the standby element
+			if (e && e.target && e.target !== audio) return;
 			if (!audio || !audio.duration) return;
 			const percent = (audio.currentTime / audio.duration) * 100;
 			const bar = document.getElementById('progress-bar');
@@ -1125,19 +1190,23 @@
 			}
 		}
 
-		function onAudioEnded() {
+		function onAudioEnded(e) {
+			if (e && e.target && e.target !== audio) return;
 			// fallback if seamless swap did not fire
 			if (seamlessLock) return;
 			if (playSessionId) reportPlaybackStopped();
 			nextTrack();
 		}
 
-		function onAudioPause() {
+		function onAudioPause(e) {
+			// critical: only react to the element that is currently the main player
+			if (e && e.target && e.target !== audio) return;
 			isPlaying = false;
 			updateUI();
 		}
 
-		function onAudioPlay() {
+		function onAudioPlay(e) {
+			if (e && e.target && e.target !== audio) return;
 			isPlaying = true;
 			updateUI();
 		}
