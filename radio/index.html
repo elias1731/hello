@@ -1111,8 +1111,54 @@
 		// Save stations to local storage and update UI
 		function saveAndRefresh() { localStorage.setItem('radio_stations', JSON.stringify(stations)); renderStations(); renderManagerList(); }
 		
-		// Clear local cache and reload page
-		function clearCache() { localStorage.clear(); window.location.reload(true); }
+		// Clear caches/media while keeping settings, stations and login data
+		async function clearCache() {
+			const keepKeys = [
+				'radio_stations', 'radio_last_index', 'radio_disable_meta',
+				'radio_jf_server', 'radio_jf_username', 'radio_jf_password',
+				'radio_jf_token', 'radio_jf_user', 'radio_jf_device_name', 'radio_jf_device_id',
+				'radio_device_name', 'radio_device_secret',
+				'radio_bt_mode', 'last_played_context'
+			];
+			const preserved = {};
+			keepKeys.forEach(k => {
+				const v = localStorage.getItem(k);
+				if (v !== null) preserved[k] = v;
+			});
+			localStorage.clear();
+			Object.keys(preserved).forEach(k => localStorage.setItem(k, preserved[k]));
+
+			if (typeof imageCache !== 'undefined' && imageCache.clear) {
+				try { imageCache.clear(); } catch (e) {}
+			}
+
+			if ('caches' in window) {
+				try {
+					const names = await caches.keys();
+					await Promise.all(names.map(n => caches.delete(n)));
+				} catch (e) {}
+			}
+
+			if (window.indexedDB && indexedDB.databases) {
+				try {
+					const dbs = await indexedDB.databases();
+					await Promise.all((dbs || []).map(db => new Promise(res => {
+						const req = indexedDB.deleteDatabase(db.name);
+						req.onsuccess = req.onerror = req.onblocked = () => res();
+					})));
+				} catch (e) {}
+			}
+
+			if ('serviceWorker' in navigator) {
+				try {
+					const regs = await navigator.serviceWorker.getRegistrations();
+					await Promise.all(regs.map(r => r.unregister()));
+				} catch (e) {}
+			}
+
+			window.location.reload(true);
+		}
+
 
 		// Global window click listener to close modal
 		window.onclick = (e) => { if (e.target.className === 'modal') closeManager(); }

@@ -189,7 +189,6 @@
 	</div>
 
 	<audio id="jelly-audio" preload="metadata" msAudioCategory="Media"></audio>
-	<audio id="preload-audio" preload="auto"></audio>
 	<audio id="silent-audio" loop preload="none" src="data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA=="></audio>
 
 	<script>
@@ -214,8 +213,7 @@
 		let ws = null;
 		let wsReconnectTimer = null;
 		let keepAliveTimer = null;
-		let preloadAudio = document.getElementById('preload-audio');
-		let preloadedTrackId = null;
+		let prefetchedUrl = null;
 		let mediaHandlersBound = false;
 
 		if ('msAudioCategory' in audio) {
@@ -898,46 +896,17 @@
 			// debounce rapid skip clicks
 			clearTimeout(playTimeout);
 			playTimeout = setTimeout(() => {
-				seamlessLock = false;
 				if (playSessionId) reportPlaybackStopped();
 
-				// Prefer already-preloaded element when it matches the desired track
-				if (preloadedTrackId === track.Id && preloadAudio && preloadAudio.src) {
-					const old = audio;
-					audio = preloadAudio;
-					preloadAudio = old;
-					preloadedTrackId = null;
-					try { audio.muted = false; } catch(e) {}
-					// clean previous element a bit later so the handoff stays smooth
-					setTimeout(() => {
-						try {
-							if (preloadAudio && preloadAudio !== audio) {
-								preloadAudio.pause();
-								preloadAudio.removeAttribute('src');
-								preloadAudio.load();
-							}
-						} catch(e) {}
-					}, 600);
-				} else {
-					// normal path – always set src on the active element
-					preloadedTrackId = null;
-					try {
-						if (preloadAudio) {
-							preloadAudio.pause();
-							preloadAudio.removeAttribute('src');
-							preloadAudio.load();
-						}
-					} catch(e) {}
-					const url = streamUrlFor(track);
-					if (!url) {
-						console.error('No stream URL for track', track);
-						return;
-					}
-					// force a clean load
-					try { audio.pause(); } catch(e) {}
-					audio.src = url;
-					audio.load();
+				const url = streamUrlFor(track);
+				if (!url) {
+					console.error('No stream URL for track', track);
+					return;
 				}
+
+				try { audio.pause(); } catch(e) {}
+				audio.src = url;
+				audio.load();
 
 				if (restoreTime) {
 					const savedTime = parseFloat(localStorage.getItem('jf_time'));
@@ -971,84 +940,24 @@
 				}
 
 				persistQueue();
-			}, 120);
+			}, 80);
 		}
 
+		// Warm next track via temporary Audio (no second permanent element, avoids focus steal on Xbox/Edge)
 		function maybePrefetchNext() {
 			const next = queue[currentTrackIndex + 1];
-			if (!next || preloadedTrackId === next.Id) return;
+			if (!next) return;
 			const url = streamUrlFor(next);
-			if (!url || !preloadAudio) return;
+			if (!url || url === prefetchedUrl) return;
+			prefetchedUrl = url;
 			try {
-				// only prepare the standby element – never call play() on it
-				// (play/pause on a second audio steals focus on Xbox/Edge)
-				preloadAudio.muted = true;
-				preloadAudio.preload = 'auto';
-				preloadAudio.src = url;
-				preloadAudio.load();
-				preloadedTrackId = next.Id;
+				const warm = new Audio();
+				warm.preload = 'auto';
+				warm.muted = true;
+				warm.src = url;
+				// let browser start buffering; no play(), discard reference
 			} catch(e) {
-				preloadedTrackId = null;
-			}
-		}
-
-		// Near end of track: warm next, then do a soft handoff when almost finished
-		let seamlessLock = false;
-		function armSeamlessSwap() {
-			if (seamlessLock) return;
-			if (!audio || !audio.duration || !isFinite(audio.duration)) return;
-			const remaining = audio.duration - audio.currentTime;
-			if (remaining < 25) maybePrefetchNext();
-			// only attempt handoff very close to the end and only when preload looks ready
-			if (remaining > 0.4) return;
-			const next = queue[currentTrackIndex + 1];
-			if (!next || preloadedTrackId !== next.Id || !preloadAudio || !preloadAudio.src) return;
-			// require at least some data buffered
-			if (preloadAudio.readyState < 2) return; // HAVE_CURRENT_DATA
-
-			seamlessLock = true;
-			currentTrackIndex++;
-			const old = audio;
-			audio = preloadAudio;
-			preloadAudio = old;
-			preloadedTrackId = null;
-
-			try {
-				audio.muted = false;
-				if (audio.currentTime > 0.15) audio.currentTime = 0;
-			} catch(e) {}
-
-			const playPromise = audio.play();
-			const finish = () => {
-				try {
-					old.pause();
-					old.removeAttribute('src');
-					old.load();
-				} catch(e) {}
-				isPlaying = true;
-				if (playSessionId) reportPlaybackStopped();
-				reportPlaybackStart();
-				updateUI();
-				updateMediaSession();
-				persistQueue();
-				maybePrefetchNext();
-				seamlessLock = false;
-			};
-
-			if (playPromise && playPromise.then) {
-				playPromise.then(finish).catch(() => {
-					// restore previous main element and fall back to normal next
-					audio = old;
-					preloadAudio = (old.id === 'jelly-audio')
-						? document.getElementById('preload-audio')
-						: document.getElementById('jelly-audio');
-					seamlessLock = false;
-					preloadedTrackId = null;
-					// currentTrackIndex already advanced – just load normally
-					playCurrentTrack();
-				});
-			} else {
-				finish();
+				prefetchedUrl = null;
 			}
 		}
 
@@ -1170,15 +1079,13 @@
 		}
 
 		function onAudioTimeUpdate(e) {
-			// ignore events from the standby element
 			if (e && e.target && e.target !== audio) return;
 			if (!audio || !audio.duration) return;
 			const percent = (audio.currentTime / audio.duration) * 100;
 			const bar = document.getElementById('progress-bar');
 			if (bar) bar.value = percent;
 			localStorage.setItem('jf_time', audio.currentTime);
-			if (audio.duration - audio.currentTime < 20) maybePrefetchNext();
-			armSeamlessSwap();
+			if (audio.duration - audio.currentTime < 25) maybePrefetchNext();
 			if ('mediaSession' in navigator && navigator.mediaSession.setPositionState) {
 				try {
 					navigator.mediaSession.setPositionState({
@@ -1192,14 +1099,11 @@
 
 		function onAudioEnded(e) {
 			if (e && e.target && e.target !== audio) return;
-			// fallback if seamless swap did not fire
-			if (seamlessLock) return;
 			if (playSessionId) reportPlaybackStopped();
 			nextTrack();
 		}
 
 		function onAudioPause(e) {
-			// critical: only react to the element that is currently the main player
 			if (e && e.target && e.target !== audio) return;
 			isPlaying = false;
 			updateUI();
@@ -1222,7 +1126,6 @@
 		}
 
 		bindAudioElement(audio);
-		bindAudioElement(preloadAudio);
 
 		document.addEventListener('keydown', e => {
 			const qModal = document.getElementById('queue-modal');
