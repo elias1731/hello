@@ -29,7 +29,6 @@ TZ = ZoneInfo("Europe/Berlin")
 
 def login(session: requests.Session) -> str:
     """Perform login and return Bearer JWT."""
-    # initial page → session cookie + CSRF
     r = session.get(f"{BASE}/WebUntis/?school={SCHOOL}", timeout=30)
     r.raise_for_status()
 
@@ -38,7 +37,6 @@ def login(session: requests.Session) -> str:
     if m:
         csrf = m.group(1)
 
-    # some deployments also put it in a meta / header – fall back to empty
     headers = {
         "Content-Type": "application/x-www-form-urlencoded",
         "Origin": BASE,
@@ -69,7 +67,6 @@ def login(session: requests.Session) -> str:
     if body.get("state") != "SUCCESS":
         raise RuntimeError(f"Login failed: {body}")
 
-    # JWT
     r = session.get(f"{BASE}/WebUntis/api/token/new", timeout=30)
     r.raise_for_status()
     token = r.text.strip().strip('"')
@@ -79,12 +76,10 @@ def login(session: requests.Session) -> str:
 
 
 def get_person_id(token: str) -> int:
-    """Extract person_id from JWT payload (no verification needed)."""
     import base64
     import json
 
     payload = token.split(".")[1]
-    # pad
     payload += "=" * (-len(payload) % 4)
     data = json.loads(base64.urlsafe_b64decode(payload))
     return int(data["person_id"])
@@ -107,8 +102,11 @@ def fetch_entries(session: requests.Session, token: str, person_id: int, start: 
 
 
 def format_dt(iso_local: str) -> str:
-    """'2026-11-12T08:00' → ICS local time with TZID"""
-    return iso_local.replace("-", "").replace(":", "")
+    """'2026-11-12T08:00' → 20261112T080000 (Apple needs seconds)"""
+    cleaned = iso_local.replace("-", "").replace(":", "")
+    if len(cleaned) == 13:  # YYYYMMDDTHHMM
+        cleaned += "00"
+    return cleaned
 
 
 def build_ics(days: list) -> str:
@@ -116,10 +114,10 @@ def build_ics(days: list) -> str:
     lines = [
         "BEGIN:VCALENDAR",
         "VERSION:2.0",
-        "PRODID:-//WebUntis→ICS//DE",
+        "PRODID:-//WebUntis-ICS//DE",
         "CALSCALE:GREGORIAN",
         "METHOD:PUBLISH",
-        "X-WR-CALNAME:WebUntis Stundenplan",
+        "X-WR-CALNAME:» 🏫 BBS-GuT • Stundenplan",
         "X-WR-TIMEZONE:Europe/Berlin",
         "BEGIN:VTIMEZONE",
         "TZID:Europe/Berlin",
@@ -142,10 +140,6 @@ def build_ics(days: list) -> str:
 
     for day in days:
         for entry in day.get("gridEntries") or []:
-            if entry.get("type") not in (None, "NORMAL_TEACHING_PERIOD", "BREAK", "OFFICE_HOUR"):
-                # still include most types
-                pass
-
             start = entry["duration"]["start"]
             end = entry["duration"]["end"]
 
@@ -161,7 +155,6 @@ def build_ics(days: list) -> str:
             room = pos(3, "shortName") or pos(3)
             room_long = pos(3)
 
-            # optional text fields
             notes = (entry.get("notesAll") or "").strip()
             lesson_text = (entry.get("lessonText") or "").strip()
             lesson_info = entry.get("lessonInfo")
@@ -178,6 +171,8 @@ def build_ics(days: list) -> str:
                     texts.append(str(t))
 
             extra = []
+            if teacher:
+                extra.append(teacher)
             if lesson_text:
                 extra.append(f"Lehrstoff: {lesson_text}")
             if notes:
@@ -187,7 +182,7 @@ def build_ics(days: list) -> str:
             if texts:
                 extra.append(" / ".join(texts))
 
-            description = "\\n".join(extra) if extra else ""
+            description = "\n".join(extra)
             summary = subject or "Unterricht"
             location = room_long or room
 
@@ -201,7 +196,7 @@ def build_ics(days: list) -> str:
                 f"DTEND;TZID=Europe/Berlin:{format_dt(end)}",
                 f"SUMMARY:{_escape(summary)}",
                 f"LOCATION:{_escape(location)}",
-                f"DESCRIPTION:{_escape(f'{teacher}' + ('\\n' + description if description else ''))}",
+                f"DESCRIPTION:{_escape(description)}",
                 "END:VEVENT",
             ]
 
@@ -246,7 +241,7 @@ def main():
     ics = build_ics(days)
     out = os.environ.get("ICS_PATH", "assets/bbs.ics")
     os.makedirs(os.path.dirname(out) or ".", exist_ok=True)
-    with open(out, "w", encoding="utf-8") as f:
+    with open(out, "w", encoding="utf-8", newline="") as f:
         f.write(ics)
     print(f"Wrote {out}")
 
