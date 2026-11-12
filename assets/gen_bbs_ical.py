@@ -26,6 +26,12 @@ DAYS_FORWARD = 21
 
 TZ = ZoneInfo("Europe/Berlin")
 
+# subject name mapping
+SUBJECT_MAP = {
+    "BBU_Fahr": "Fahrzeugtechnik",
+    "ReEt": "Ethik",
+}
+
 
 def login(session: requests.Session) -> str:
     """Perform login and return Bearer JWT."""
@@ -109,6 +115,19 @@ def format_dt(iso_local: str) -> str:
     return cleaned
 
 
+def is_cancelled(entry: dict) -> bool:
+    status = (entry.get("status") or "").upper()
+    if status in ("CANCELLED", "CANCELED", "DELETED", "ABSENT"):
+        return True
+    detail = (entry.get("statusDetail") or "").upper()
+    if "CANCEL" in detail or "ENTFALL" in detail or "DELETED" in detail:
+        return True
+    sub = (entry.get("substitutionText") or "").lower()
+    if "entfällt" in sub or "entfall" in sub or "cancelled" in sub:
+        return True
+    return False
+
+
 def build_ics(days: list) -> str:
     now = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
     lines = [
@@ -150,10 +169,13 @@ def build_ics(days: list) -> str:
                 cur = p[0].get("current") or {}
                 return cur.get(key) or cur.get("shortName") or ""
 
-            teacher = pos(1)
-            subject = pos(2, "shortName") or pos(2)
-            room = pos(3, "shortName") or pos(3)
-            room_long = pos(3)
+            teacher_long = pos(1, "longName")
+            teacher_short = pos(1, "shortName")
+            subject_raw = pos(2, "shortName") or pos(2, "longName")
+            room_short = pos(3, "shortName")
+            room_long = pos(3, "longName")
+
+            subject = SUBJECT_MAP.get(subject_raw, subject_raw)
 
             notes = (entry.get("notesAll") or "").strip()
             lesson_text = (entry.get("lessonText") or "").strip()
@@ -170,23 +192,38 @@ def build_ics(days: list) -> str:
                 else:
                     texts.append(str(t))
 
-            extra = []
-            if teacher:
-                extra.append(teacher)
+            cancelled = is_cancelled(entry)
+
+            if cancelled:
+                summary = f"❌ {subject} [ENTFÄLLT]"
+            else:
+                room_part = f" [{room_short}]" if room_short else ""
+                summary = f"{subject}{room_part}"
+
+            desc_lines = []
+            if room_long:
+                desc_lines.append(f"Rauminfo: {room_long}")
+
+            if teacher_long or teacher_short:
+                if teacher_long and teacher_short and teacher_long != teacher_short:
+                    desc_lines.append(f"Lehrer: {teacher_long} ({teacher_short})")
+                else:
+                    desc_lines.append(f"Lehrer: {teacher_long or teacher_short}")
+
             if lesson_text:
-                extra.append(f"Lehrstoff: {lesson_text}")
-            if notes:
-                extra.append(f"Notiz: {notes}")
+                desc_lines.append(f"Lehrstoff: {lesson_text}")
             if lesson_info:
-                extra.append(str(lesson_info))
-            if texts:
-                extra.append(" / ".join(texts))
+                desc_lines.append(f"Lehrstoff: {lesson_info}")
 
-            description = "\n".join(extra)
-            summary = subject or "Unterricht"
-            location = room_long or room
+            homework = notes
+            if not homework and texts:
+                homework = " / ".join(texts)
+            if homework:
+                desc_lines.append(f"Hausaufgaben: {homework}")
 
-            uid = str(uuid.uuid5(uuid.NAMESPACE_URL, f"{start}-{end}-{subject}-{room}-{teacher}"))
+            description = "\n".join(desc_lines)
+
+            uid = str(uuid.uuid5(uuid.NAMESPACE_URL, f"{start}-{end}-{subject_raw}-{room_short}-{teacher_short}"))
 
             lines += [
                 "BEGIN:VEVENT",
@@ -195,10 +232,30 @@ def build_ics(days: list) -> str:
                 f"DTSTART;TZID=Europe/Berlin:{format_dt(start)}",
                 f"DTEND;TZID=Europe/Berlin:{format_dt(end)}",
                 f"SUMMARY:{_escape(summary)}",
-                f"LOCATION:{_escape(location)}",
+                f"LOCATION:{_escape(room_short)}",
                 f"DESCRIPTION:{_escape(description)}",
-                "END:VEVENT",
             ]
+
+            # 15 min before
+            lines += [
+                "BEGIN:VALARM",
+                "TRIGGER:-PT15M",
+                "ACTION:DISPLAY",
+                f"DESCRIPTION:{_escape(summary)}",
+                "END:VALARM",
+            ]
+
+            # cancelled → also 1 day before
+            if cancelled:
+                lines += [
+                    "BEGIN:VALARM",
+                    "TRIGGER:-P1D",
+                    "ACTION:DISPLAY",
+                    f"DESCRIPTION:{_escape(summary)}",
+                    "END:VALARM",
+                ]
+
+            lines.append("END:VEVENT")
 
     lines.append("END:VCALENDAR")
     return "\r\n".join(lines) + "\r\n"
