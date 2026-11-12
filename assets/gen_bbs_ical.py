@@ -21,7 +21,7 @@ BASE = f"https://{SCHOOL}.webuntis.com"
 HOST = f"{SCHOOL}.webuntis.com"
 
 # how many days back / forward
-DAYS_BACK = 21
+DAYS_BACK = 7
 DAYS_FORWARD = 21
 
 TZ = ZoneInfo("Europe/Berlin")
