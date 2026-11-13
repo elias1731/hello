@@ -1,0 +1,41 @@
+name: Serrig Orts-App → ICS
+
+on:
+  schedule:
+    - cron: "0 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install deps
+        run: pip install requests
+
+      - name: Generate ICS
+        env:
+          ICS_PATH: assets/serrig.ics
+        run: python assets/gen_serrig_ical.py
+
+      - name: Commit if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/serrig.ics
+          if git diff --staged --quiet; then
+            echo "No changes"
+          else
+            git commit -m "chore: update assets/serrig.ics $(date -u +%Y-%m-%dT%H:%MZ)"
+            git push
+          fi
