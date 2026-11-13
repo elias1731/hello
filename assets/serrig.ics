@@ -1,0 +1,443 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Serrig-OrtsApp-ICS//DE
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+X-WR-CALNAME:» 🏡 Serrig
+X-WR-TIMEZONE:Europe/Berlin
+BEGIN:VTIMEZONE
+TZID:Europe/Berlin
+BEGIN:DAYLIGHT
+TZOFFSETFROM:+0100
+TZOFFSETTO:+0200
+TZNAME:CEST
+DTSTART:19700329T020000
+RRULE:FREQ=YEARLY;BYMONTH=3;BYDAY=-1SU
+END:DAYLIGHT
+BEGIN:STANDARD
+TZOFFSETFROM:+0200
+TZOFFSETTO:+0100
+TZNAME:CET
+DTSTART:19701025T030000
+RRULE:FREQ=YEARLY;BYMONTH=10;BYDAY=-1SU
+END:STANDARD
+END:VTIMEZONE
+BEGIN:VEVENT
+UID:e3858d23-be01-c19e-ee84-5b088503f7f4@serrig.orts.app
+DTSTAMP:20261113T014156Z
+DTSTART;TZID=Europe/Berlin:20261118T190000
+DTEND;TZID=Europe/Berlin:20261118T200000
+SUMMARY:Ortsgemeinderatssitzung
+LOCATION:Bürgersaal - Martinusstraße 27 – Serrig
+DESCRIPTION:Einladung:\n\n Die Sitzungen des Ortsgemeinderats sind anfangs öffentlich und bieten allen Bürgerinnen und Bürgern die Möglichkeit\, sich über aktuelle Themen\, Projekte und Entscheidungen in unserer Gemeinde zu informieren. Wir laden Sie herzlich ein\, teilzunehmen\, sich einzubringen und die Entwicklung unseres Dorfes aktiv mitzugestalten.\n(Ende offen / geschätzt)\nMehr Infos: https://serrig.orts.app/events/738e9fa1-2d0a-44b3-91a7-37e552672cbc
+URL:https://serrig.orts.app/events/738e9fa1-2d0a-44b3-91a7-37e552672cbc
+ATTACH;FMTTYPE=image/jpeg:https://cdn-io-hwemfka5facrcffz.z03.azurefd.net/endpoint/images/ba64a5d6-93c6-47c2-99a6-20804e2d4a02
+X-IMAGE-URL:https://cdn-io-hwemfka5facrcffz.z03.azurefd.net/endpoint/images/ba64a5d6-93c6-47c2-99a6-20804e2d4a02
+BEGIN:VALARM
+TRIGGER:-PT1H
+ACTION:DISPLAY
+DESCRIPTION:Ortsgemeinderatssitzung
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:ab9039bc-20f1-670b-abce-e92ba9bfeefc@serrig.orts.app
+DTSTAMP:20261113T014156Z
+DTSTART;TZID=Europe/Berlin:20261120T060000
+DTEND;TZID=Europe/Berlin:20261120T110000
+SUMMARY:Abholung Restmüll
+DESCRIPTION:Hinweis zur Restmülltonne:\n Bitte beachten Sie\, dass der Deckel der Mülltonne geschlossen sein muss. Wenn ab und zu nicht alles in die Tonne passt\, verwenden Sie bitte amtliche Abfallsäcke. Die 70-Liter-Säcke bekommen Sie hier: http://www.art-trier.de/abfallsaecke\n Ist die Tonne regelmäßig zu klein\, kann der Hauseigentümer hier einen größeren Abfallbehälter beantragen: http://www.art-trier.de/antraege\n\n - Der Zweckverband Abfallwirtschaft Region Trier (A.R.T.) ist zuständig für die Abfallentsorgung in der Stadt Trier\, dem Landkreis Bernkastel-Wittlich\, dem Landkreis Vulkaneifel\, dem Eifelkreis Bitburg-Prüm und dem Landkreis Trier-Saarburg. -\nMehr Infos: https://serrig.orts.app/events/dbe67c43-27ae-448f-9720-6176f1a0af94
+URL:https://serrig.orts.app/events/dbe67c43-27ae-448f-9720-6176f1a0af94
+ATTACH;FMTTYPE=image/jpeg:https://cdn-io-hwemfka5facrcffz.z03.azurefd.net/endpoint/images/7062f991-c569-4a28-86ee-cacddd9a3b9a
+X-IMAGE-URL:https://cdn-io-hwemfka5facrcffz.z03.azurefd.net/endpoint/images/7062f991-c569-4a28-86ee-cacddd9a3b9a
+BEGIN:VALARM
+TRIGGER:-PT1H
+ACTION:DISPLAY
+DESCRIPTION:Abholung Restmüll
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:9773b318-ba5d-aa1e-fc4a-ab1315ffb2e6@serrig.orts.app
+DTSTAMP:20261113T014156Z
+DTSTART;TZID=Europe/Berlin:20261120T160000
+DTEND;TZID=Europe/Berlin:20261120T220000
+SUMMARY:Würtzberg WEINachtszauber
+LOCATION:Weingut Würtzberg
+DESCRIPTION:Der Würtzberg WEINachtszauber findet dieses Jahr an zwei Wochenenden statt:\n • Freitag\, 20. November und Samstag\, 21. November von 16-22 Uhr\n\n• Freitag\, 27. November und Samstag\, 28. November von 16-22 Uhr\n\n Auch in diesem Jahr wird es rund um das Atelier Puricelli und im stimmungsvollen Innenhof des Weingut Würtzberg wieder weihnachtlich.\n An zwei Wochenenden laden wir euch zu unserem Würtzberg WEINachtszauber ein. Freut euch auf kleine\, liebevoll geschmückte Hütten und Aussteller mit ihren Ständen im Außenbereich.\n Für eine gemütliche Adventszeit ist natürlich auch kulinarisch gesorgt: Euch erwarten herzhafte und süße Leckereien\, wärmender Glühwein und Glühpunsch sowie natürlich unsere Würtzberg-Weine .\n Auch für die kleinen Besucher gibt es etwas zu entdecken: Beim Kinderbasteln können sie kreativ werden\, während die Großen in entspannter Atmosphäre genießen\, stöbern und die Vorweihnachtszeit einläuten.\n Neu in diesem Jahr: Sonntags findet der WEINachtszauber nicht statt. Aussteller befinden sich im Außenbereich.\n Unser Tipp: Zieht euch schön warm an! Ein großer Teil unseres WEINachtszaubers findet draußen statt – mit warmen Jacken\, Mützen und Schals lässt es sich bei Glühwein und Lichterglanz gleich doppelt so gut aushalten.\n Kommt vorbei und verbringt mit uns ein paar genussvolle\, vorweihnachtliche Stunden am Würtzberg. Wir freuen uns auf euch!\n\n Autor: Weingut Würtzberg\nMehr Infos: https://serrig.orts.app/events/1f3fcc2b-fb39-4c01-b157-1dd0d42acefa
+URL:https://serrig.orts.app/events/1f3fcc2b-fb39-4c01-b157-1dd0d42acefa
+ATTACH;FMTTYPE=image/jpeg:https://cdn-io-hwemfka5facrcffz.z03.azurefd.net/endpoint/images/64173998-2231-4e7b-8983-36bac61cbdd0
+X-IMAGE-URL:https://cdn-io-hwemfka5facrcffz.z03.azurefd.net/endpoint/images/64173998-2231-4e7b-8983-36bac61cbdd0
+BEGIN:VALARM
+TRIGGER:-PT1H
+ACTION:DISPLAY
+DESCRIPTION:Würtzberg WEINachtszauber
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:c966e545-2a4c-ff11-d87a-95bd433c85b7@serrig.orts.app
+DTSTAMP:20261113T014156Z
+DTSTART;VALUE=DATE:20261121
+DTEND;VALUE=DATE:20261122
+SUMMARY:Kirchenchor: Cäcilienfest
+DESCRIPTION:Mehr Infos: https://serrig.orts.app/events/2d6f44cb-6f5b-46ea-abb3-64d13bc5a911
+URL:https://serrig.orts.app/events/2d6f44cb-6f5b-46ea-abb3-64d13bc5a911
+ATTACH;FMTTYPE=image/jpeg:https://cdn-io-hwemfka5facrcffz.z03.azurefd.net/endpoint/images/2e737bd3-5266-4d1f-a937-17d247a7e227
+X-IMAGE-URL:https://cdn-io-hwemfka5facrcffz.z03.azurefd.net/endpoint/images/2e737bd3-5266-4d1f-a937-17d247a7e227
+BEGIN:VALARM
+TRIGGER:-PT1H
+ACTION:DISPLAY
+DESCRIPTION:Kirchenchor: Cäcilienfest
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:55ed4cec-2130-6159-8985-0fbba6f4f7d0@serrig.orts.app
+DTSTAMP:20261113T014156Z
+DTSTART;TZID=Europe/Berlin:20261121T160000
+DTEND;TZID=Europe/Berlin:20261121T220000
+SUMMARY:Würtzberg WEINachtszauber
+LOCATION:Weingut Würtzberg
+DESCRIPTION:Der Würtzberg WEINachtszauber findet dieses Jahr an zwei Wochenenden statt:\n • Freitag\, 20. November und Samstag\, 21. November von 16-22 Uhr\n\n• Freitag\, 27. November und Samstag\, 28. November von 16-22 Uhr\n\n Auch in diesem Jahr wird es rund um das Atelier Puricelli und im stimmungsvollen Innenhof des Weingut Würtzberg wieder weihnachtlich.\n An zwei Wochenenden laden wir euch zu unserem Würtzberg WEINachtszauber ein. Freut euch auf kleine\, liebevoll geschmückte Hütten und Aussteller mit ihren Ständen im Außenbereich.\n Für eine gemütliche Adventszeit ist natürlich auch kulinarisch gesorgt: Euch erwarten herzhafte und süße Leckereien\, wärmender Glühwein und Glühpunsch sowie natürlich unsere Würtzberg-Weine .\n Auch für die kleinen Besucher gibt es etwas zu entdecken: Beim Kinderbasteln können sie kreativ werden\, während die Großen in entspannter Atmosphäre genießen\, stöbern und die Vorweihnachtszeit einläuten.\n Neu in diesem Jahr: Sonntags findet der WEINachtszauber nicht statt. Aussteller befinden sich im Außenbereich.\n Unser Tipp: Zieht euch schön warm an! Ein großer Teil unseres WEINachtszaubers findet draußen statt – mit warmen Jacken\, Mützen und Schals lässt es sich bei Glühwein und Lichterglanz gleich doppelt so gut aushalten.\n Kommt vorbei und verbringt mit uns ein paar genussvolle\, vorweihnachtliche Stunden am Würtzberg. Wir freuen uns auf euch!\n\n Autor: Weingut Würtzberg\nMehr Infos: https://serrig.orts.app/events/1f3fcc2b-fb39-4c01-b157-1dd0d42acefa
+URL:https://serrig.orts.app/events/1f3fcc2b-fb39-4c01-b157-1dd0d42acefa
+ATTACH;FMTTYPE=image/jpeg:https://cdn-io-hwemfka5facrcffz.z03.azurefd.net/endpoint/images/64173998-2231-4e7b-8983-36bac61cbdd0
+X-IMAGE-URL:https://cdn-io-hwemfka5facrcffz.z03.azurefd.net/endpoint/images/64173998-2231-4e7b-8983-36bac61cbdd0
+BEGIN:VALARM
+TRIGGER:-PT1H
+ACTION:DISPLAY
+DESCRIPTION:Würtzberg WEINachtszauber
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:7b23f904-3490-2023-afe5-1e9b7cbcec38@serrig.orts.app
+DTSTAMP:20261113T014156Z
+DTSTART;TZID=Europe/Berlin:20261125T060000
+DTEND;TZID=Europe/Berlin:20261125T110000
+SUMMARY:Abholung Altpapier & Gelber Sack
+DESCRIPTION:Hinweis Altpapier & Gelber Sack:\n Bitte die Blaue Tonne und Gelben Säcke (frühestens) am Abend vorher rausstellen und beachten\, dass der Deckel der Blauen Tonne geschlossen sein muss und nichts zusätzlich bereitgestellt werden darf.\n In die Gelben Säcke gehören nur gebrauchte\, restentleerte Verkaufsverpackungen.\n\n - Der Zweckverband Abfallwirtschaft Region Trier (A.R.T.) ist zuständig für die Abfallentsorgung in der Stadt Trier\, dem Landkreis Bernkastel-Wittlich\, dem Landkreis Vulkaneifel\, dem Eifelkreis Bitburg-Prüm und dem Landkreis Trier-Saarburg. -\nMehr Infos: https://serrig.orts.app/events/0aba8ce6-54dc-42f1-842a-598002b1a572
+URL:https://serrig.orts.app/events/0aba8ce6-54dc-42f1-842a-598002b1a572
+ATTACH;FMTTYPE=image/jpeg:https://cdn-io-hwemfka5facrcffz.z03.azurefd.net/endpoint/images/f5199f1a-5641-4f09-ac02-abbad55cdddb
+X-IMAGE-URL:https://cdn-io-hwemfka5facrcffz.z03.azurefd.net/endpoint/images/f5199f1a-5641-4f09-ac02-abbad55cdddb
+BEGIN:VALARM
+TRIGGER:-PT1H
+ACTION:DISPLAY
+DESCRIPTION:Abholung Altpapier & Gelber Sack
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:88ccdf27-f710-026f-ffc9-7d37be8996a7@serrig.orts.app
+DTSTAMP:20261113T014156Z
+DTSTART;TZID=Europe/Berlin:20261127T160000
+DTEND;TZID=Europe/Berlin:20261127T220000
+SUMMARY:Würtzberg WEINachtszauber
+LOCATION:Weingut Würtzberg
+DESCRIPTION:Der Würtzberg WEINachtszauber findet dieses Jahr an zwei Wochenenden statt:\n • Freitag\, 20. November und Samstag\, 21. November von 16-22 Uhr\n\n• Freitag\, 27. November und Samstag\, 28. November von 16-22 Uhr\n\n Auch in diesem Jahr wird es rund um das Atelier Puricelli und im stimmungsvollen Innenhof des Weingut Würtzberg wieder weihnachtlich.\n An zwei Wochenenden laden wir euch zu unserem Würtzberg WEINachtszauber ein. Freut euch auf kleine\, liebevoll geschmückte Hütten und Aussteller mit ihren Ständen im Außenbereich.\n Für eine gemütliche Adventszeit ist natürlich auch kulinarisch gesorgt: Euch erwarten herzhafte und süße Leckereien\, wärmender Glühwein und Glühpunsch sowie natürlich unsere Würtzberg-Weine .\n Auch für die kleinen Besucher gibt es etwas zu entdecken: Beim Kinderbasteln können sie kreativ werden\, während die Großen in entspannter Atmosphäre genießen\, stöbern und die Vorweihnachtszeit einläuten.\n Neu in diesem Jahr: Sonntags findet der WEINachtszauber nicht statt. Aussteller befinden sich im Außenbereich.\n Unser Tipp: Zieht euch schön warm an! Ein großer Teil unseres WEINachtszaubers findet draußen statt – mit warmen Jacken\, Mützen und Schals lässt es sich bei Glühwein und Lichterglanz gleich doppelt so gut aushalten.\n Kommt vorbei und verbringt mit uns ein paar genussvolle\, vorweihnachtliche Stunden am Würtzberg. Wir freuen uns auf euch!\n\n Autor: Weingut Würtzberg\nMehr Infos: https://serrig.orts.app/events/1f3fcc2b-fb39-4c01-b157-1dd0d42acefa
+URL:https://serrig.orts.app/events/1f3fcc2b-fb39-4c01-b157-1dd0d42acefa
+ATTACH;FMTTYPE=image/jpeg:https://cdn-io-hwemfka5facrcffz.z03.azurefd.net/endpoint/images/64173998-2231-4e7b-8983-36bac61cbdd0
+X-IMAGE-URL:https://cdn-io-hwemfka5facrcffz.z03.azurefd.net/endpoint/images/64173998-2231-4e7b-8983-36bac61cbdd0
+BEGIN:VALARM
+TRIGGER:-PT1H
+ACTION:DISPLAY
+DESCRIPTION:Würtzberg WEINachtszauber
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:ba6b5153-6b4b-3b3f-4449-595af81d926c@serrig.orts.app
+DTSTAMP:20261113T014156Z
+DTSTART;VALUE=DATE:20261128
+DTEND;VALUE=DATE:20261129
+SUMMARY:Feuerwehr Serrig: Hirschessen
+DESCRIPTION:Mehr Infos: https://serrig.orts.app/events/e0e7de33-1d7f-4e46-9820-34b4e92702dc
+URL:https://serrig.orts.app/events/e0e7de33-1d7f-4e46-9820-34b4e92702dc
+ATTACH;FMTTYPE=image/jpeg:https://cdn-io-hwemfka5facrcffz.z03.azurefd.net/endpoint/images/67f6abb2-8ec8-4793-becf-cbff95d129f1
+X-IMAGE-URL:https://cdn-io-hwemfka5facrcffz.z03.azurefd.net/endpoint/images/67f6abb2-8ec8-4793-becf-cbff95d129f1
+BEGIN:VALARM
+TRIGGER:-PT1H
+ACTION:DISPLAY
+DESCRIPTION:Feuerwehr Serrig: Hirschessen
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:a4a7f8dd-12d4-b881-57ac-dd81aac2fd50@serrig.orts.app
+DTSTAMP:20261113T014156Z
+DTSTART;TZID=Europe/Berlin:20261128T103000
+DTEND;TZID=Europe/Berlin:20261128T213000
+SUMMARY:Fahrt zum Weihnachtsmarkt nach Koblenz 
+LOCATION:Koblenz
+DESCRIPTION:Die Landfrauen Serrig laden herzlich zu einer stimmungsvollen Tagesfahrt auf den Koblenzer Weihnachtsmarkt ein. Die Fahrt startet um 10:30 Uhr in Serrig\, wobei eine weitere Zustiegsmöglichkeit in Saarburg besteht. Genießt gemeinsam einen gemütlichen Tag zwischen festlich beleuchteten Buden\, duftendem Glühwein und vorweihnachtlicher Atmosphäre. Detaillierte Informationen zum Ausflug erhaltet ihr nach eurer Anmeldung bequem per E-Mail.\n anmeldungen-lf@serrigverbindet.de\n Wir freuen uns auf eine schöne gemeinsame Fahrt! 🎄\nMehr Infos: https://serrig.orts.app/events/3a003733-0282-48eb-8906-5c4e82276416
+URL:https://serrig.orts.app/events/3a003733-0282-48eb-8906-5c4e82276416
+ATTACH;FMTTYPE=image/jpeg:https://cdn-io-hwemfka5facrcffz.z03.azurefd.net/endpoint/images/e1295379-f778-4474-9d66-4c079d91ff04
+X-IMAGE-URL:https://cdn-io-hwemfka5facrcffz.z03.azurefd.net/endpoint/images/e1295379-f778-4474-9d66-4c079d91ff04
+BEGIN:VALARM
+TRIGGER:-PT1H
+ACTION:DISPLAY
+DESCRIPTION:Fahrt zum Weihnachtsmarkt nach Koblenz 
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:62f3048a-4e71-baf3-d8b0-3ce5e9b3c42b@serrig.orts.app
+DTSTAMP:20261113T014156Z
+DTSTART;TZID=Europe/Berlin:20261128T160000
+DTEND;TZID=Europe/Berlin:20261128T220000
+SUMMARY:Würtzberg WEINachtszauber
+LOCATION:Weingut Würtzberg
+DESCRIPTION:Der Würtzberg WEINachtszauber findet dieses Jahr an zwei Wochenenden statt:\n • Freitag\, 20. November und Samstag\, 21. November von 16-22 Uhr\n\n• Freitag\, 27. November und Samstag\, 28. November von 16-22 Uhr\n\n Auch in diesem Jahr wird es rund um das Atelier Puricelli und im stimmungsvollen Innenhof des Weingut Würtzberg wieder weihnachtlich.\n An zwei Wochenenden laden wir euch zu unserem Würtzberg WEINachtszauber ein. Freut euch auf kleine\, liebevoll geschmückte Hütten und Aussteller mit ihren Ständen im Außenbereich.\n Für eine gemütliche Adventszeit ist natürlich auch kulinarisch gesorgt: Euch erwarten herzhafte und süße Leckereien\, wärmender Glühwein und Glühpunsch sowie natürlich unsere Würtzberg-Weine .\n Auch für die kleinen Besucher gibt es etwas zu entdecken: Beim Kinderbasteln können sie kreativ werden\, während die Großen in entspannter Atmosphäre genießen\, stöbern und die Vorweihnachtszeit einläuten.\n Neu in diesem Jahr: Sonntags findet der WEINachtszauber nicht statt. Aussteller befinden sich im Außenbereich.\n Unser Tipp: Zieht euch schön warm an! Ein großer Teil unseres WEINachtszaubers findet draußen statt – mit warmen Jacken\, Mützen und Schals lässt es sich bei Glühwein und Lichterglanz gleich doppelt so gut aushalten.\n Kommt vorbei und verbringt mit uns ein paar genussvolle\, vorweihnachtliche Stunden am Würtzberg. Wir freuen uns auf euch!\n\n Autor: Weingut Würtzberg\nMehr Infos: https://serrig.orts.app/events/1f3fcc2b-fb39-4c01-b157-1dd0d42acefa
+URL:https://serrig.orts.app/events/1f3fcc2b-fb39-4c01-b157-1dd0d42acefa
+ATTACH;FMTTYPE=image/jpeg:https://cdn-io-hwemfka5facrcffz.z03.azurefd.net/endpoint/images/64173998-2231-4e7b-8983-36bac61cbdd0
+X-IMAGE-URL:https://cdn-io-hwemfka5facrcffz.z03.azurefd.net/endpoint/images/64173998-2231-4e7b-8983-36bac61cbdd0
+BEGIN:VALARM
+TRIGGER:-PT1H
+ACTION:DISPLAY
+DESCRIPTION:Würtzberg WEINachtszauber
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:cd76d611-9290-45f5-358d-2b51a3ba2e4e@serrig.orts.app
+DTSTAMP:20261113T014156Z
+DTSTART;TZID=Europe/Berlin:20261128T190000
+DTEND;TZID=Europe/Berlin:20261128T200000
+SUMMARY:Galaabend des Serriger Clubs
+LOCATION:Verein für Freizeitgestaltung Serrig
+DESCRIPTION:GALAABEND IM SERRIGER CLUB 🥂✨\n Schmeißt euch in Schale und erlebt mit uns einen glamourösen Abend! 👗🤵‍♂️🍾\n • 👑 Mr. & Mrs. Gala 🎁 Schätzspiel – Mitmachen und gewinnen!\n\n• 📅 28.11.2026\n\n• 🕖 Start: 19 Uhr\n\n• 🔞 Einlass ab 16 Jahren\n\n ✨ Schnappt euch eure Freunde\, zieht euch schick an und feiert mit uns! 🥂\n Wir freuen uns auf euch! ✨\n\n Autorin: Bettina Blau\n(Ende offen / geschätzt)\nMehr Infos: https://serrig.orts.app/events/1e57fde9-67d9-426b-b7ac-77738a692f2c
+URL:https://serrig.orts.app/events/1e57fde9-67d9-426b-b7ac-77738a692f2c
+ATTACH;FMTTYPE=image/jpeg:https://cdn-io-hwemfka5facrcffz.z03.azurefd.net/endpoint/images/fa494d93-66f1-4971-aade-022763b8d86a
+X-IMAGE-URL:https://cdn-io-hwemfka5facrcffz.z03.azurefd.net/endpoint/images/fa494d93-66f1-4971-aade-022763b8d86a
+BEGIN:VALARM
+TRIGGER:-PT1H
+ACTION:DISPLAY
+DESCRIPTION:Galaabend des Serriger Clubs
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:91328c42-be0b-6692-dbaa-f2f000ca4312@serrig.orts.app
+DTSTAMP:20261113T014156Z
+DTSTART;TZID=Europe/Berlin:20261129T160000
+DTEND;TZID=Europe/Berlin:20261129T170000
+SUMMARY:Adventsfeier auf dem Petersplatz
+LOCATION:Petersplatz Serrig
+DESCRIPTION:Der Ortsgemeinderat und die Mitarbeiter des Bauhofs stehen schon in den Startlöchern\, um für alle Bürgerinnen und Bürgern eine kleine Feier am ersten Advent auf dem Petersplatz vorzubereiten.\n Bei Glühwein\, Waffeln\, Würstchen und Weihnachtsmusik wollen wir mit euch ein paar schöne Momente auf dem weihnachtlich geschmückten Petersplatz verbringen.\n Merkt euch schon mal den Termin vor. Mehr Infos folgen hier in der DorfApp.\n(Ende offen / geschätzt)\nMehr Infos: https://serrig.orts.app/events/782fed6b-17d1-4d38-ab6e-1451b9ad56d1
+URL:https://serrig.orts.app/events/782fed6b-17d1-4d38-ab6e-1451b9ad56d1
+ATTACH;FMTTYPE=image/jpeg:https://cdn-io-hwemfka5facrcffz.z03.azurefd.net/endpoint/images/d6cd8e8c-554a-4775-8c0e-4e67f94f1181
+X-IMAGE-URL:https://cdn-io-hwemfka5facrcffz.z03.azurefd.net/endpoint/images/d6cd8e8c-554a-4775-8c0e-4e67f94f1181
+BEGIN:VALARM
+TRIGGER:-PT1H
+ACTION:DISPLAY
+DESCRIPTION:Adventsfeier auf dem Petersplatz
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:c0da4272-e348-cc29-8c13-0ee9b236c28a@serrig.orts.app
+DTSTAMP:20261113T014156Z
+DTSTART;TZID=Europe/Berlin:20261202T190000
+DTEND;TZID=Europe/Berlin:20261202T200000
+SUMMARY:VdK Ortsverband: Mittwochstreff
+LOCATION:Pfarrsaal - Hauptstrasse 62 - 54455 Serrig
+DESCRIPTION:Mehr Infos: https://serrig.orts.app/events/fa4fc78a-30e4-44b5-8137-820ff711287c
+URL:https://serrig.orts.app/events/fa4fc78a-30e4-44b5-8137-820ff711287c
+ATTACH;FMTTYPE=image/jpeg:https://cdn-io-hwemfka5facrcffz.z03.azurefd.net/endpoint/images/38a35bc5-d60a-48fb-b8a0-67169a710b67
+X-IMAGE-URL:https://cdn-io-hwemfka5facrcffz.z03.azurefd.net/endpoint/images/38a35bc5-d60a-48fb-b8a0-67169a710b67
+BEGIN:VALARM
+TRIGGER:-PT1H
+ACTION:DISPLAY
+DESCRIPTION:VdK Ortsverband: Mittwochstreff
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:daa96190-a1b9-91f3-10a9-c9a8eecebbe9@serrig.orts.app
+DTSTAMP:20261113T014156Z
+DTSTART;TZID=Europe/Berlin:20261203T160000
+DTEND;TZID=Europe/Berlin:20261203T180000
+SUMMARY:Küchenzeit für Kinder
+LOCATION:Vereinsforum 
+DESCRIPTION:🎄🍪 Küchenzeit für Kinder – Plätzchenliebe bei den LandFrauen Serrig! 🍪🎄\n Mehl an den Händen\, Plätzchenduft in der Luft und jede Menge Vorfreude auf Weihnachten! ✨\n Wir laden alle kleinen Bäckerinnen und Bäcker ab dem Vorschulalter herzlich zu einem gemütlichen Adventsbacken ein. Gemeinsam mit Ernährungsberaterin Christin Wagner rollen wir den Teig aus\, stechen lustige Weihnachtsmotive aus und verzieren unsere Plätzchen mit bunten Streuseln und Zuckerguss. ⭐🎅\n\n Ein Nachmittag voller Kreativität\, Weihnachtsfreude und leckerer Naschereien wartet auf euch! ❤️\n\n 📅 Donnerstag\, 03. Dezember 2026\n ⏰ 16:00–18:00 Uhr\n 📍 Vereinsforum am Tennisplatz Serrig\n 📩 Verbindliche Anmeldung:\n anmeldungen-lf@serrigverbindet.de\n 📞 Fragen? 06581 / 8272040\n 💶 Die Lebensmittelkosten werden auf die Teilnehmenden umgelegt.\n ℹ️ Weitere Informationen erhaltet ihr nach der Anmeldung per E-Mail.\n Wir freuen uns auf viele kleine Backkünstler und einen duftenden Adventsnachmittag! 🎄💚\n Eure LandFrauen Serrig\nMehr Infos: https://serrig.orts.app/events/a639c3ec-3f58-452b-882a-25cfb59b8cd3
+URL:https://serrig.orts.app/events/a639c3ec-3f58-452b-882a-25cfb59b8cd3
+ATTACH;FMTTYPE=image/jpeg:https://cdn-io-hwemfka5facrcffz.z03.azurefd.net/endpoint/images/45d60885-133f-42b0-a489-f115b272e523
+X-IMAGE-URL:https://cdn-io-hwemfka5facrcffz.z03.azurefd.net/endpoint/images/45d60885-133f-42b0-a489-f115b272e523
+BEGIN:VALARM
+TRIGGER:-PT1H
+ACTION:DISPLAY
+DESCRIPTION:Küchenzeit für Kinder
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:840e57ab-6775-552f-8699-f342155f1f50@serrig.orts.app
+DTSTAMP:20261113T014156Z
+DTSTART;TZID=Europe/Berlin:20261204T060000
+DTEND;TZID=Europe/Berlin:20261204T110000
+SUMMARY:Abholung Restmüll
+DESCRIPTION:Hinweis zur Restmülltonne:\n Bitte beachten Sie\, dass der Deckel der Mülltonne geschlossen sein muss. Wenn ab und zu nicht alles in die Tonne passt\, verwenden Sie bitte amtliche Abfallsäcke. Die 70-Liter-Säcke bekommen Sie hier: http://www.art-trier.de/abfallsaecke\n Ist die Tonne regelmäßig zu klein\, kann der Hauseigentümer hier einen größeren Abfallbehälter beantragen: http://www.art-trier.de/antraege\n\n - Der Zweckverband Abfallwirtschaft Region Trier (A.R.T.) ist zuständig für die Abfallentsorgung in der Stadt Trier\, dem Landkreis Bernkastel-Wittlich\, dem Landkreis Vulkaneifel\, dem Eifelkreis Bitburg-Prüm und dem Landkreis Trier-Saarburg. -\nMehr Infos: https://serrig.orts.app/events/aacf3e1a-6fbd-4ab7-8ff8-f41b57cca658
+URL:https://serrig.orts.app/events/aacf3e1a-6fbd-4ab7-8ff8-f41b57cca658
+ATTACH;FMTTYPE=image/jpeg:https://cdn-io-hwemfka5facrcffz.z03.azurefd.net/endpoint/images/7062f991-c569-4a28-86ee-cacddd9a3b9a
+X-IMAGE-URL:https://cdn-io-hwemfka5facrcffz.z03.azurefd.net/endpoint/images/7062f991-c569-4a28-86ee-cacddd9a3b9a
+BEGIN:VALARM
+TRIGGER:-PT1H
+ACTION:DISPLAY
+DESCRIPTION:Abholung Restmüll
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:44ef7312-77bb-9362-fbff-e0cedc552fa9@serrig.orts.app
+DTSTAMP:20261113T014156Z
+DTSTART;VALUE=DATE:20261212
+DTEND;VALUE=DATE:20261213
+SUMMARY:Gaudete-Messe Musikverein
+LOCATION:Pfarrkirche St. Martin - Serrig
+DESCRIPTION:Mehr Infos: https://serrig.orts.app/events/b3973d89-26d4-4dff-bd48-d4685cea76bd
+URL:https://serrig.orts.app/events/b3973d89-26d4-4dff-bd48-d4685cea76bd
+ATTACH;FMTTYPE=image/jpeg:https://cdn-io-hwemfka5facrcffz.z03.azurefd.net/endpoint/images/6d8097af-13ae-4164-ad98-8607e617bc85
+X-IMAGE-URL:https://cdn-io-hwemfka5facrcffz.z03.azurefd.net/endpoint/images/6d8097af-13ae-4164-ad98-8607e617bc85
+BEGIN:VALARM
+TRIGGER:-PT1H
+ACTION:DISPLAY
+DESCRIPTION:Gaudete-Messe Musikverein
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:3880fd95-89f9-e850-adbb-6f6cd9055888@serrig.orts.app
+DTSTAMP:20261113T014156Z
+DTSTART;TZID=Europe/Berlin:20261216T190000
+DTEND;TZID=Europe/Berlin:20261216T200000
+SUMMARY:Ortsgemeinderatssitzung
+LOCATION:Bürgersaal - Martinusstraße 27 – Serrig
+DESCRIPTION:Die Sitzungen des Ortsgemeinderats sind anfangs öffentlich und bieten allen Bürgerinnen und Bürgern die Möglichkeit\, sich über aktuelle Themen\, Projekte und Entscheidungen in unserer Gemeinde zu informieren. Wir laden Sie herzlich ein\, teilzunehmen\, sich einzubringen und die Entwicklung unseres Dorfes aktiv mitzugestalten.\nMehr Infos: https://serrig.orts.app/events/07054271-35a7-417b-94d6-0ddde6441040
+URL:https://serrig.orts.app/events/07054271-35a7-417b-94d6-0ddde6441040
+ATTACH;FMTTYPE=image/jpeg:https://cdn-io-hwemfka5facrcffz.z03.azurefd.net/endpoint/images/40758c1e-708c-4469-9463-4a7ec007d601
+X-IMAGE-URL:https://cdn-io-hwemfka5facrcffz.z03.azurefd.net/endpoint/images/40758c1e-708c-4469-9463-4a7ec007d601
+BEGIN:VALARM
+TRIGGER:-PT1H
+ACTION:DISPLAY
+DESCRIPTION:Ortsgemeinderatssitzung
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:659c2946-4add-23ad-2954-9205ab566a20@serrig.orts.app
+DTSTAMP:20261113T014156Z
+DTSTART;TZID=Europe/Berlin:20261218T060000
+DTEND;TZID=Europe/Berlin:20261218T110000
+SUMMARY:Abholung Restmüll
+DESCRIPTION:Hinweis zur Restmülltonne:\n Bitte beachten Sie\, dass der Deckel der Mülltonne geschlossen sein muss. Wenn ab und zu nicht alles in die Tonne passt\, verwenden Sie bitte amtliche Abfallsäcke. Die 70-Liter-Säcke bekommen Sie hier: http://www.art-trier.de/abfallsaecke\n Ist die Tonne regelmäßig zu klein\, kann der Hauseigentümer hier einen größeren Abfallbehälter beantragen: http://www.art-trier.de/antraege\n\n - Der Zweckverband Abfallwirtschaft Region Trier (A.R.T.) ist zuständig für die Abfallentsorgung in der Stadt Trier\, dem Landkreis Bernkastel-Wittlich\, dem Landkreis Vulkaneifel\, dem Eifelkreis Bitburg-Prüm und dem Landkreis Trier-Saarburg. -\nMehr Infos: https://serrig.orts.app/events/6ba0b2d7-819e-42e6-b74a-9d37243d579a
+URL:https://serrig.orts.app/events/6ba0b2d7-819e-42e6-b74a-9d37243d579a
+ATTACH;FMTTYPE=image/jpeg:https://cdn-io-hwemfka5facrcffz.z03.azurefd.net/endpoint/images/7062f991-c569-4a28-86ee-cacddd9a3b9a
+X-IMAGE-URL:https://cdn-io-hwemfka5facrcffz.z03.azurefd.net/endpoint/images/7062f991-c569-4a28-86ee-cacddd9a3b9a
+BEGIN:VALARM
+TRIGGER:-PT1H
+ACTION:DISPLAY
+DESCRIPTION:Abholung Restmüll
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:84e4d13a-7f1d-fb68-dd95-cece244d2586@serrig.orts.app
+DTSTAMP:20261113T014156Z
+DTSTART;TZID=Europe/Berlin:20261223T060000
+DTEND;TZID=Europe/Berlin:20261223T110000
+SUMMARY:Abholung Altpapier & Gelber Sack
+DESCRIPTION:Hinweis Altpapier & Gelber Sack:\n Bitte die Blaue Tonne und Gelben Säcke (frühestens) am Abend vorher rausstellen und beachten\, dass der Deckel der Blauen Tonne geschlossen sein muss und nichts zusätzlich bereitgestellt werden darf.\n In die Gelben Säcke gehören nur gebrauchte\, restentleerte Verkaufsverpackungen.\n\n - Der Zweckverband Abfallwirtschaft Region Trier (A.R.T.) ist zuständig für die Abfallentsorgung in der Stadt Trier\, dem Landkreis Bernkastel-Wittlich\, dem Landkreis Vulkaneifel\, dem Eifelkreis Bitburg-Prüm und dem Landkreis Trier-Saarburg. -\nMehr Infos: https://serrig.orts.app/events/b8bd32fc-11c3-4273-aadf-0845c459c642
+URL:https://serrig.orts.app/events/b8bd32fc-11c3-4273-aadf-0845c459c642
+ATTACH;FMTTYPE=image/jpeg:https://cdn-io-hwemfka5facrcffz.z03.azurefd.net/endpoint/images/f5199f1a-5641-4f09-ac02-abbad55cdddb
+X-IMAGE-URL:https://cdn-io-hwemfka5facrcffz.z03.azurefd.net/endpoint/images/f5199f1a-5641-4f09-ac02-abbad55cdddb
+BEGIN:VALARM
+TRIGGER:-PT1H
+ACTION:DISPLAY
+DESCRIPTION:Abholung Altpapier & Gelber Sack
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:2ddfcdf9-9a13-0982-94cf-ee66453bdbb5@serrig.orts.app
+DTSTAMP:20261113T014156Z
+DTSTART;TZID=Europe/Berlin:20270120T190000
+DTEND;TZID=Europe/Berlin:20270120T200000
+SUMMARY:Ortsgemeinderatssitzung
+LOCATION:Bürgersaal - Martinusstraße 27 – Serrig
+DESCRIPTION:Die Sitzungen des Ortsgemeinderats sind anfangs öffentlich und bieten allen Bürgerinnen und Bürgern die Möglichkeit\, sich über aktuelle Themen\, Projekte und Entscheidungen in unserer Gemeinde zu informieren. Wir laden Sie herzlich ein\, teilzunehmen\, sich einzubringen und die Entwicklung unseres Dorfes aktiv mitzugestalten.\n(Ende offen / geschätzt)\nMehr Infos: https://serrig.orts.app/events/1f47b12c-a9ee-4d5f-a031-85741149af5f
+URL:https://serrig.orts.app/events/1f47b12c-a9ee-4d5f-a031-85741149af5f
+ATTACH;FMTTYPE=image/jpeg:https://cdn-io-hwemfka5facrcffz.z03.azurefd.net/endpoint/images/40758c1e-708c-4469-9463-4a7ec007d601
+X-IMAGE-URL:https://cdn-io-hwemfka5facrcffz.z03.azurefd.net/endpoint/images/40758c1e-708c-4469-9463-4a7ec007d601
+BEGIN:VALARM
+TRIGGER:-PT1H
+ACTION:DISPLAY
+DESCRIPTION:Ortsgemeinderatssitzung
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:c2032028-203b-2106-c821-790b382694f9@serrig.orts.app
+DTSTAMP:20261113T014156Z
+DTSTART;TZID=Europe/Berlin:20270310T190000
+DTEND;TZID=Europe/Berlin:20270310T200000
+SUMMARY:Ortsgemeinderatssitzung
+LOCATION:Bürgersaal - Martinusstraße 27 – Serrig
+DESCRIPTION:Die Sitzungen des Ortsgemeinderats sind anfangs öffentlich und bieten allen Bürgerinnen und Bürgern die Möglichkeit\, sich über aktuelle Themen\, Projekte und Entscheidungen in unserer Gemeinde zu informieren. Wir laden Sie herzlich ein\, teilzunehmen\, sich einzubringen und die Entwicklung unseres Dorfes aktiv mitzugestalten.\n(Ende offen / geschätzt)\nMehr Infos: https://serrig.orts.app/events/f9c78069-b8fe-40a4-81f2-b377b7649c1e
+URL:https://serrig.orts.app/events/f9c78069-b8fe-40a4-81f2-b377b7649c1e
+ATTACH;FMTTYPE=image/jpeg:https://cdn-io-hwemfka5facrcffz.z03.azurefd.net/endpoint/images/40758c1e-708c-4469-9463-4a7ec007d601
+X-IMAGE-URL:https://cdn-io-hwemfka5facrcffz.z03.azurefd.net/endpoint/images/40758c1e-708c-4469-9463-4a7ec007d601
+BEGIN:VALARM
+TRIGGER:-PT1H
+ACTION:DISPLAY
+DESCRIPTION:Ortsgemeinderatssitzung
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:66900b32-ea5d-56f1-0d07-60612962e4fe@serrig.orts.app
+DTSTAMP:20261113T014156Z
+DTSTART;TZID=Europe/Berlin:20270421T190000
+DTEND;TZID=Europe/Berlin:20270421T200000
+SUMMARY:Ortsgemeinderatssitzung
+LOCATION:Bürgersaal - Martinusstraße 27 – Serrig
+DESCRIPTION:Die Sitzungen des Ortsgemeinderats sind anfangs öffentlich und bieten allen Bürgerinnen und Bürgern die Möglichkeit\, sich über aktuelle Themen\, Projekte und Entscheidungen in unserer Gemeinde zu informieren. Wir laden Sie herzlich ein\, teilzunehmen\, sich einzubringen und die Entwicklung unseres Dorfes aktiv mitzugestalten.\n(Ende offen / geschätzt)\nMehr Infos: https://serrig.orts.app/events/74717fbf-77be-4d5c-ac9c-ad12c8fa1282
+URL:https://serrig.orts.app/events/74717fbf-77be-4d5c-ac9c-ad12c8fa1282
+ATTACH;FMTTYPE=image/jpeg:https://cdn-io-hwemfka5facrcffz.z03.azurefd.net/endpoint/images/40758c1e-708c-4469-9463-4a7ec007d601
+X-IMAGE-URL:https://cdn-io-hwemfka5facrcffz.z03.azurefd.net/endpoint/images/40758c1e-708c-4469-9463-4a7ec007d601
+BEGIN:VALARM
+TRIGGER:-PT1H
+ACTION:DISPLAY
+DESCRIPTION:Ortsgemeinderatssitzung
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:3eeb0b46-c0ba-e7a5-c9f7-18f3a31333b7@serrig.orts.app
+DTSTAMP:20261113T014156Z
+DTSTART;TZID=Europe/Berlin:20270616T190000
+DTEND;TZID=Europe/Berlin:20270616T200000
+SUMMARY:Ortsgemeinderatssitzung
+LOCATION:Bürgersaal - Martinusstraße 27 – Serrig
+DESCRIPTION:Die Sitzungen des Ortsgemeinderats sind anfangs öffentlich und bieten allen Bürgerinnen und Bürgern die Möglichkeit\, sich über aktuelle Themen\, Projekte und Entscheidungen in unserer Gemeinde zu informieren. Wir laden Sie herzlich ein\, teilzunehmen\, sich einzubringen und die Entwicklung unseres Dorfes aktiv mitzugestalten.\n(Ende offen / geschätzt)\nMehr Infos: https://serrig.orts.app/events/0750c9c2-5584-4952-b45a-3d7399c9e3e3
+URL:https://serrig.orts.app/events/0750c9c2-5584-4952-b45a-3d7399c9e3e3
+ATTACH;FMTTYPE=image/jpeg:https://cdn-io-hwemfka5facrcffz.z03.azurefd.net/endpoint/images/40758c1e-708c-4469-9463-4a7ec007d601
+X-IMAGE-URL:https://cdn-io-hwemfka5facrcffz.z03.azurefd.net/endpoint/images/40758c1e-708c-4469-9463-4a7ec007d601
+BEGIN:VALARM
+TRIGGER:-PT1H
+ACTION:DISPLAY
+DESCRIPTION:Ortsgemeinderatssitzung
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:6a3373ad-d1de-21c4-a6c6-3ef84f9296d5@serrig.orts.app
+DTSTAMP:20261113T014156Z
+DTSTART;TZID=Europe/Berlin:20270818T190000
+DTEND;TZID=Europe/Berlin:20270818T200000
+SUMMARY:Ortsgemeinderatssitzung
+LOCATION:Bürgersaal - Martinusstraße 27 – Serrig
+DESCRIPTION:Die Sitzungen des Ortsgemeinderats sind anfangs öffentlich und bieten allen Bürgerinnen und Bürgern die Möglichkeit\, sich über aktuelle Themen\, Projekte und Entscheidungen in unserer Gemeinde zu informieren. Wir laden Sie herzlich ein\, teilzunehmen\, sich einzubringen und die Entwicklung unseres Dorfes aktiv mitzugestalten.\n(Ende offen / geschätzt)\nMehr Infos: https://serrig.orts.app/events/c8e16df6-6d0b-4ffc-9b62-887e4f8cb529
+URL:https://serrig.orts.app/events/c8e16df6-6d0b-4ffc-9b62-887e4f8cb529
+ATTACH;FMTTYPE=image/jpeg:https://cdn-io-hwemfka5facrcffz.z03.azurefd.net/endpoint/images/40758c1e-708c-4469-9463-4a7ec007d601
+X-IMAGE-URL:https://cdn-io-hwemfka5facrcffz.z03.azurefd.net/endpoint/images/40758c1e-708c-4469-9463-4a7ec007d601
+BEGIN:VALARM
+TRIGGER:-PT1H
+ACTION:DISPLAY
+DESCRIPTION:Ortsgemeinderatssitzung
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:417791a8-d6fc-22c8-e80a-d901e29ee078@serrig.orts.app
+DTSTAMP:20261113T014156Z
+DTSTART;TZID=Europe/Berlin:20271020T190000
+DTEND;TZID=Europe/Berlin:20271020T200000
+SUMMARY:Ortsgemeinderatssitzung
+LOCATION:Bürgersaal - Martinusstraße 27 – Serrig
+DESCRIPTION:Die Sitzungen des Ortsgemeinderats sind anfangs öffentlich und bieten allen Bürgerinnen und Bürgern die Möglichkeit\, sich über aktuelle Themen\, Projekte und Entscheidungen in unserer Gemeinde zu informieren. Wir laden Sie herzlich ein\, teilzunehmen\, sich einzubringen und die Entwicklung unseres Dorfes aktiv mitzugestalten.\n(Ende offen / geschätzt)\nMehr Infos: https://serrig.orts.app/events/c5f2a6a5-d4b0-4240-81e8-95aa78057ac0
+URL:https://serrig.orts.app/events/c5f2a6a5-d4b0-4240-81e8-95aa78057ac0
+ATTACH;FMTTYPE=image/jpeg:https://cdn-io-hwemfka5facrcffz.z03.azurefd.net/endpoint/images/40758c1e-708c-4469-9463-4a7ec007d601
+X-IMAGE-URL:https://cdn-io-hwemfka5facrcffz.z03.azurefd.net/endpoint/images/40758c1e-708c-4469-9463-4a7ec007d601
+BEGIN:VALARM
+TRIGGER:-PT1H
+ACTION:DISPLAY
+DESCRIPTION:Ortsgemeinderatssitzung
+END:VALARM
+END:VEVENT
+END:VCALENDAR
