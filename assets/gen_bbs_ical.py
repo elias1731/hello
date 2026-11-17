@@ -26,7 +26,7 @@ DAYS_FORWARD = 21
 TZ = ZoneInfo("Europe/Berlin")
 
 SUBJECT_MAP = {
-    "BBU_Fahr": "Fahrzeugtechnik",
+    "BBU_Fahr": "Fachunterricht (BBU)",
     "ReEt": "Ethik",
 }
 
