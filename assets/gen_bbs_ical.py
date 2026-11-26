@@ -216,6 +216,44 @@ def build_ics(days: list, details: dict) -> str:
     ]
 
     for day in days:
+        # check if any non-cancelled lesson starts after 13:00
+        has_afternoon = False
+        day_date = None
+        for entry in day.get("gridEntries") or []:
+            start = entry["duration"]["start"]
+            end = entry["duration"]["end"]
+            detail = details.get((start, end))
+            if day_date is None and "T" in start:
+                day_date = start.split("T")[0]
+            try:
+                start_hour = int(start.split("T")[1][:2])
+            except (IndexError, ValueError):
+                continue
+            if start_hour >= 13 and not is_cancelled(entry, detail):
+                has_afternoon = True
+                break
+
+        if has_afternoon and day_date:
+            lunch_start = f"{day_date}T13:00"
+            lunch_end = f"{day_date}T13:45"
+            uid = str(
+                uuid.uuid5(
+                    uuid.NAMESPACE_URL,
+                    f"{lunch_start}-{lunch_end}-Mittagspause",
+                )
+            )
+            lines += [
+                "BEGIN:VEVENT",
+                f"UID:{uid}",
+                f"DTSTAMP:{now}",
+                f"DTSTART;TZID=Europe/Berlin:{format_dt(lunch_start)}",
+                f"DTEND;TZID=Europe/Berlin:{format_dt(lunch_end)}",
+                f"SUMMARY:{_escape('Mittagspause')}",
+                f"LOCATION:",
+                f"DESCRIPTION:",
+                "END:VEVENT",
+            ]
+
         for entry in day.get("gridEntries") or []:
             start = entry["duration"]["start"]
             end = entry["duration"]["end"]
