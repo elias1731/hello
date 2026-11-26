@@ -23,6 +23,9 @@ BASE = f"https://{SCHOOL}.webuntis.com"
 DAYS_BACK = 28
 DAYS_FORWARD = 21
 
+# True = Pausen-Einträge (1./2. Pause + Mittagspause) erzeugen, False = deaktivieren
+PAUSE_ENTRIES = True
+
 TZ = ZoneInfo("Europe/Berlin")
 
 SUBJECT_MAP = {
@@ -216,45 +219,115 @@ def build_ics(days: list, details: dict) -> str:
     ]
 
     for day in days:
-        # check if any non-cancelled lesson starts after 13:00
-        has_afternoon = False
         day_date = None
-        for entry in day.get("gridEntries") or []:
+        entries = day.get("gridEntries") or []
+
+        # Collect non-cancelled time slots for this day (for pause checks)
+        active_slots = []  # list of (start_iso, end_iso, cancelled)
+        for entry in entries:
             start = entry["duration"]["start"]
             end = entry["duration"]["end"]
             detail = details.get((start, end))
             if day_date is None and "T" in start:
                 day_date = start.split("T")[0]
-            try:
-                start_hour = int(start.split("T")[1][:2])
-            except (IndexError, ValueError):
-                continue
-            if start_hour >= 13 and not is_cancelled(entry, detail):
-                has_afternoon = True
-                break
+            cancelled = is_cancelled(entry, detail)
+            active_slots.append((start, end, cancelled))
 
-        if has_afternoon and day_date:
-            lunch_start = f"{day_date}T13:00"
-            lunch_end = f"{day_date}T13:45"
-            uid = str(
-                uuid.uuid5(
-                    uuid.NAMESPACE_URL,
-                    f"{lunch_start}-{lunch_end}-Mittagspause",
+        def time_part(iso: str) -> str:
+            """Return HH:MM from an ISO datetime string."""
+            if "T" in iso:
+                return iso.split("T")[1][:5]
+            return iso[:5]
+
+        def has_active_around(pause_start: str, pause_end: str) -> bool:
+            """True if there is a non-cancelled lesson ending at pause_start
+            and another non-cancelled lesson starting at pause_end."""
+            before_ok = False
+            after_ok = False
+            ps = time_part(pause_start)
+            pe = time_part(pause_end)
+            for s, e, canc in active_slots:
+                if canc:
+                    continue
+                if time_part(e) == ps:
+                    before_ok = True
+                if time_part(s) == pe:
+                    after_ok = True
+            return before_ok and after_ok
+
+        if PAUSE_ENTRIES and day_date:
+            # 1. Pause 09:30–09:45
+            p1_start = f"{day_date}T09:30"
+            p1_end = f"{day_date}T09:45"
+            if has_active_around(p1_start, p1_end):
+                uid = str(
+                    uuid.uuid5(
+                        uuid.NAMESPACE_URL,
+                        f"{p1_start}-{p1_end}-1./2. Pause",
+                    )
                 )
-            )
-            lines += [
-                "BEGIN:VEVENT",
-                f"UID:{uid}",
-                f"DTSTAMP:{now}",
-                f"DTSTART;TZID=Europe/Berlin:{format_dt(lunch_start)}",
-                f"DTEND;TZID=Europe/Berlin:{format_dt(lunch_end)}",
-                f"SUMMARY:{_escape('Mittagspause')}",
-                f"LOCATION:",
-                f"DESCRIPTION:",
-                "END:VEVENT",
-            ]
+                lines += [
+                    "BEGIN:VEVENT",
+                    f"UID:{uid}",
+                    f"DTSTAMP:{now}",
+                    f"DTSTART;TZID=Europe/Berlin:{format_dt(p1_start)}",
+                    f"DTEND;TZID=Europe/Berlin:{format_dt(p1_end)}",
+                    f"SUMMARY:{_escape('1./2. Pause')}",
+                    "LOCATION:",
+                    "DESCRIPTION:",
+                    "END:VEVENT",
+                ]
 
-        for entry in day.get("gridEntries") or []:
+            # 2. Pause 11:15–11:30
+            p2_start = f"{day_date}T11:15"
+            p2_end = f"{day_date}T11:30"
+            if has_active_around(p2_start, p2_end):
+                uid = str(
+                    uuid.uuid5(
+                        uuid.NAMESPACE_URL,
+                        f"{p2_start}-{p2_end}-1./2. Pause",
+                    )
+                )
+                lines += [
+                    "BEGIN:VEVENT",
+                    f"UID:{uid}",
+                    f"DTSTAMP:{now}",
+                    f"DTSTART;TZID=Europe/Berlin:{format_dt(p2_start)}",
+                    f"DTEND;TZID=Europe/Berlin:{format_dt(p2_end)}",
+                    f"SUMMARY:{_escape('1./2. Pause')}",
+                    "LOCATION:",
+                    "DESCRIPTION:",
+                    "END:VEVENT",
+                ]
+
+            # Mittagspause 13:00–13:45 (nur wenn Nachmittagsunterricht stattfindet)
+            has_afternoon = any(
+                (not canc) and int(s.split("T")[1][:2]) >= 13
+                for s, e, canc in active_slots
+                if "T" in s
+            )
+            if has_afternoon:
+                lunch_start = f"{day_date}T13:00"
+                lunch_end = f"{day_date}T13:45"
+                uid = str(
+                    uuid.uuid5(
+                        uuid.NAMESPACE_URL,
+                        f"{lunch_start}-{lunch_end}-Mittagspause",
+                    )
+                )
+                lines += [
+                    "BEGIN:VEVENT",
+                    f"UID:{uid}",
+                    f"DTSTAMP:{now}",
+                    f"DTSTART;TZID=Europe/Berlin:{format_dt(lunch_start)}",
+                    f"DTEND;TZID=Europe/Berlin:{format_dt(lunch_end)}",
+                    f"SUMMARY:{_escape('Mittagspause')}",
+                    "LOCATION:",
+                    "DESCRIPTION:",
+                    "END:VEVENT",
+                ]
+
+        for entry in entries:
             start = entry["duration"]["start"]
             end = entry["duration"]["end"]
             detail = details.get((start, end))
@@ -287,6 +360,12 @@ def build_ics(days: list, details: dict) -> str:
             subject = SUBJECT_MAP.get(subject_raw, subject_raw)
             cancelled = is_cancelled(entry, detail)
             exam = is_exam(entry, detail)
+
+            # Ethik: Ende 15:15 → 15:00 überschreiben
+            if subject == "Ethik" and time_part(end) == "15:15":
+                # ersetze nur den Zeitteil
+                date_part = end.split("T")[0]
+                end = f"{date_part}T15:00"
 
             # title
             if cancelled:
