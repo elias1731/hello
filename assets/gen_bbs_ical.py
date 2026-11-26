@@ -23,7 +23,7 @@ BASE = f"https://{SCHOOL}.webuntis.com"
 DAYS_BACK = 28
 DAYS_FORWARD = 21
 
-# True = Pausen-Einträge (1./2. Pause + Mittagspause) erzeugen, False = deaktivieren
+# True = Pausen-Einträge (1. Pause, 2. Pause + Mittagspause) erzeugen, False = deaktivieren
 PAUSE_ENTRIES = True
 
 TZ = ZoneInfo("Europe/Berlin")
@@ -263,7 +263,7 @@ def build_ics(days: list, details: dict) -> str:
                 uid = str(
                     uuid.uuid5(
                         uuid.NAMESPACE_URL,
-                        f"{p1_start}-{p1_end}-1./2. Pause",
+                        f"{p1_start}-{p1_end}-1. Pause",
                     )
                 )
                 lines += [
@@ -272,7 +272,7 @@ def build_ics(days: list, details: dict) -> str:
                     f"DTSTAMP:{now}",
                     f"DTSTART;TZID=Europe/Berlin:{format_dt(p1_start)}",
                     f"DTEND;TZID=Europe/Berlin:{format_dt(p1_end)}",
-                    f"SUMMARY:{_escape('1./2. Pause')}",
+                    f"SUMMARY:{_escape('1. Pause')}",
                     "LOCATION:",
                     "DESCRIPTION:",
                     "END:VEVENT",
@@ -285,7 +285,7 @@ def build_ics(days: list, details: dict) -> str:
                 uid = str(
                     uuid.uuid5(
                         uuid.NAMESPACE_URL,
-                        f"{p2_start}-{p2_end}-1./2. Pause",
+                        f"{p2_start}-{p2_end}-2. Pause",
                     )
                 )
                 lines += [
@@ -294,7 +294,7 @@ def build_ics(days: list, details: dict) -> str:
                     f"DTSTAMP:{now}",
                     f"DTSTART;TZID=Europe/Berlin:{format_dt(p2_start)}",
                     f"DTEND;TZID=Europe/Berlin:{format_dt(p2_end)}",
-                    f"SUMMARY:{_escape('1./2. Pause')}",
+                    f"SUMMARY:{_escape('2. Pause')}",
                     "LOCATION:",
                     "DESCRIPTION:",
                     "END:VEVENT",
