@@ -23,25 +23,8 @@ RRULE:FREQ=YEARLY;BYMONTH=10;BYDAY=-1SU
 END:STANDARD
 END:VTIMEZONE
 BEGIN:VEVENT
-UID:88ccdf27-f710-026f-ffc9-7d37be8996a7@serrig.orts.app
-DTSTAMP:20261127T170849Z
-DTSTART;TZID=Europe/Berlin:20261127T160000
-DTEND;TZID=Europe/Berlin:20261127T220000
-SUMMARY:Würtzberg WEINachtszauber
-LOCATION:Weingut Würtzberg
-DESCRIPTION:Der Würtzberg WEINachtszauber findet dieses Jahr an zwei Wochenenden statt:\n • Freitag\, 20. November und Samstag\, 21. November von 16-22 Uhr\n\n• Freitag\, 27. November und Samstag\, 28. November von 16-22 Uhr\n\n Auch in diesem Jahr wird es rund um das Atelier Puricelli und im stimmungsvollen Innenhof des Weingut Würtzberg wieder weihnachtlich.\n An zwei Wochenenden laden wir euch zu unserem Würtzberg WEINachtszauber ein. Freut euch auf kleine\, liebevoll geschmückte Hütten und Aussteller mit ihren Ständen im Außenbereich.\n Für eine gemütliche Adventszeit ist natürlich auch kulinarisch gesorgt: Euch erwarten herzhafte und süße Leckereien\, wärmender Glühwein und Glühpunsch sowie natürlich unsere Würtzberg-Weine .\n Auch für die kleinen Besucher gibt es etwas zu entdecken: Beim Kinderbasteln können sie kreativ werden\, während die Großen in entspannter Atmosphäre genießen\, stöbern und die Vorweihnachtszeit einläuten.\n Neu in diesem Jahr: Sonntags findet der WEINachtszauber nicht statt. Aussteller befinden sich im Außenbereich.\n Unser Tipp: Zieht euch schön warm an! Ein großer Teil unseres WEINachtszaubers findet draußen statt – mit warmen Jacken\, Mützen und Schals lässt es sich bei Glühwein und Lichterglanz gleich doppelt so gut aushalten.\n Kommt vorbei und verbringt mit uns ein paar genussvolle\, vorweihnachtliche Stunden am Würtzberg. Wir freuen uns auf euch!\n\n Autor: Weingut Würtzberg\nMehr Infos: https://serrig.orts.app/events/1f3fcc2b-fb39-4c01-b157-1dd0d42acefa
-URL:https://serrig.orts.app/events/1f3fcc2b-fb39-4c01-b157-1dd0d42acefa
-ATTACH;FMTTYPE=image/jpeg:https://cdn-io-hwemfka5facrcffz.z03.azurefd.net/endpoint/images/64173998-2231-4e7b-8983-36bac61cbdd0
-X-IMAGE-URL:https://cdn-io-hwemfka5facrcffz.z03.azurefd.net/endpoint/images/64173998-2231-4e7b-8983-36bac61cbdd0
-BEGIN:VALARM
-TRIGGER:-PT1H
-ACTION:DISPLAY
-DESCRIPTION:Würtzberg WEINachtszauber
-END:VALARM
-END:VEVENT
-BEGIN:VEVENT
 UID:ba6b5153-6b4b-3b3f-4449-595af81d926c@serrig.orts.app
-DTSTAMP:20261127T170849Z
+DTSTAMP:20261128T005814Z
 DTSTART;VALUE=DATE:20261128
 DTEND;VALUE=DATE:20261129
 SUMMARY:Feuerwehr Serrig: Hirschessen
@@ -57,7 +40,7 @@ END:VALARM
 END:VEVENT
 BEGIN:VEVENT
 UID:a4a7f8dd-12d4-b881-57ac-dd81aac2fd50@serrig.orts.app
-DTSTAMP:20261127T170849Z
+DTSTAMP:20261128T005814Z
 DTSTART;TZID=Europe/Berlin:20261128T103000
 DTEND;TZID=Europe/Berlin:20261128T213000
 SUMMARY:Fahrt zum Weihnachtsmarkt nach Koblenz 
@@ -74,7 +57,7 @@ END:VALARM
 END:VEVENT
 BEGIN:VEVENT
 UID:62f3048a-4e71-baf3-d8b0-3ce5e9b3c42b@serrig.orts.app
-DTSTAMP:20261127T170849Z
+DTSTAMP:20261128T005814Z
 DTSTART;TZID=Europe/Berlin:20261128T160000
 DTEND;TZID=Europe/Berlin:20261128T220000
 SUMMARY:Würtzberg WEINachtszauber
@@ -91,7 +74,7 @@ END:VALARM
 END:VEVENT
 BEGIN:VEVENT
 UID:cd76d611-9290-45f5-358d-2b51a3ba2e4e@serrig.orts.app
-DTSTAMP:20261127T170849Z
+DTSTAMP:20261128T005814Z
 DTSTART;TZID=Europe/Berlin:20261128T190000
 DTEND;TZID=Europe/Berlin:20261128T200000
 SUMMARY:Galaabend des Serriger Clubs
@@ -108,7 +91,7 @@ END:VALARM
 END:VEVENT
 BEGIN:VEVENT
 UID:91328c42-be0b-6692-dbaa-f2f000ca4312@serrig.orts.app
-DTSTAMP:20261127T170849Z
+DTSTAMP:20261128T005814Z
 DTSTART;TZID=Europe/Berlin:20261129T160000
 DTEND;TZID=Europe/Berlin:20261129T170000
 SUMMARY:Adventsfeier auf dem Petersplatz
@@ -125,7 +108,7 @@ END:VALARM
 END:VEVENT
 BEGIN:VEVENT
 UID:daa96190-a1b9-91f3-10a9-c9a8eecebbe9@serrig.orts.app
-DTSTAMP:20261127T170849Z
+DTSTAMP:20261128T005814Z
 DTSTART;TZID=Europe/Berlin:20261203T160000
 DTEND;TZID=Europe/Berlin:20261203T180000
 SUMMARY:Küchenzeit für Kinder
@@ -142,7 +125,7 @@ END:VALARM
 END:VEVENT
 BEGIN:VEVENT
 UID:840e57ab-6775-552f-8699-f342155f1f50@serrig.orts.app
-DTSTAMP:20261127T170849Z
+DTSTAMP:20261128T005814Z
 DTSTART;TZID=Europe/Berlin:20261204T060000
 DTEND;TZID=Europe/Berlin:20261204T110000
 SUMMARY:Abholung Restmüll
@@ -158,7 +141,7 @@ END:VALARM
 END:VEVENT
 BEGIN:VEVENT
 UID:37c69f6a-e35a-00d7-7fcb-3a3d379ec39d@serrig.orts.app
-DTSTAMP:20261127T170849Z
+DTSTAMP:20261128T005814Z
 DTSTART;TZID=Europe/Berlin:20261207T150000
 DTEND;TZID=Europe/Berlin:20261207T170000
 SUMMARY:Oldies sind Goldies 
@@ -175,7 +158,7 @@ END:VALARM
 END:VEVENT
 BEGIN:VEVENT
 UID:44ef7312-77bb-9362-fbff-e0cedc552fa9@serrig.orts.app
-DTSTAMP:20261127T170849Z
+DTSTAMP:20261128T005814Z
 DTSTART;VALUE=DATE:20261212
 DTEND;VALUE=DATE:20261213
 SUMMARY:Gaudete-Messe Musikverein
@@ -192,7 +175,7 @@ END:VALARM
 END:VEVENT
 BEGIN:VEVENT
 UID:3880fd95-89f9-e850-adbb-6f6cd9055888@serrig.orts.app
-DTSTAMP:20261127T170849Z
+DTSTAMP:20261128T005814Z
 DTSTART;TZID=Europe/Berlin:20261216T190000
 DTEND;TZID=Europe/Berlin:20261216T200000
 SUMMARY:Ortsgemeinderatssitzung
@@ -209,7 +192,7 @@ END:VALARM
 END:VEVENT
 BEGIN:VEVENT
 UID:659c2946-4add-23ad-2954-9205ab566a20@serrig.orts.app
-DTSTAMP:20261127T170849Z
+DTSTAMP:20261128T005814Z
 DTSTART;TZID=Europe/Berlin:20261218T060000
 DTEND;TZID=Europe/Berlin:20261218T110000
 SUMMARY:Abholung Restmüll
@@ -225,7 +208,7 @@ END:VALARM
 END:VEVENT
 BEGIN:VEVENT
 UID:84e4d13a-7f1d-fb68-dd95-cece244d2586@serrig.orts.app
-DTSTAMP:20261127T170849Z
+DTSTAMP:20261128T005814Z
 DTSTART;TZID=Europe/Berlin:20261223T060000
 DTEND;TZID=Europe/Berlin:20261223T110000
 SUMMARY:Abholung Altpapier & Gelber Sack
@@ -241,7 +224,7 @@ END:VALARM
 END:VEVENT
 BEGIN:VEVENT
 UID:3919b57f-7bd1-9fc4-3f15-9e50042ccf03@serrig.orts.app
-DTSTAMP:20261127T170849Z
+DTSTAMP:20261128T005814Z
 DTSTART;TZID=Europe/Berlin:20270103T190000
 DTEND;TZID=Europe/Berlin:20270103T213000
 SUMMARY:Yoga -Adventsworkshop 
@@ -258,7 +241,7 @@ END:VALARM
 END:VEVENT
 BEGIN:VEVENT
 UID:2ddfcdf9-9a13-0982-94cf-ee66453bdbb5@serrig.orts.app
-DTSTAMP:20261127T170849Z
+DTSTAMP:20261128T005814Z
 DTSTART;TZID=Europe/Berlin:20270120T190000
 DTEND;TZID=Europe/Berlin:20270120T200000
 SUMMARY:Ortsgemeinderatssitzung
@@ -275,7 +258,7 @@ END:VALARM
 END:VEVENT
 BEGIN:VEVENT
 UID:c2032028-203b-2106-c821-790b382694f9@serrig.orts.app
-DTSTAMP:20261127T170849Z
+DTSTAMP:20261128T005814Z
 DTSTART;TZID=Europe/Berlin:20270310T190000
 DTEND;TZID=Europe/Berlin:20270310T200000
 SUMMARY:Ortsgemeinderatssitzung
@@ -292,7 +275,7 @@ END:VALARM
 END:VEVENT
 BEGIN:VEVENT
 UID:66900b32-ea5d-56f1-0d07-60612962e4fe@serrig.orts.app
-DTSTAMP:20261127T170849Z
+DTSTAMP:20261128T005814Z
 DTSTART;TZID=Europe/Berlin:20270421T190000
 DTEND;TZID=Europe/Berlin:20270421T200000
 SUMMARY:Ortsgemeinderatssitzung
@@ -309,7 +292,7 @@ END:VALARM
 END:VEVENT
 BEGIN:VEVENT
 UID:3eeb0b46-c0ba-e7a5-c9f7-18f3a31333b7@serrig.orts.app
-DTSTAMP:20261127T170849Z
+DTSTAMP:20261128T005814Z
 DTSTART;TZID=Europe/Berlin:20270616T190000
 DTEND;TZID=Europe/Berlin:20270616T200000
 SUMMARY:Ortsgemeinderatssitzung
@@ -326,7 +309,7 @@ END:VALARM
 END:VEVENT
 BEGIN:VEVENT
 UID:6a3373ad-d1de-21c4-a6c6-3ef84f9296d5@serrig.orts.app
-DTSTAMP:20261127T170849Z
+DTSTAMP:20261128T005814Z
 DTSTART;TZID=Europe/Berlin:20270818T190000
 DTEND;TZID=Europe/Berlin:20270818T200000
 SUMMARY:Ortsgemeinderatssitzung
@@ -343,7 +326,7 @@ END:VALARM
 END:VEVENT
 BEGIN:VEVENT
 UID:417791a8-d6fc-22c8-e80a-d901e29ee078@serrig.orts.app
-DTSTAMP:20261127T170849Z
+DTSTAMP:20261128T005814Z
 DTSTART;TZID=Europe/Berlin:20271020T190000
 DTEND;TZID=Europe/Berlin:20271020T200000
 SUMMARY:Ortsgemeinderatssitzung
